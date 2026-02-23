@@ -4,5 +4,21 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<key>UIAppFonts</key>
+	<array>
+		<string>Fraunces[SOFT,opsz,wght].ttf</string>
+		<string>Fraunces-Italic[SOFT,opsz,wght].ttf</string>
+		<string>PlusJakartaSans[wght].ttf</string>
+		<string>PlusJakartaSans-Italic[wght].ttf</string>
+	</array>
+	<key>UIUserInterfaceStyle</key>
+	<string>Light</string>
+	<key>UILaunchScreen</key>
+	<dict>
+		<key>UIColorName</key>
+		<string>LaunchBackground</string>
+		<key>UIImageName</key>
+		<string>LaunchLogo</string>
+	</dict>
 </dict>
 </plist>
