@@ -5,3 +5,6 @@ interface Platform {
 }
 
 expect fun getPlatform(): Platform
+
+/** True when running a debug build. Used to gate verbose logging. */
+expect val isDebug: Boolean

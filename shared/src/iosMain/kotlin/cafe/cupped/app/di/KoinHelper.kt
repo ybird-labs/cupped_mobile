@@ -1,0 +1,42 @@
+package cafe.cupped.app.di
+
+import cafe.cupped.app.isDebug
+import cafe.cupped.app.logging.NapierInit
+import cafe.cupped.app.navigation.PathConfigRouter
+import cafe.cupped.app.network.CuppedApiClient
+import kotlinx.cinterop.ExperimentalForeignApi
+import org.koin.core.context.startKoin
+import org.koin.mp.KoinPlatformTools
+import platform.Foundation.NSLock
+
+object KoinHelper {
+    private val lock = NSLock()
+
+    /**
+     * Initialize Koin + Napier. Idempotent and thread-safe — safe to call
+     * multiple times from any thread; only the first call takes effect.
+     * @param baseUrl The Phoenix server base URL. No default — callers must
+     *   supply the correct URL for the target environment.
+     */
+    fun initKoin(baseUrl: String) {
+        lock.lock()
+        try {
+            if (KoinPlatformTools.defaultContext().getOrNull() != null) return
+            if (isDebug) {
+                NapierInit.init()
+            }
+            startKoin {
+                modules(sharedModule(baseUrl), platformModule())
+            }
+        } finally {
+            lock.unlock()
+        }
+    }
+
+    // Typed factory methods — Swift cannot call generic koin.get<T>()
+    fun getCuppedApiClient(): CuppedApiClient =
+        KoinPlatformTools.defaultContext().get().get()
+
+    fun getPathConfigRouter(): PathConfigRouter =
+        KoinPlatformTools.defaultContext().get().get()
+}
