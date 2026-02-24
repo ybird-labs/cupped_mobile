@@ -9,9 +9,10 @@ import org.koin.mp.KoinPlatformTools
 object KoinHelper {
     /**
      * Initialize Koin + Napier. Idempotent — safe to call multiple times.
-     * @param baseUrl The Phoenix server base URL (e.g. "http://localhost:4000")
+     * @param baseUrl The Phoenix server base URL. No default — callers must
+     *   supply the correct URL for the target environment.
      */
-    fun initKoin(baseUrl: String = "http://localhost:4000") {
+    fun initKoin(baseUrl: String) {
         if (KoinPlatformTools.defaultContext().getOrNull() != null) return
         NapierInit.init()
         startKoin {
