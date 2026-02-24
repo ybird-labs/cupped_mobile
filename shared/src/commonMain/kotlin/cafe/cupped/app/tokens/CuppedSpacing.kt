@@ -1,4 +1,4 @@
-package cafe.cupped.app
+package cafe.cupped.app.tokens
 
 object CuppedSpacing {
     const val xs: Double = 4.0

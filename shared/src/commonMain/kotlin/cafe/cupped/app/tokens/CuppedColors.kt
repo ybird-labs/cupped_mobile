@@ -1,4 +1,4 @@
-package cafe.cupped.app
+package cafe.cupped.app.tokens
 
 object CuppedColors {
     // Surfaces
@@ -45,7 +45,7 @@ object CuppedColors {
     val berry = ColorToken(0xFFC23B5Eu)
     val roasted = ColorToken(0xFF4A3C31u)
 
-    // Flavor Notes — Accessible Backgrounds (WCAG AA ≥4.5:1 vs white)
+    // Flavor Notes — Accessible Backgrounds (WCAG AA >=4.5:1 vs white)
     val fruityAccessible = ColorToken(0xFFC04055u)
     val floralAccessible = ColorToken(0xFF8B3FD4u)
     val citrusAccessible = ColorToken(0xFFC07B30u)
