@@ -25,6 +25,9 @@ kotlin {
     }
     
     sourceSets {
+        all {
+            languageSettings.optIn("kotlinx.cinterop.ExperimentalForeignApi")
+        }
         androidMain.dependencies {
             implementation(libs.ktor.client.okhttp)
         }
@@ -37,6 +40,7 @@ kotlin {
             implementation(libs.ktor.client.logging)
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(libs.koin.core)
+            api(libs.kmp.observableviewmodel)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

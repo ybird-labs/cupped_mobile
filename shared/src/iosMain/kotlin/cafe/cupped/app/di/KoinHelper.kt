@@ -4,7 +4,7 @@ import cafe.cupped.app.isDebug
 import cafe.cupped.app.logging.NapierInit
 import cafe.cupped.app.navigation.PathConfigRouter
 import cafe.cupped.app.network.CuppedApiClient
-import kotlinx.cinterop.ExperimentalForeignApi
+import cafe.cupped.app.viewmodel.SmokeTestViewModel
 import org.koin.core.context.startKoin
 import org.koin.mp.KoinPlatformTools
 import platform.Foundation.NSLock
@@ -38,5 +38,8 @@ object KoinHelper {
         KoinPlatformTools.defaultContext().get().get()
 
     fun getPathConfigRouter(): PathConfigRouter =
+        KoinPlatformTools.defaultContext().get().get()
+
+    fun makeSmokeTestViewModel(): SmokeTestViewModel =
         KoinPlatformTools.defaultContext().get().get()
 }
