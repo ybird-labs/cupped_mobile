@@ -4,12 +4,16 @@ import Shared
 @main
 struct iOSApp: App {
     init() {
-        KoinHelper.shared.doInitKoin(baseUrl: "http://localhost:4000")
+        guard let baseUrl = Bundle.main.infoDictionary?["APIBaseURL"] as? String,
+              !baseUrl.isEmpty else {
+            fatalError("APIBaseURL missing from Info.plist – check Config.xcconfig")
+        }
+        KoinHelper.shared.doInitKoin(baseUrl: baseUrl)
     }
 
     var body: some Scene {
         WindowGroup {
-            MainTabView()
+            ContentView()
         }
     }
 }
