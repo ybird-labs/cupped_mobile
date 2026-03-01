@@ -8,10 +8,10 @@ struct FeedView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 16) {
-                Text(viewModel.greeting.value)
+                Text(viewModel.greetingValue)
                     .font(.cuppedTitle3)
 
-                Text(viewModel.status.value)
+                Text(viewModel.statusValue)
                     .font(.cuppedBody)
                     .foregroundStyle(Color.cuppedMuted)
 
