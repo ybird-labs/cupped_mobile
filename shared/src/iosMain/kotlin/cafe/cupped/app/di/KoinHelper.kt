@@ -6,6 +6,7 @@ import cafe.cupped.app.navigation.PathConfigRouter
 import cafe.cupped.app.network.CuppedApiClient
 import cafe.cupped.app.viewmodel.SmokeTestViewModel
 import org.koin.core.context.startKoin
+import org.koin.core.qualifier.named
 import org.koin.mp.KoinPlatformTools
 import platform.Foundation.NSLock
 
@@ -42,4 +43,22 @@ object KoinHelper {
 
     fun makeSmokeTestViewModel(): SmokeTestViewModel =
         KoinPlatformTools.defaultContext().get().get()
+
+    /**
+     * Retrieves the Phoenix server base URL from the Koin
+     * dependency graph.
+     *
+     * This is the same value passed to [initKoin] from
+     * Config.xcconfig via Info.plist. Swift code calls this
+     * to construct WebView URLs (e.g., `baseUrl + "/feed"`)
+     * and the mobile-session exchange endpoint.
+     *
+     * @return The base URL string (e.g.,
+     *   `"http://localhost:4000"`), without a trailing slash.
+     * @throws IllegalStateException if Koin has not been
+     *   initialized via [initKoin].
+     */
+    fun getBaseUrl(): String =
+        KoinPlatformTools.defaultContext()
+            .get().get(named("baseUrl"))
 }
