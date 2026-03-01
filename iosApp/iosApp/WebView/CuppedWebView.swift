@@ -77,6 +77,19 @@ struct CuppedWebView: UIViewRepresentable {
         context.coordinator.webView = webView
         context.coordinator.observe(webView)
 
+        // WEBV-09: Pull-to-refresh via UIRefreshControl.
+        // Uses scrollView.refreshControl (proper UIKit API)
+        // rather than addSubview. The coordinator's weak
+        // webView reference handles the reload — no
+        // superview chain walking needed.
+        let refreshControl = UIRefreshControl()
+        refreshControl.addTarget(
+            context.coordinator,
+            action: #selector(Coordinator.handleRefresh(_:)),
+            for: .valueChanged
+        )
+        webView.scrollView.refreshControl = refreshControl
+
         // One-time initial load. This is the ONLY place
         // a URL load is triggered. updateUIView does NOT
         // reload — see type-level documentation.
@@ -149,6 +162,12 @@ struct CuppedWebView: UIViewRepresentable {
                     [weak self] wv, _ in
                     Task { @MainActor in
                         self?.state.isLoading = wv.isLoading
+                        // Dismiss pull-to-refresh spinner when
+                        // page load completes (WEBV-09).
+                        if !wv.isLoading {
+                            wv.scrollView.refreshControl?
+                                .endRefreshing()
+                        }
                     }
                 },
                 webView.observe(\.estimatedProgress) {
@@ -178,6 +197,18 @@ struct CuppedWebView: UIViewRepresentable {
                     }
                 }
             ]
+        }
+
+        /// Handles pull-to-refresh by reloading the page.
+        ///
+        /// Triggered by `UIRefreshControl`. The spinner is
+        /// dismissed automatically by the `isLoading` KVO
+        /// observer when the reload completes.
+        ///
+        /// - Parameter sender: The refresh control that
+        ///   triggered the action.
+        @objc func handleRefresh(_ sender: UIRefreshControl) {
+            webView?.reload()
         }
 
         /// Loads a new URL in the web view programmatically.
