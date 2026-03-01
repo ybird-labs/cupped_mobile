@@ -25,12 +25,33 @@ struct iOSApp: App {
     /// WKWebView loads a URL.
     @State private var isBootstrapped = false
 
+    #if DEBUG
+    /// Whether the dev auth screen has been dismissed
+    /// (token exchanged or skipped). Only used in DEBUG
+    /// builds to gate DevAuthView.
+    @State private var isDevAuthenticated = false
+    #endif
+
     /// Tracks app lifecycle for background cookie persist.
     @Environment(\.scenePhase) private var scenePhase
 
     /// Server hostname extracted from the API base URL.
     /// Used by CookieStore to filter cookies by domain.
     private let serverHost: String
+
+    #if DEBUG
+    /// Whether to show the DevAuthView screen.
+    ///
+    /// Returns `true` when:
+    /// - The user hasn't dismissed DevAuthView in this
+    ///   session (`isDevAuthenticated` is false), AND
+    /// - No cookies exist in the Keychain from a previous
+    ///   session (`hasPersistedCookies()` is false).
+    private var shouldShowDevAuth: Bool {
+        !isDevAuthenticated
+        && !CookieStore.shared.hasPersistedCookies()
+    }
+    #endif
 
     init() {
         // Read the API base URL injected from
@@ -56,7 +77,18 @@ struct iOSApp: App {
         WindowGroup {
             Group {
                 if isBootstrapped {
+                    #if DEBUG
+                    if shouldShowDevAuth {
+                        DevAuthView(
+                            isAuthenticated:
+                                $isDevAuthenticated
+                        )
+                    } else {
+                        MainTabView()
+                    }
+                    #else
                     MainTabView()
+                    #endif
                 } else {
                     // Canvas-colored splash matching the
                     // design system. Shown only during the
