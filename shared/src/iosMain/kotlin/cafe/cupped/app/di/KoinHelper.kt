@@ -4,6 +4,7 @@ import cafe.cupped.app.isDebug
 import cafe.cupped.app.logging.NapierInit
 import cafe.cupped.app.navigation.PathConfigRouter
 import cafe.cupped.app.network.CuppedApiClient
+import cafe.cupped.app.viewmodel.AuthViewModel
 import cafe.cupped.app.viewmodel.SmokeTestViewModel
 import org.koin.core.context.startKoin
 import org.koin.core.qualifier.named
@@ -42,6 +43,9 @@ object KoinHelper {
         KoinPlatformTools.defaultContext().get().get()
 
     fun makeSmokeTestViewModel(): SmokeTestViewModel =
+        KoinPlatformTools.defaultContext().get().get()
+
+    fun makeAuthViewModel(): AuthViewModel =
         KoinPlatformTools.defaultContext().get().get()
 
     /**
