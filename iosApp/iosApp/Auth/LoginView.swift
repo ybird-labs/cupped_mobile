@@ -1,3 +1,4 @@
+import KMPObservableViewModelSwiftUI
 import SwiftUI
 import Shared
 
@@ -22,7 +23,7 @@ struct LoginView: View {
 
     // MARK: - State
 
-    @State private var authViewModel = KoinHelper.shared.makeAuthViewModel()
+    @StateViewModel var authViewModel = KoinHelper.shared.makeAuthViewModel()
     @State private var email = ""
     @State private var isRegisterMode = false
     @State private var logoAppeared = false
@@ -32,7 +33,7 @@ struct LoginView: View {
 
     /// The current UI state from the KMP AuthViewModel.
     private var currentState: AuthUiState {
-        authViewModel.uiState.value as! AuthUiState
+        authViewModel.uiStateValue
     }
 
     /// Basic client-side email validation (non-empty + contains "@").

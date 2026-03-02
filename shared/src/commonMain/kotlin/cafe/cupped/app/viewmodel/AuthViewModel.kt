@@ -67,6 +67,7 @@ open class AuthViewModel(
      * Transitions: Idle/Error → Loading → MagicLinkSent/Error
      */
     fun requestMagicLink(email: String) {
+        if (_uiState.value is AuthUiState.Loading) return
         viewModelScope.coroutineScope.launch {
             _uiState.value = AuthUiState.Loading
             apiClient.requestMagicLink(email).fold(
@@ -88,6 +89,7 @@ open class AuthViewModel(
      * Transitions: any → Loading → Authenticated/Error
      */
     fun verifyToken(token: String) {
+        if (_uiState.value is AuthUiState.Loading) return
         viewModelScope.coroutineScope.launch {
             _uiState.value = AuthUiState.Loading
             apiClient.verifyMagicLinkToken(token).fold(

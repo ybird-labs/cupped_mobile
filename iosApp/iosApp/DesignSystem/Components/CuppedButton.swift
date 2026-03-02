@@ -15,10 +15,10 @@ struct CuppedButton: View {
     var isDisabled: Bool = false
     let action: () -> Void
 
-    /// Gray bg + muted text only when explicitly disabled (not loading).
-    /// React spec: loading keeps `bg-primary text-white` with spinner.
+    /// Gray bg + muted text when disabled or loading.
+    /// React spec: loading = `bg-canvas-border text-ink-muted` with white spinner.
     private var isVisuallyDisabled: Bool {
-        isDisabled && !isLoading
+        isDisabled || isLoading
     }
 
     /// Can't tap when disabled OR loading.
@@ -31,7 +31,7 @@ struct CuppedButton: View {
             HStack(spacing: Spacing.sm) {
                 if isLoading {
                     ProgressView()
-                        .tint(resolvedForeground)
+                        .tint(.white)
                 }
                 Text(title)
                     .font(.cuppedText(size: 17, weight: .bold))
