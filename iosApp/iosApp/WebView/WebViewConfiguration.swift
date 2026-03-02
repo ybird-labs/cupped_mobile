@@ -4,9 +4,8 @@
 // Single source of truth for all WKWebView configuration.
 // Every WebView in the app — content views, hidden exchange
 // views — must obtain its WKWebViewConfiguration from here.
-// This guarantees cookie sharing (via shared WKProcessPool)
-// and a single WKWebsiteDataStore reference for all cookie
-// read/write/persist operations.
+// This guarantees a single WKWebsiteDataStore reference for
+// all cookie read/write/persist operations.
 
 import WebKit
 
@@ -15,9 +14,6 @@ import WebKit
 /// All WKWebView instances in the app **must** use
 /// ``makeConfiguration()`` to obtain their configuration.
 /// This ensures:
-/// - A single ``WKProcessPool`` across all web views,
-///   enabling cookie sharing between tabs and the hidden
-///   session-exchange web view (WEBV-02).
 /// - A single ``WKWebsiteDataStore`` reference, preventing
 ///   divergent cookie state.
 /// - A consistent custom User-Agent identifying the native
@@ -29,15 +25,6 @@ import WebKit
 enum WebViewConfiguration {
 
     // MARK: - Shared Singletons
-
-    /// Single process pool shared across all WebView
-    /// instances.
-    ///
-    /// WKProcessPool manages the WebKit network process.
-    /// Sharing one instance across all web views ensures
-    /// cookies set in one (e.g., the hidden exchange view)
-    /// are immediately visible in others (e.g., FeedView).
-    static let processPool = WKProcessPool()
 
     /// Centralized website data store.
     ///
@@ -72,7 +59,6 @@ enum WebViewConfiguration {
     ///   `WKWebView(frame:configuration:)`.
     static func makeConfiguration() -> WKWebViewConfiguration {
         let config = WKWebViewConfiguration()
-        config.processPool = processPool
         config.websiteDataStore = dataStore
 
         // Append custom identifier to WebKit's default

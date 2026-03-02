@@ -75,7 +75,7 @@ open class AuthViewModel(
                 },
                 onFailure = { error ->
                     _uiState.value = AuthUiState.Error(
-                        error.message ?: "Failed to send magic link"
+                        userFriendlyError(error, "Failed to send magic link")
                     )
                 }
             )
@@ -98,7 +98,7 @@ open class AuthViewModel(
                 },
                 onFailure = { error ->
                     _uiState.value = AuthUiState.Error(
-                        error.message ?: "Failed to verify token"
+                        userFriendlyError(error, "Failed to verify token")
                     )
                 }
             )
@@ -111,5 +111,51 @@ open class AuthViewModel(
      */
     fun reset() {
         _uiState.value = AuthUiState.Idle
+    }
+
+    companion object {
+        /**
+         * Converts a raw platform exception message into a
+         * user-friendly string.
+         *
+         * On iOS, Ktor wraps NSURLError into the exception
+         * message — this includes the full NSError description
+         * with domain, code, and UserInfo dictionary. On Android,
+         * messages are typically already clean.
+         *
+         * This runs in commonMain so both platforms get the
+         * same sanitization.
+         */
+        internal fun userFriendlyError(
+            error: Throwable,
+            fallback: String
+        ): String {
+            val msg = error.message ?: return fallback
+
+            // iOS NSURLError dumps contain these markers
+            val isNSURLError = msg.contains("NSURLErrorDomain")
+                || msg.contains("kCFStreamError")
+                || msg.contains("CFNetwork")
+
+            if (isNSURLError) {
+                return when {
+                    msg.contains("Could not connect to the server", ignoreCase = true) ->
+                        "Unable to reach the server. Check your connection and try again."
+                    msg.contains("timed out", ignoreCase = true) ->
+                        "The request timed out. Please try again."
+                    msg.contains("not connected to the internet", ignoreCase = true) ->
+                        "No internet connection. Please check your network."
+                    msg.contains("cannot find host", ignoreCase = true) ->
+                        "Server not found. Please try again later."
+                    else -> "Unable to connect. Please try again."
+                }
+            }
+
+            // Clean, short messages pass through (e.g. "HTTP 401")
+            if (msg.length < 120 && !msg.contains("{")) return msg
+
+            // Anything else — use fallback
+            return fallback
+        }
     }
 }

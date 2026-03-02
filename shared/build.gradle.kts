@@ -1,3 +1,4 @@
+import co.touchlab.skie.configuration.FlowInterop
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -5,6 +6,17 @@ plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.skie)
     alias(libs.plugins.kotlinx.serialization)
+}
+
+skie {
+    features {
+        // Disable SKIE Flow wrapping on ViewModel classes so that
+        // KMP-ObservableViewModel's KVO/Observable mechanism works
+        // directly without SKIE intercepting StateFlow access.
+        group("cafe.cupped.app.viewmodel") {
+            FlowInterop.Enabled(false)
+        }
+    }
 }
 
 kotlin {

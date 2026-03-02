@@ -54,19 +54,23 @@ struct MagicLinkSentView: View {
     // MARK: - Body
 
     var body: some View {
-        VStack(spacing: Spacing.lg) {
-            // 1. Success icon
+        // Explicit per-item spacing matching React SuccessState margins:
+        // mb-6 (24pt), mb-3 (12pt), mb-2/mb-8, mb-8, mt-6 (24pt)
+        VStack(spacing: 0) {
+            // 1. Success icon — mb-6 = 24pt
             successIcon
+                .padding(.bottom, Spacing.xl)
 
-            // 2. Heading
+            // 2. Heading — mb-3 = 12pt
             Text("Check your inbox!")
                 .font(.cuppedTitle2)
                 .fontWeight(.bold)
                 .foregroundStyle(Color.cuppedInk)
                 .multilineTextAlignment(.center)
+                .padding(.bottom, Spacing.md)
 
-            // 3. Subtitle + email
-            VStack(spacing: Spacing.xs) {
+            // 3. Subtitle + email — mb-2 (8pt) internal, mb-8 (32pt) after
+            VStack(spacing: Spacing.sm) {
                 Text("We sent a magic link to")
                     .font(.cuppedBody)
                     .foregroundStyle(Color.cuppedSecondary)
@@ -76,11 +80,13 @@ struct MagicLinkSentView: View {
                     .fontWeight(.medium)
                     .foregroundStyle(Color.cuppedInk)
             }
+            .padding(.bottom, Spacing.xxl)
 
-            // 4. Instructions card
+            // 4. Instructions card — mb-8 = 32pt
             instructionsCard
+                .padding(.bottom, Spacing.xxl)
 
-            // 5. Different email button
+            // 5. Different email button — mt-6 = 24pt after
             Button(action: onReset) {
                 HStack(spacing: Spacing.xs) {
                     Text("Use a different email")
@@ -90,6 +96,7 @@ struct MagicLinkSentView: View {
                 .font(.cuppedSubheadline)
                 .foregroundStyle(Color.cuppedMuted)
             }
+            .padding(.bottom, Spacing.xl)
 
             // 6. Footer
             Text(
@@ -112,7 +119,14 @@ struct MagicLinkSentView: View {
                     .font(.system(size: 32, weight: .bold))
                     .foregroundStyle(.white)
             }
+            // React: shadow-warm-lg shadow-success/30
+            .shadow(
+                color: Color.cuppedSuccess.opacity(0.3),
+                radius: 15, x: 0, y: 10
+            )
             .scaleEffect(checkmarkAppeared ? 1 : 0)
+            // React: initial rotate -180 → animate rotate 0
+            .rotationEffect(.degrees(checkmarkAppeared ? 0 : -180))
             .onAppear {
                 withAnimation(
                     .spring(response: 0.5, dampingFraction: 0.65)
@@ -146,13 +160,13 @@ struct MagicLinkSentView: View {
                     )
             }
         }
-        .padding(Spacing.md)
+        .padding(Spacing.lg) // React: p-6 = 24px
         .background(
             Color.cuppedCanvas.opacity(0.5)
         )
         .clipShape(
             RoundedRectangle(
-                cornerRadius: Radius.md,
+                cornerRadius: Radius.xl, // React: rounded-xl
                 style: .continuous
             )
         )

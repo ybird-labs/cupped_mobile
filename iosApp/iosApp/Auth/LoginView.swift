@@ -26,14 +26,12 @@ struct LoginView: View {
     @State private var email = ""
     @State private var isRegisterMode = false
     @State private var logoAppeared = false
+    @State private var cardAppeared = false
 
     // MARK: - Computed
 
     /// The current UI state from the KMP AuthViewModel.
     private var currentState: AuthUiState {
-        // KMP-ObservableViewModel makes AuthViewModel Observable.
-        // Accessing uiState.value in the view body triggers SwiftUI
-        // re-renders when the Kotlin StateFlow value changes.
         authViewModel.uiState.value as! AuthUiState
     }
 
@@ -48,9 +46,37 @@ struct LoginView: View {
         currentState is AuthUiStateLoading
     }
 
+    /// Whether the current state is an error.
+    private var hasError: Bool {
+        currentState is AuthUiStateError
+    }
+
     /// Error message from the last failed attempt, if any.
+    /// Sanitizes raw networking exceptions as a fallback
+    /// (primary sanitization happens in KMP AuthViewModel).
     private var errorMessage: String? {
-        (currentState as? AuthUiStateError)?.message
+        guard let raw = (currentState as? AuthUiStateError)?.message else {
+            return nil
+        }
+        return Self.sanitizeError(raw)
+    }
+
+    /// Belt-and-suspenders sanitization for any raw platform
+    /// error messages that slip through the KMP layer.
+    private static func sanitizeError(_ raw: String) -> String {
+        let lowered = raw.lowercased()
+
+        if lowered.contains("nsurlerrordomain")
+            || lowered.contains("kcfstreamerrordomainkey")
+            || lowered.contains("cfnetwork") {
+            return "Unable to reach the server. Check your connection and try again."
+        }
+
+        if !raw.contains("{") && raw.count < 120 {
+            return raw
+        }
+
+        return "Something went wrong. Please try again."
     }
 
     // MARK: - Body
@@ -86,6 +112,9 @@ struct LoginView: View {
                         .modifier(Shadow.warmXl)
                         .frame(maxWidth: 400)
                         .padding(.horizontal, Spacing.lg)
+                        // Card entrance: fade + slide up (React: opacity 0→1, y 20→0)
+                        .opacity(cardAppeared ? 1 : 0)
+                        .offset(y: cardAppeared ? 0 : 20)
 
                     Spacer(minLength: Spacing.xxl)
                 }
@@ -93,11 +122,17 @@ struct LoginView: View {
             }
         }
         .onAuthenticatedCheck(state: currentState, action: onAuthenticated)
+        .onAppear {
+            withAnimation(
+                .easeOut(duration: 0.5).delay(0.1)
+            ) {
+                cardAppeared = true
+            }
+        }
     }
 
     // MARK: - Card Content
 
-    /// The main card interior — switches between input form and success state.
     @ViewBuilder
     private var cardContent: some View {
         let state = currentState
@@ -120,13 +155,21 @@ struct LoginView: View {
 
     private var inputForm: some View {
         VStack(spacing: Spacing.lg) {
-            logoBlock
-            titleBlock
-                .id(isRegisterMode)
+            // Logo + title block with extra bottom margin (React: mb-8 = 32px)
+            VStack(spacing: Spacing.base) {
+                logoBlock
+                titleBlock
+                    .id(isRegisterMode)
+            }
+            .padding(.bottom, Spacing.sm) // extra gap: 20 (lg) + 8 (sm) ≈ 28pt
+
             emailFieldSection
             errorSection
             submitButton
+
             modeToggle
+                .padding(.top, Spacing.sm)
+
             registerFeaturesSection
             footerText
         }
@@ -149,6 +192,7 @@ struct LoginView: View {
             .onAppear {
                 withAnimation(
                     .spring(response: 0.5, dampingFraction: 0.65)
+                        .delay(0.3)
                 ) {
                     logoAppeared = true
                 }
@@ -200,8 +244,8 @@ struct LoginView: View {
                     .textInputAutocapitalization(.never)
             }
             .padding(.horizontal, Spacing.md)
-            .padding(.vertical, Spacing.md)
-            .background(Color.cuppedCanvas)
+            .padding(.vertical, Spacing.base) // py-4 = 16px
+            .background(Color.white)
             .clipShape(
                 RoundedRectangle(
                     cornerRadius: Radius.md,
@@ -214,7 +258,9 @@ struct LoginView: View {
                     style: .continuous
                 )
                 .strokeBorder(
-                    Color.cuppedCanvasBorderSubtle,
+                    hasError
+                        ? Color.cuppedError
+                        : Color.cuppedCanvasBorderSubtle,
                     lineWidth: 1
                 )
             }
@@ -222,15 +268,20 @@ struct LoginView: View {
     }
 
     // MARK: - Error Message
+    // React spec: simple `text-sm text-error` — no icon, no background.
 
     @ViewBuilder
     private var errorSection: some View {
         if let error = errorMessage {
             Text(error)
-                .font(.cuppedCaption)
+                .font(.cuppedSubheadline)
                 .foregroundStyle(Color.cuppedError)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .transition(.opacity)
+                .transition(
+                    .opacity.combined(
+                        with: .offset(y: -5)
+                    )
+                )
         }
     }
 
@@ -242,6 +293,7 @@ struct LoginView: View {
                 ? "Sending magic link..."
                 : (isRegisterMode ? "Create account" : "Sign in"),
             style: .primary,
+            icon: isLoading ? nil : "arrow.right",
             isLoading: isLoading,
             isDisabled: !isEmailValid
         ) {
@@ -355,10 +407,6 @@ private struct FeatureItem: View {
 
 // MARK: - Authenticated State Check Modifier
 
-/// View modifier that fires the onAuthenticated callback when
-/// the AuthUiState transitions to `Authenticated`.
-/// Uses `task(id:)` to avoid Equatable requirements on the
-/// Kotlin protocol type.
 private struct AuthenticatedCheckModifier: ViewModifier {
     let state: AuthUiState
     let action: (String) -> Void
