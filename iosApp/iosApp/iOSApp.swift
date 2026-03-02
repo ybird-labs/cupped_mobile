@@ -34,6 +34,10 @@ struct iOSApp: App {
     /// transitions.
     @State private var authCoordinator = AuthCoordinator()
 
+    /// Whether to show the one-time biometric opt-in prompt
+    /// after first successful login.
+    @State private var showBiometricPrompt = false
+
     /// Tracks app lifecycle for background cookie persist.
     @Environment(\.scenePhase) private var scenePhase
 
@@ -66,7 +70,21 @@ struct iOSApp: App {
             Group {
                 if isBootstrapped {
                     if authCoordinator.isAuthenticated {
-                        MainTabView()
+                        if showBiometricPrompt {
+                            BiometricPromptView {
+                                UserDefaults.standard.set(
+                                    true,
+                                    forKey:
+                                        "cafe.cupped.biometric.prompted"
+                                )
+                                showBiometricPrompt = false
+                            }
+                        } else {
+                            MainTabView()
+                                .environment(
+                                    authCoordinator
+                                )
+                        }
                     } else {
                         LoginView { bearerToken in
                             Task {
@@ -75,6 +93,25 @@ struct iOSApp: App {
                                         bearerToken:
                                             bearerToken
                                     )
+
+                                // Show biometric prompt
+                                // once after first login
+                                // if biometrics are
+                                // available but not yet
+                                // enabled or prompted.
+                                if BiometricService.shared
+                                    .isAvailable,
+                                   !BiometricService.shared
+                                    .isEnabled,
+                                   !UserDefaults.standard
+                                    .bool(
+                                        forKey:
+                                            "cafe.cupped.biometric.prompted"
+                                    )
+                                {
+                                    showBiometricPrompt
+                                        = true
+                                }
                             }
                         }
                     }
