@@ -69,6 +69,12 @@ final class CookieStore: NSObject,
     /// are saved. Set via ``startObserving(cookieStore:targetHost:)``.
     private var targetHost: String?
 
+    /// Debounce task for coalescing rapid cookie mutations.
+    /// Cancelled and replaced on each `cookiesDidChange`
+    /// call so that only the final mutation in a burst
+    /// triggers a Keychain write.
+    private var debounceTask: Task<Void, Never>?
+
     private override init() {
         super.init()
     }
@@ -99,13 +105,20 @@ final class CookieStore: NSObject,
     // MARK: - WKHTTPCookieStoreObserver
 
     /// Called by WebKit whenever cookies change in the
-    /// observed store. Triggers an incremental persist
-    /// to Keychain. This closes the race condition where
-    /// the app is killed before a background save.
+    /// observed store. Debounces rapid mutations (e.g.,
+    /// multiple Set-Cookie headers in a single response)
+    /// into a single Keychain write after 500 ms of
+    /// inactivity. This avoids transient memory spikes
+    /// from repeated `NSKeyedArchiver` serialization
+    /// while still closing the race condition where the
+    /// app is killed before a background save.
     func cookiesDidChange(
         in cookieStore: WKHTTPCookieStore
     ) {
-        Task {
+        debounceTask?.cancel()
+        debounceTask = Task {
+            try? await Task.sleep(for: .milliseconds(500))
+            guard !Task.isCancelled else { return }
             await persistCookies(from: cookieStore)
         }
     }

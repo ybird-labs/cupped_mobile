@@ -109,6 +109,20 @@ struct CuppedWebView: UIViewRepresentable {
         context: Context
     ) {}
 
+    /// Breaks the strong reference chain
+    /// WKWebView -> navigationDelegate -> Coordinator -> WebViewState
+    /// when the view is removed from the hierarchy.
+    /// Without this, the WKWebView retains its
+    /// `navigationDelegate` strongly, preventing deallocation.
+    static func dismantleUIView(
+        _ webView: WKWebView,
+        coordinator: Coordinator
+    ) {
+        webView.stopLoading()
+        webView.navigationDelegate = nil
+        coordinator.observations.removeAll()
+    }
+
     func makeCoordinator() -> Coordinator {
         Coordinator(state: state)
     }
@@ -141,7 +155,7 @@ struct CuppedWebView: UIViewRepresentable {
         /// for programmatic navigation and pull-to-refresh.
         weak var webView: WKWebView?
 
-        private var observations: [NSKeyValueObservation] = []
+        fileprivate var observations: [NSKeyValueObservation] = []
 
         init(state: WebViewState) {
             self.state = state
@@ -232,7 +246,43 @@ struct CuppedWebView: UIViewRepresentable {
         func webViewWebContentProcessDidTerminate(
             _ webView: WKWebView
         ) {
+            let usage = Self.formattedMemoryUsage()
+            print(
+                "[CuppedWebView] WebContent process terminated. "
+                + "App memory at time of crash: \(usage). "
+                + "Reloading."
+            )
             webView.reload()
+        }
+
+        /// Returns the current app memory footprint as a
+        /// human-readable string (e.g. "142.3 MB").
+        /// Uses `task_info` to read `phys_footprint`, the
+        /// same metric the OS jetsam monitor uses.
+        private static func formattedMemoryUsage() -> String {
+            var info = task_vm_info_data_t()
+            var count = mach_msg_type_number_t(
+                MemoryLayout<task_vm_info_data_t>.size
+            ) / 4
+            let result = withUnsafeMutablePointer(to: &info) {
+                $0.withMemoryRebound(
+                    to: integer_t.self,
+                    capacity: Int(count)
+                ) {
+                    task_info(
+                        mach_task_self_,
+                        task_flavor_t(TASK_VM_INFO),
+                        $0,
+                        &count
+                    )
+                }
+            }
+            guard result == KERN_SUCCESS else {
+                return "unknown"
+            }
+            let bytes = Double(info.phys_footprint)
+            let mb = bytes / (1024 * 1024)
+            return String(format: "%.1f MB", mb)
         }
 
         /// Records navigation errors (post-commit) in the
@@ -242,7 +292,9 @@ struct CuppedWebView: UIViewRepresentable {
             didFail navigation: WKNavigation!,
             withError error: Error
         ) {
-            Task { @MainActor in state.error = error }
+            Task { @MainActor [weak self] in
+                self?.state.error = error
+            }
         }
 
         /// Records provisional navigation errors
@@ -254,7 +306,9 @@ struct CuppedWebView: UIViewRepresentable {
                 navigation: WKNavigation!,
             withError error: Error
         ) {
-            Task { @MainActor in state.error = error }
+            Task { @MainActor [weak self] in
+                self?.state.error = error
+            }
         }
     }
 }

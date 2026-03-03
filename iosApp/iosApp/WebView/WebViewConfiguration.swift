@@ -47,12 +47,14 @@ enum WebViewConfiguration {
     // MARK: - Factory
 
     /// Creates a new `WKWebViewConfiguration` wired to the
-    /// shared process pool, data store, custom User-Agent,
-    /// and inline media settings.
+    /// shared data store, custom User-Agent, and inline
+    /// media settings.
     ///
     /// Each call returns a **new** configuration instance
     /// (WKWebView requires its own), but all instances share
-    /// the same ``processPool`` and ``dataStore`` singletons.
+    /// the same ``dataStore`` singleton. Since iOS 15+,
+    /// WebViews sharing a `WKWebsiteDataStore` automatically
+    /// share a single WebContent process pool.
     ///
     /// - Returns: A fully configured
     ///   `WKWebViewConfiguration` ready for use with
