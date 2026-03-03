@@ -25,7 +25,7 @@ struct LoginView: View {
 
     @StateViewModel var authViewModel = KoinHelper.shared.makeAuthViewModel()
     @State private var email = ""
-    @State private var isRegisterMode = false
+    @State private var isRegisterMode = true
     @State private var logoAppeared = false
     @State private var cardAppeared = false
 
