@@ -55,7 +55,6 @@ struct FeedView: View {
                         value: webViewState
                             .estimatedProgress
                     )
-                    .tint(Color.cuppedPrimary)
                     Spacer()
                 }
             }

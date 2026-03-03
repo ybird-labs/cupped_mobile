@@ -29,11 +29,22 @@ struct LoginView: View {
     @State private var logoAppeared = false
     @State private var cardAppeared = false
 
+
     // MARK: - Computed
 
     /// The current UI state from the KMP AuthViewModel.
     private var currentState: AuthUiState {
         authViewModel.uiStateValue
+    }
+
+    /// Non-nil only when the KMP AuthViewModel reaches
+    /// the Authenticated state. Used as the `.onChange`
+    /// trigger for the `onAuthenticated` callback.
+    /// `String?` is `Equatable`, so `.onChange(of:)` works
+    /// natively without any custom identity logic.
+    private var authenticatedToken: String? {
+        (currentState as? AuthUiStateAuthenticated)?
+            .bearerToken
     }
 
     /// Basic client-side email validation (non-empty + contains "@").
@@ -45,11 +56,6 @@ struct LoginView: View {
     /// Whether the form is currently submitting.
     private var isLoading: Bool {
         currentState is AuthUiStateLoading
-    }
-
-    /// Whether the current state is an error.
-    private var hasError: Bool {
-        currentState is AuthUiStateError
     }
 
     /// Error message from the last failed attempt, if any.
@@ -83,16 +89,12 @@ struct LoginView: View {
     // MARK: - Body
 
     var body: some View {
-        ZStack {
-            Color.cuppedCanvas
-                .ignoresSafeArea()
-
+        GeometryReader { geometry in
             ScrollView {
                 VStack(spacing: 0) {
-                    Spacer(minLength: Spacing.xxl)
-
                     cardContent
-                        .padding(Spacing.xl)
+                        // React: p-8 md:p-10 → 32pt (match p-8)
+                        .padding(Spacing.xxl)
                         .background(Color.cuppedCard)
                         .clipShape(
                             RoundedRectangle(
@@ -106,26 +108,31 @@ struct LoginView: View {
                                 style: .continuous
                             )
                             .strokeBorder(
-                                Color.cuppedCanvasBorderSubtle,
+                                Color.cuppedCanvasBorder,
                                 lineWidth: 1
                             )
                         }
                         .modifier(Shadow.warmXl)
                         .frame(maxWidth: 400)
                         .padding(.horizontal, Spacing.lg)
-                        // Card entrance: fade + slide up (React: opacity 0→1, y 20→0)
+                        // Card entrance: fade + slide up
+                        // React: ease [0.16, 1, 0.3, 1], duration 0.5s
                         .opacity(cardAppeared ? 1 : 0)
                         .offset(y: cardAppeared ? 0 : 20)
-
-                    Spacer(minLength: Spacing.xxl)
                 }
                 .frame(maxWidth: .infinity)
+                // Ensure content is at least screen height so VStack centers
+                .frame(minHeight: geometry.size.height)
             }
+            .scrollDismissesKeyboard(.interactively)
         }
-        .onAuthenticatedCheck(state: currentState, action: onAuthenticated)
+        .background(Color.cuppedCanvas.ignoresSafeArea())
+        .onChange(of: authenticatedToken) { _, token in
+            if let token { onAuthenticated(token) }
+        }
         .onAppear {
             withAnimation(
-                .easeOut(duration: 0.5).delay(0.1)
+                .timingCurve(0.16, 1, 0.3, 1, duration: 0.5).delay(0.1)
             ) {
                 cardAppeared = true
             }
@@ -156,23 +163,27 @@ struct LoginView: View {
 
     private var inputForm: some View {
         VStack(spacing: Spacing.lg) {
-            // Logo + title block with extra bottom margin (React: mb-8 = 32px)
+            // Logo + title block
+            // React: mb-8 (32px) from branding to form
             VStack(spacing: Spacing.base) {
                 logoBlock
                 titleBlock
                     .id(isRegisterMode)
             }
-            .padding(.bottom, Spacing.sm) // extra gap: 20 (lg) + 8 (sm) ≈ 28pt
+            .padding(.bottom, Spacing.md) // extra gap: 20 (lg) + 12 (md) = 32pt ≈ React mb-8
 
             emailFieldSection
-            errorSection
             submitButton
 
+            // React: mt-6 (24px)
             modeToggle
-                .padding(.top, Spacing.sm)
+                .padding(.top, Spacing.xs)
 
             registerFeaturesSection
+
+            // React: mt-8 (32px) for footer
             footerText
+                .padding(.top, Spacing.md)
         }
         .animation(.cuppedSpring, value: isRegisterMode)
     }
@@ -188,7 +199,11 @@ struct LoginView: View {
                     .font(.system(size: 32))
                     .foregroundStyle(.white)
             }
-            .modifier(Shadow.glowCoral)
+            // React: shadow-lg shadow-primary/30
+            .shadow(
+                color: Color.cuppedPrimary.opacity(0.3),
+                radius: 10, x: 0, y: 4
+            )
             .scaleEffect(logoAppeared ? 1 : 0)
             .onAppear {
                 withAnimation(
@@ -206,7 +221,6 @@ struct LoginView: View {
         VStack(spacing: Spacing.sm) {
             Text(isRegisterMode ? "Join Cupped" : "Welcome Back")
                 .font(.cuppedTitle2)
-                .fontWeight(.bold)
                 .foregroundStyle(Color.cuppedInk)
                 .multilineTextAlignment(.center)
 
@@ -224,66 +238,18 @@ struct LoginView: View {
     // MARK: - Email Field
 
     private var emailFieldSection: some View {
-        VStack(alignment: .leading, spacing: Spacing.sm) {
-            Text("EMAIL ADDRESS")
-                .font(.cuppedCaption)
-                .fontWeight(.medium)
-                .foregroundStyle(Color.cuppedSecondary)
-                .tracking(1.2)
-
-            HStack(spacing: Spacing.sm) {
-                Image(systemName: "envelope")
-                    .foregroundStyle(Color.cuppedMuted)
-                    .font(.system(size: 16))
-
-                TextField("your@email.com", text: $email)
-                    .font(.cuppedBody)
-                    .foregroundStyle(Color.cuppedInk)
-                    .textContentType(.emailAddress)
-                    .keyboardType(.emailAddress)
-                    .autocorrectionDisabled()
-                    .textInputAutocapitalization(.never)
-            }
-            .padding(.horizontal, Spacing.md)
-            .padding(.vertical, Spacing.base) // py-4 = 16px
-            .background(Color.white)
-            .clipShape(
-                RoundedRectangle(
-                    cornerRadius: Radius.md,
-                    style: .continuous
-                )
-            )
-            .overlay {
-                RoundedRectangle(
-                    cornerRadius: Radius.md,
-                    style: .continuous
-                )
-                .strokeBorder(
-                    hasError
-                        ? Color.cuppedError
-                        : Color.cuppedCanvasBorderSubtle,
-                    lineWidth: 1
-                )
-            }
-        }
-    }
-
-    // MARK: - Error Message
-    // React spec: simple `text-sm text-error` — no icon, no background.
-
-    @ViewBuilder
-    private var errorSection: some View {
-        if let error = errorMessage {
-            Text(error)
-                .font(.cuppedSubheadline)
-                .foregroundStyle(Color.cuppedError)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .transition(
-                    .opacity.combined(
-                        with: .offset(y: -5)
-                    )
-                )
-        }
+        CuppedTextField(
+            placeholder: "your@email.com",
+            text: $email,
+            label: "EMAIL ADDRESS",
+            icon: "envelope",
+            error: errorMessage,
+            isLoading: isLoading,
+            keyboardType: .emailAddress,
+            textContentType: .emailAddress,
+            autocapitalization: .never,
+            disableAutocorrection: true
+        )
     }
 
     // MARK: - Submit Button
@@ -346,6 +312,7 @@ struct LoginView: View {
         VStack(spacing: Spacing.md) {
             Divider()
 
+            // React: text-xs uppercase tracking-wider
             Text("WHAT YOU'LL GET")
                 .font(.cuppedCaption)
                 .fontWeight(.medium)
@@ -364,6 +331,8 @@ struct LoginView: View {
                 )
             }
         }
+        // React: mt-8 pt-8 border-t
+        .padding(.top, Spacing.md)
     }
 
     // MARK: - Footer
@@ -406,33 +375,7 @@ private struct FeatureItem: View {
     }
 }
 
-// MARK: - Authenticated State Check Modifier
 
-private struct AuthenticatedCheckModifier: ViewModifier {
-    let state: AuthUiState
-    let action: (String) -> Void
-
-    func body(content: Content) -> some View {
-        content
-            .task(id: ObjectIdentifier(state as AnyObject)) {
-                if let authenticated = state as? AuthUiStateAuthenticated {
-                    action(authenticated.bearerToken)
-                }
-            }
-    }
-}
-
-extension View {
-    fileprivate func onAuthenticatedCheck(
-        state: AuthUiState,
-        action: @escaping (String) -> Void
-    ) -> some View {
-        modifier(AuthenticatedCheckModifier(
-            state: state,
-            action: action
-        ))
-    }
-}
 
 // MARK: - Previews
 

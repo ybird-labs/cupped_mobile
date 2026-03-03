@@ -89,6 +89,13 @@ extension Color {
     static let cuppedGreenAccessible = Color(CuppedColors.shared.greenAccessible)
 }
 
+// MARK: - Input Fields
+
+extension Color {
+    static let cuppedInputTint = Color(CuppedColors.shared.inputTint)
+    static let cuppedInputPlaceholder = Color(CuppedColors.shared.inputPlaceholder)
+}
+
 // MARK: - Gamification
 
 extension Color {

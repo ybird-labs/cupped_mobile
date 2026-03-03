@@ -150,7 +150,6 @@ struct ProfileView: View {
                 )
             )
             .labelsHidden()
-            .tint(Color.cuppedPrimary)
         }
     }
 

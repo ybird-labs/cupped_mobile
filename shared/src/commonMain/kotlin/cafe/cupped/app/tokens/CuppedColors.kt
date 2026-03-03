@@ -52,6 +52,10 @@ object CuppedColors {
     val nuttyAccessible = ColorToken(0xFF8B7040u)
     val greenAccessible = ColorToken(0xFF557040u)
 
+    // Input Fields
+    val inputTint = muted        // cursor & selection handles
+    val inputPlaceholder = muted // placeholder base color (platform applies 50% opacity)
+
     // Gamification
     val xp = ColorToken(0xFFFBBF24u)
     val streak = ColorToken(0xFFF97316u)
