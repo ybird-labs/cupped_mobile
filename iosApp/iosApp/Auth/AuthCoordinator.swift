@@ -120,6 +120,13 @@ final class AuthCoordinator {
         defer { isExchanging = false }
 
         let authVM = KoinHelper.shared.makeAuthViewModel()
+        // Ensure the KMP ViewModel's coroutine scope is
+        // cancelled when we're done, regardless of how we
+        // exit. Without this, the viewModelScope lingers
+        // because the VM was created as a plain local (not
+        // managed by @StateViewModel).
+        defer { authVM.clear() }
+
         authVM.verifyToken(token: token)
 
         // Poll for state transition. The KMP ViewModel
@@ -133,6 +140,11 @@ final class AuthCoordinator {
         var elapsed: UInt64 = 0
 
         while elapsed < timeout {
+            // Respect structured concurrency: if the parent
+            // Task is cancelled (e.g., view disappeared),
+            // stop polling instead of running until timeout.
+            if Task.isCancelled { return }
+
             let state = authVM.uiState.value
 
             if let authenticated = state

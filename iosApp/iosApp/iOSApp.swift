@@ -14,7 +14,8 @@
 //      LoginView when not authenticated, MainTabView when
 //      authenticated.
 //   6. Handle deep links for magic link callbacks
-//      (cupped:// and https://cupped.cafe universal links).
+//      (cupped:// custom scheme and Universal Links via
+//      https://<host>/users/log-in/<token>).
 
 import SwiftUI
 import Shared
@@ -117,16 +118,13 @@ struct iOSApp: App {
                     }
                 } else {
                     // Canvas-colored splash matching the
-                    // design system. Shown only during the
-                    // brief async bootstrap.
-                    Color(
-                        red: 248 / 255,
-                        green: 250 / 255,
-                        blue: 252 / 255
-                    )
-                    .ignoresSafeArea()
+                    // design system. Uses the token directly
+                    // so it stays in sync with CuppedColors.
+                    Color.cuppedCanvas
+                        .ignoresSafeArea()
                 }
             }
+            .tint(.cuppedPrimary)
             .task {
                 // Step 1: Restore cookies from Keychain
                 // into WKHTTPCookieStore BEFORE any
@@ -198,42 +196,64 @@ struct iOSApp: App {
     /// verification + exchange.
     ///
     /// Supports two URL formats:
-    /// - Custom scheme: `cupped://auth/callback?token=xxx`
-    /// - Universal link: `https://cupped.cafe/auth/verify?token=xxx`
+    /// - Universal link:
+    ///   `https://<host>/users/log-in/<token>`
+    ///   where `<host>` is derived from `API_BASE_URL`
+    ///   (per xcconfig) or `cupped.cafe` (future prod).
+    /// - Custom scheme:
+    ///   `cupped://auth/callback?token=xxx`
     private func handleDeepLink(_ url: URL) {
         guard let components = URLComponents(
             url: url,
             resolvingAgainstBaseURL: false
         ) else { return }
 
-        // Match custom scheme: cupped://auth/callback
-        let isCustomScheme =
-            components.scheme == "cupped"
-            && components.host == "auth"
-            && components.path == "/callback"
+        // Hosts that this build considers valid for
+        // universal links. `serverHost` comes from
+        // API_BASE_URL (per-environment xcconfig).
+        // `cupped.cafe` is included so the app works
+        // immediately when production migrates there.
+        let validHosts: Set<String> = [
+            serverHost, "cupped.cafe",
+        ].filter { !$0.isEmpty }.reduce(into: []) {
+            $0.insert($1)
+        }
 
-        // Match universal link:
-        // https://cupped.cafe/auth/verify
-        let isUniversalLink =
-            (components.scheme == "https"
-             || components.scheme == "http")
-            && components.host?.contains("cupped.cafe")
-                == true
-            && components.path == "/auth/verify"
+        // Universal link:
+        // https://<host>/users/log-in/<token>
+        // The token is the last path component (base64url-
+        // encoded), NOT a query parameter.
+        if let host = components.host,
+           validHosts.contains(host),
+           components.path.hasPrefix("/users/log-in/")
+        {
+            let token = url.lastPathComponent
+            guard !token.isEmpty,
+                  token != "log-in"
+            else { return }
 
-        guard isCustomScheme || isUniversalLink else {
+            Task {
+                await authCoordinator
+                    .handleMagicLinkToken(token)
+            }
             return
         }
 
-        guard let token = components.queryItems?
-            .first(where: { $0.name == "token" })?
-            .value,
-              !token.isEmpty
-        else { return }
-
-        Task {
-            await authCoordinator
-                .handleMagicLinkToken(token)
+        // Custom scheme fallback:
+        // cupped://auth/callback?token=xxx
+        if components.scheme == "cupped",
+           components.host == "auth",
+           components.path == "/callback",
+           let token = components.queryItems?
+               .first(where: { $0.name == "token" })?
+               .value,
+           !token.isEmpty
+        {
+            Task {
+                await authCoordinator
+                    .handleMagicLinkToken(token)
+            }
+            return
         }
     }
 }

@@ -42,7 +42,7 @@ struct MainTabView: View {
                     .tag(tab)
             }
         }
-        .tint(.cuppedPrimary)
+        // Global tint set at WindowGroup root in iOSApp.swift
     }
 
     @ViewBuilder

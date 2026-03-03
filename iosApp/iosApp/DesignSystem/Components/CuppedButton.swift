@@ -34,7 +34,7 @@ struct CuppedButton: View {
                         .tint(.white)
                 }
                 Text(title)
-                    .font(.cuppedText(size: 17, weight: .bold))
+                    .font(.cuppedText(size: 18, weight: .bold))
                 if let icon, !isLoading {
                     Image(systemName: icon)
                         .font(.system(size: 15, weight: .bold))
@@ -45,10 +45,10 @@ struct CuppedButton: View {
             .padding(.horizontal, Spacing.lg)
             .background(resolvedBackground)
             .foregroundStyle(resolvedForeground)
-            .clipShape(RoundedRectangle(cornerRadius: Radius.md))
+            .clipShape(RoundedRectangle(cornerRadius: Radius.lg, style: .continuous))
             .overlay {
                 if style == .tertiary {
-                    RoundedRectangle(cornerRadius: Radius.md)
+                    RoundedRectangle(cornerRadius: Radius.lg, style: .continuous)
                         .strokeBorder(Color.cuppedInk.opacity(0.15), lineWidth: 1)
                 }
             }
