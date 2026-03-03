@@ -1,64 +1,51 @@
 import SwiftUI
 import UIKit
-import CoreText
 
-// MARK: - Fraunces Variable Font Helper
+// MARK: - Lora Variable Font Helper
 
-/// Fraunces has three variable axes: wght, opsz, SOFT.
-/// WONK was pinned to 0 at build time via fonttools instancer (clean glyphs baked in).
-/// iOS does NOT auto-set opsz to match font-size, so we set axes explicitly via Core Text.
-private enum FrauncesFontAxis {
-    // OpenType axis tags encoded as Int (4-byte ASCII tag)
-    static let wght = tag("wght") // weight (100–900)
-    static let opsz = tag("opsz") // optical size (9–144)
-    static let soft = tag("SOFT") // softness (0=sharp, 100=round)
-
-    private static func tag(_ s: String) -> Int {
-        let bytes = Array(s.utf8)
-        return Int(bytes[0]) << 24 | Int(bytes[1]) << 16 | Int(bytes[2]) << 8 | Int(bytes[3])
-    }
-}
-
-private func makeFraunces(
+/// Lora is a variable font with a single axis: wght (400–700).
+/// We construct it via Core Text so we can set the weight axis
+/// explicitly and wrap with UIFontMetrics for Dynamic Type scaling.
+private func makeLora(
     size: CGFloat,
     weight: CGFloat = 400,
-    opticalSize: CGFloat? = nil,
-    soft: CGFloat = 0,
     textStyle: UIFont.TextStyle = .body
 ) -> Font {
-    let variations: [Int: CGFloat] = [
-        FrauncesFontAxis.wght: weight,
-        FrauncesFontAxis.opsz: opticalSize ?? size,
-        FrauncesFontAxis.soft: soft,
-    ]
+    let wghtTag = Int(UInt8(ascii: "w")) << 24
+        | Int(UInt8(ascii: "g")) << 16
+        | Int(UInt8(ascii: "h")) << 8
+        | Int(UInt8(ascii: "t"))
 
-    let descriptor = UIFontDescriptor(fontAttributes: [.family: "Fraunces"])
+    let descriptor = UIFontDescriptor(fontAttributes: [.family: "Lora"])
         .addingAttributes([
-            UIFontDescriptor.AttributeName(rawValue: kCTFontVariationAttribute as String): variations
+            UIFontDescriptor.AttributeName(
+                rawValue: kCTFontVariationAttribute as String
+            ): [wghtTag: weight]
         ])
 
     let baseFont = UIFont(descriptor: descriptor, size: size)
-    let scaledFont = UIFontMetrics(forTextStyle: textStyle).scaledFont(for: baseFont)
+    let scaledFont = UIFontMetrics(forTextStyle: textStyle)
+        .scaledFont(for: baseFont)
     return Font(scaledFont)
 }
 
 // MARK: - Typography Tokens
 
 extension Font {
-    // MARK: Headlines (Fraunces — variable serif)
-    // Mapped from React: text-5xl / text-4xl / text-3xl / text-2xl
+    // MARK: Headlines (Lora — variable serif)
+    // Mapped from React / Design System: text-5xl / text-4xl / text-3xl / text-2xl
 
     /// 48pt Bold — hero titles, large display text (React: text-5xl font-bold)
-    static let cuppedLargeTitle = makeFraunces(size: 48, weight: 700, textStyle: .largeTitle)
+    static let cuppedLargeTitle = makeLora(size: 48, weight: 700, textStyle: .largeTitle)
 
     /// 36pt SemiBold — primary headings (React: text-4xl font-semibold)
-    static let cuppedTitle1 = makeFraunces(size: 36, weight: 600, textStyle: .title1)
+    static let cuppedTitle1 = makeLora(size: 36, weight: 600, textStyle: .title1)
 
-    /// 30pt Medium — secondary headings (React: text-3xl font-medium)
-    static let cuppedTitle2 = makeFraunces(size: 30, weight: 500, textStyle: .title2)
+    /// 30pt Bold — secondary headings (React: text-3xl font-bold)
+    static let cuppedTitle2 = makeLora(size: 30, weight: 700, textStyle: .title2)
 
     /// 24pt Regular — tertiary headings (React: text-2xl)
-    static let cuppedTitle3 = makeFraunces(size: 24, weight: 400, textStyle: .title3)
+    static let cuppedTitle3 = makeLora(size: 24, weight: 400, textStyle: .title3)
 
     // MARK: Body (Plus Jakarta Sans — variable sans-serif)
     // Mapped from React: text-lg / text-base / text-sm / text-xs
@@ -77,9 +64,9 @@ extension Font {
 
     // MARK: Weight Variants
 
-    /// Fraunces headline with proper variable font axes (opsz auto-matches size)
+    /// Lora headline with proper variable font weight axis
     static func cuppedHeadline(size: CGFloat, weight: CGFloat = 700) -> Font {
-        makeFraunces(size: size, weight: weight)
+        makeLora(size: size, weight: weight)
     }
 
     /// Plus Jakarta Sans body text
