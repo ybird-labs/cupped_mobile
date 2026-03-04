@@ -68,11 +68,18 @@ open class AuthViewModel(
      */
     fun requestMagicLink(email: String) {
         if (_uiState.value is AuthUiState.Loading) return
+
+        val normalizedEmail = email.trim()
+        if (normalizedEmail.isEmpty() || !normalizedEmail.contains("@")) {
+            _uiState.value = AuthUiState.Error("Please enter a valid email address")
+            return
+        }
+
         viewModelScope.coroutineScope.launch {
             _uiState.value = AuthUiState.Loading
-            apiClient.requestMagicLink(email).fold(
+            apiClient.requestMagicLink(normalizedEmail).fold(
                 onSuccess = {
-                    _uiState.value = AuthUiState.MagicLinkSent(email)
+                    _uiState.value = AuthUiState.MagicLinkSent(normalizedEmail)
                 },
                 onFailure = { error ->
                     _uiState.value = AuthUiState.Error(
@@ -90,9 +97,16 @@ open class AuthViewModel(
      */
     fun verifyToken(token: String) {
         if (_uiState.value is AuthUiState.Loading) return
+
+        val normalizedToken = token.trim()
+        if (normalizedToken.isEmpty()) {
+            _uiState.value = AuthUiState.Error("Invalid or missing token")
+            return
+        }
+
         viewModelScope.coroutineScope.launch {
             _uiState.value = AuthUiState.Loading
-            apiClient.verifyMagicLinkToken(token).fold(
+            apiClient.verifyMagicLinkToken(normalizedToken).fold(
                 onSuccess = { response ->
                     _uiState.value = AuthUiState.Authenticated(
                         response.bearerToken
