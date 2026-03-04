@@ -12,6 +12,7 @@
 // for MobileSessionClient to exchange for a session cookie.
 
 import Foundation
+import LocalAuthentication
 import Security
 
 /// Manages bearer token persistence in the iOS Keychain.
@@ -49,10 +50,33 @@ final class TokenStore {
     /// - Returns: `true` if the save succeeded.
     @discardableResult
     func save(token: String) -> Bool {
+        // Reject empty or whitespace-only tokens so
+        // hasToken() doesn't return true for a meaningless
+        // value.
+        guard !token.trimmingCharacters(
+            in: .whitespacesAndNewlines
+        ).isEmpty else {
+            return false
+        }
+
         // Always delete first (idempotent)
         delete()
 
         guard let data = token.data(using: .utf8) else {
+            return false
+        }
+
+        // Create access control requiring biometric
+        // authentication (current enrolled set) to read
+        // the item. This cryptographically binds token
+        // retrieval to a successful biometric challenge.
+        var error: Unmanaged<CFError>?
+        guard let accessControl = SecAccessControlCreateWithFlags(
+            nil,
+            kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly,
+            .biometryCurrentSet,
+            &error
+        ) else {
             return false
         }
 
@@ -61,8 +85,7 @@ final class TokenStore {
             kSecAttrService as String: service,
             kSecAttrAccount as String: account,
             kSecValueData as String: data,
-            kSecAttrAccessible as String:
-                kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly
+            kSecAttrAccessControl as String: accessControl
         ]
 
         let status = SecItemAdd(query as CFDictionary, nil)
@@ -73,16 +96,39 @@ final class TokenStore {
 
     /// Retrieves the stored bearer token from the Keychain.
     ///
+    /// Because the item is stored with `.biometryCurrentSet`
+    /// access control, the system will present a biometric
+    /// prompt before returning the data. Pass an
+    /// `LAContext` that has already been authenticated via
+    /// `BiometricService.authenticate()` to reuse the same
+    /// biometric evaluation and avoid a double prompt.
+    ///
+    /// - Parameter context: An `LAContext` that has already
+    ///   successfully evaluated biometric policy. If `nil`,
+    ///   the system will prompt the user for biometrics
+    ///   via `kSecUseOperationPrompt`.
     /// - Returns: The bearer token string, or `nil` if no
     ///   token is stored or retrieval failed.
-    func retrieve() -> String? {
-        let query: [String: Any] = [
+    func retrieve(context: LAContext? = nil) -> String? {
+        var query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
             kSecAttrAccount as String: account,
             kSecReturnData as String: true,
             kSecMatchLimit as String: kSecMatchLimitOne
         ]
+
+        if let context {
+            // Reuse the already-authenticated LAContext
+            // so the user isn't prompted twice.
+            query[kSecUseAuthenticationContext as String]
+                = context
+        } else {
+            // Fallback: let the Keychain present its own
+            // biometric prompt with this reason string.
+            query[kSecUseOperationPrompt as String]
+                = "Sign in to Cupped"
+        }
 
         var result: AnyObject?
         let status = SecItemCopyMatching(

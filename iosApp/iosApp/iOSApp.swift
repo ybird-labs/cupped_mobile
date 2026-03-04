@@ -154,11 +154,13 @@ struct iOSApp: App {
                     // No cookies, but user opted into
                     // biometrics and has a stored token.
                     // Attempt biometric auth → exchange.
-                    let success = await BiometricService
-                        .shared.authenticate()
-                    if success,
+                    // The returned LAContext is reused for
+                    // Keychain retrieval so the user isn't
+                    // prompted twice.
+                    if let authContext = await BiometricService
+                        .shared.authenticate(),
                        let token = TokenStore.shared
-                           .retrieve() {
+                           .retrieve(context: authContext) {
                         await authCoordinator
                             .exchangeAndPersist(
                                 bearerToken: token
@@ -223,7 +225,8 @@ struct iOSApp: App {
         // https://<host>/users/log-in/<token>
         // The token is the last path component (base64url-
         // encoded), NOT a query parameter.
-        if let host = components.host,
+        if components.scheme?.lowercased() == "https",
+           let host = components.host,
            validHosts.contains(host),
            components.path.hasPrefix("/users/log-in/")
         {

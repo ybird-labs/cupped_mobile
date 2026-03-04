@@ -301,6 +301,11 @@ final class CookieStore: NSObject,
     /// Call during logout to ensure stale sessions are not
     /// restored on next launch.
     func clearPersistedCookies() {
+        // Cancel any pending debounced write so it cannot
+        // run after the clear and re-persist stale cookies.
+        debounceTask?.cancel()
+        debounceTask = nil
+
         let query: [String: Any] = [
             kSecClass as String:
                 kSecClassGenericPassword,

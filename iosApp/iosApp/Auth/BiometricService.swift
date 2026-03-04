@@ -96,23 +96,29 @@ final class BiometricService {
 
     /// Presents the biometric authentication prompt.
     ///
+    /// Returns the authenticated `LAContext` on success so
+    /// it can be reused for Keychain operations that require
+    /// biometric access control (e.g., `TokenStore.retrieve`),
+    /// avoiding a double biometric prompt.
+    ///
     /// - Parameter reason: The reason string shown to the user
     ///   (e.g., "Sign in to Cupped").
-    /// - Returns: `true` if authentication succeeded, `false`
-    ///   if the user cancelled or biometric evaluation failed.
+    /// - Returns: The authenticated `LAContext` on success,
+    ///   or `nil` if the user cancelled or evaluation failed.
     func authenticate(
         reason: String = "Sign in to Cupped"
-    ) async -> Bool {
+    ) async -> LAContext? {
         let context = LAContext()
         context.localizedCancelTitle = "Use Magic Link"
 
         do {
-            return try await context.evaluatePolicy(
+            let success = try await context.evaluatePolicy(
                 .deviceOwnerAuthenticationWithBiometrics,
                 localizedReason: reason
             )
+            return success ? context : nil
         } catch {
-            return false
+            return nil
         }
     }
 }

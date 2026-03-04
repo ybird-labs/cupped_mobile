@@ -52,6 +52,12 @@ final class AuthCoordinator {
     /// the next successful exchange or login attempt.
     var exchangeError: String?
 
+    /// Monotonically increasing counter incremented on each
+    /// logout. Used by `exchangeAndPersist` to detect when
+    /// a logout occurred while an exchange was in-flight,
+    /// preventing stale completions from re-authenticating.
+    private var logoutGeneration: Int = 0
+
     // MARK: - Exchange
 
     /// Exchanges a bearer token for a session cookie and
@@ -72,6 +78,12 @@ final class AuthCoordinator {
         isExchanging = true
         exchangeError = nil
 
+        // Capture the current logout generation before any
+        // async work. If logout() fires while we're awaiting
+        // the exchange, the generation will have incremented
+        // and we must discard the result.
+        let generation = logoutGeneration
+
         defer { isExchanging = false }
 
         let client = MobileSessionClient()
@@ -81,6 +93,9 @@ final class AuthCoordinator {
             baseURL: baseURL
         )
 
+        // Bail out if a logout occurred during the exchange.
+        guard logoutGeneration == generation else { return }
+
         switch result {
         case .success:
             // Persist cookies to Keychain so they survive
@@ -88,6 +103,10 @@ final class AuthCoordinator {
             await CookieStore.shared.persistCookies(
                 from: WebViewConfiguration.cookieStore
             )
+
+            // Re-check after second await — logout may have
+            // fired between the exchange and cookie persist.
+            guard logoutGeneration == generation else { return }
 
             // Save bearer token for biometric re-auth.
             TokenStore.shared.save(token: bearerToken)
@@ -177,6 +196,11 @@ final class AuthCoordinator {
     ///
     /// After logout, the user sees LoginView.
     func logout() async {
+        // Increment generation first so any in-flight
+        // exchangeAndPersist call will detect the logout
+        // and bail out before persisting.
+        logoutGeneration += 1
+
         // 1. Clear WKWebView cookies from the shared store.
         let store = WebViewConfiguration.cookieStore
         let cookies = await store.allCookies()
