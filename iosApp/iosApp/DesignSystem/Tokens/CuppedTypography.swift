@@ -64,13 +64,24 @@ extension Font {
 
     // MARK: Weight Variants
 
-    /// Lora headline with proper variable font weight axis
-    static func cuppedHeadline(size: CGFloat, weight: CGFloat = 700) -> Font {
-        makeLora(size: size, weight: weight)
+    /// Lora headline with proper variable font weight axis.
+    /// Pass an explicit `textStyle` so Dynamic Type scales
+    /// correctly; defaults to `.title` when omitted.
+    static func cuppedHeadline(
+        size: CGFloat,
+        weight: CGFloat = 700,
+        textStyle: UIFont.TextStyle = .title1
+    ) -> Font {
+        makeLora(size: size, weight: weight, textStyle: textStyle)
     }
 
-    /// Plus Jakarta Sans body text
-    static func cuppedText(size: CGFloat, weight: Font.Weight = .regular) -> Font {
-        Font.custom("Plus Jakarta Sans", size: size).weight(weight)
+    /// Plus Jakarta Sans body text with Dynamic Type support.
+    static func cuppedText(
+        size: CGFloat,
+        weight: Font.Weight = .regular,
+        relativeTo textStyle: Font.TextStyle = .body
+    ) -> Font {
+        Font.custom("Plus Jakarta Sans", size: size, relativeTo: textStyle)
+            .weight(weight)
     }
 }
