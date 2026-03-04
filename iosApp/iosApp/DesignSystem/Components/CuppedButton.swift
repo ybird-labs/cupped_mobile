@@ -15,23 +15,24 @@ struct CuppedButton: View {
     var isDisabled: Bool = false
     let action: () -> Void
 
-    /// Gray bg + muted text when disabled or loading.
-    /// React spec: loading = `bg-canvas-border text-ink-muted` with white spinner.
-    private var isVisuallyDisabled: Bool {
+    /// Whether the button appears visually disabled (muted
+    /// colors). Currently identical to `isInteractionDisabled`
+    /// but kept separate: visual state could diverge in the
+    /// future (e.g., a "pending" state that looks active but
+    /// blocks taps).
+    private var isDisabledOrLoading: Bool {
         isDisabled || isLoading
     }
 
-    /// Can't tap when disabled OR loading.
-    private var isInteractionDisabled: Bool {
-        isDisabled || isLoading
-    }
+    private var isVisuallyDisabled: Bool { isDisabledOrLoading }
+    private var isInteractionDisabled: Bool { isDisabledOrLoading }
 
     var body: some View {
         Button(action: action) {
             HStack(spacing: Spacing.sm) {
                 if isLoading {
                     ProgressView()
-                        .tint(.white)
+                        .tint(activeForeground)
                 }
                 Text(title)
                     .font(.cuppedText(size: 18, weight: .bold))
@@ -63,6 +64,10 @@ struct CuppedButton: View {
         )
         .buttonStyle(TapScaleButtonStyle())
         .disabled(isInteractionDisabled)
+        .accessibilityLabel(
+            isLoading ? "\(title), loading" : title
+        )
+        .accessibilityValue(isLoading ? "Loading" : "")
     }
 
     // MARK: - Resolved Colors
@@ -82,13 +87,7 @@ struct CuppedButton: View {
 
     /// Foreground color accounting for disabled state.
     private var resolvedForeground: Color {
-        if isVisuallyDisabled {
-            switch style {
-            case .primary, .secondary: return .cuppedMuted
-            case .tertiary: return .cuppedMuted
-            case .text: return .cuppedMuted
-            }
-        }
+        if isVisuallyDisabled { return .cuppedMuted }
         return activeForeground
     }
 

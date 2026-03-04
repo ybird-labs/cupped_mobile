@@ -24,7 +24,7 @@ enum GamificationType {
     var label: String {
         switch self {
         case .xp(let points): "\(points) XP"
-        case .streak(let days): "\(days) day streak"
+        case .streak(let days): "\(days) \(days == 1 ? "day" : "days") streak"
         case .badge(let name): name
         }
     }
@@ -37,6 +37,7 @@ struct GamificationBadge: View {
         HStack(spacing: Spacing.xs) {
             Image(systemName: type.icon)
                 .font(.caption)
+                .accessibilityHidden(true)
             Text(type.label)
                 .font(.cuppedCaption)
                 .fontWeight(.semibold)

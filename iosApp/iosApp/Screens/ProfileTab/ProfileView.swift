@@ -150,6 +150,7 @@ struct ProfileView: View {
                 )
             )
             .labelsHidden()
+            .accessibilityLabel("Use \(biometricName)")
         }
     }
 

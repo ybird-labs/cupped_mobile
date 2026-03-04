@@ -7,6 +7,7 @@ struct LogView: View {
                 Image(systemName: "plus.circle.fill")
                     .font(.system(size: 48))
                     .foregroundStyle(Color.cuppedPrimary)
+                    .accessibilityHidden(true)
 
                 Text("Log a Brew")
                     .font(.cuppedLargeTitle)

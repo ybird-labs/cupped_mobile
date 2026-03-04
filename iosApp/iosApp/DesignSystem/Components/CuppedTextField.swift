@@ -65,6 +65,7 @@ struct CuppedTextField: View {
             fieldContainer
             errorView
         }
+        .animation(.easeInOut(duration: 0.2), value: error)
     }
 
     // MARK: - Label
