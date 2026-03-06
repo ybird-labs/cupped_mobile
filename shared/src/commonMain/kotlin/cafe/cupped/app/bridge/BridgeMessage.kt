@@ -65,6 +65,11 @@ sealed class BridgeMessage {
     @SerialName("connectivity_changed")
     data class ConnectivityChanged(val status: ConnectivityStatus) : BridgeMessage()
 
+    /** Result of a navigate request */
+    @Serializable
+    @SerialName("navigate_result")
+    data class NavigateResult(val handled: Boolean) : BridgeMessage()
+
     /** Generic error response for request/response pairs */
     @Serializable
     @SerialName("error")
