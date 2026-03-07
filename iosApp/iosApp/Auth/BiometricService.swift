@@ -6,6 +6,8 @@
 // first login and can change in settings.
 
 import LocalAuthentication
+import OSLog
+import UIKit
 
 /// Biometric authentication type available on device.
 enum BiometricType {
@@ -36,6 +38,10 @@ enum BiometricType {
 final class BiometricService {
 
     static let shared = BiometricService()
+    private static let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "cafe.cupped.app",
+        category: "Biometrics"
+    )
 
     private let enabledKey = "cafe.cupped.biometric.enabled"
 
@@ -59,7 +65,11 @@ final class BiometricService {
         switch context.biometryType {
         case .faceID: return .faceID
         case .touchID: return .touchID
-        case .opticID: return .faceID // Vision Pro — treat as Face ID
+        case .opticID:
+            Self.logger.info(
+                "Observed opticID and mapped to faceID for biometric flow. biometryType=\(String(describing: context.biometryType)) idiom=\(UIDevice.current.userInterfaceIdiom.rawValue) systemVersion=\(UIDevice.current.systemVersion)"
+            )
+            return .faceID // Vision Pro — treat as Face ID
         case .none: return .none
         @unknown default: return .none
         }

@@ -4,7 +4,8 @@ import SwiftUI
 /// border states, focus ring, and inline error display.
 ///
 /// Uses the ZStack-overlay placeholder pattern so placeholder styling
-/// is fully controlled (SwiftUI's `prompt:` ignores color on iOS 26).
+/// is fully controlled because SwiftUI's `prompt:` does not give us the
+/// placeholder styling control this component needs.
 ///
 /// ## Usage
 /// ```swift
@@ -20,7 +21,6 @@ import SwiftUI
 ///     autocapitalization: .never,
 ///     disableAutocorrection: true
 /// )
-/// .focused($isEmailFocused)
 /// ```
 struct CuppedTextField: View {
     // MARK: - Required

@@ -25,6 +25,7 @@
 //    isAuthenticated = false
 
 import Foundation
+import OSLog
 import Shared
 import WebKit
 import Observation
@@ -46,6 +47,10 @@ enum AuthFlowStatus: Equatable {
 @MainActor @Observable
 final class AuthCoordinator {
     private static let deepLinkSuccessDwellNanoseconds: UInt64 = 1_500_000_000
+    private static let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "cafe.cupped.app",
+        category: "Auth"
+    )
 
     deinit {}
 
@@ -132,7 +137,11 @@ final class AuthCoordinator {
             guard logoutGeneration == generation else { return false }
 
             // Save bearer token for biometric re-auth.
-            TokenStore.shared.save(token: bearerToken)
+            let tokenSaved = TokenStore.shared.save(token: bearerToken)
+            if !tokenSaved {
+                Self.logger.error("Failed to persist bearer token for biometric re-auth")
+                BiometricService.shared.isEnabled = false
+            }
 
             let shouldShowDeepLinkSuccess =
                 authFlowStatus == .establishingSession
@@ -184,6 +193,7 @@ final class AuthCoordinator {
         isExchanging = true
         exchangeError = nil
         authFlowStatus = .verifyingMagicLink
+        let generation = logoutGeneration
 
         defer { isExchanging = false }
 
@@ -212,6 +222,7 @@ final class AuthCoordinator {
             // Task is cancelled (e.g., view disappeared),
             // stop polling instead of running until timeout.
             if Task.isCancelled { return false }
+            guard logoutGeneration == generation else { return false }
 
             let state = authVM.uiState.value
 
@@ -237,6 +248,7 @@ final class AuthCoordinator {
 
             try? await Task.sleep(nanoseconds: interval)
             elapsed += interval
+            guard logoutGeneration == generation else { return false }
         }
 
         exchangeError = "Magic link verification timed out"

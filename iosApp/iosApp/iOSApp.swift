@@ -216,7 +216,7 @@ struct iOSApp: App {
         // `cupped.cafe` is included so the app works
         // immediately when production migrates there.
         let validHosts: Set<String> = [
-            serverHost, "cupped.cafe",
+            serverHost.lowercased(), "cupped.cafe".lowercased(),
         ].filter { !$0.isEmpty }.reduce(into: []) {
             $0.insert($1)
         }
@@ -226,7 +226,7 @@ struct iOSApp: App {
         // The token is the last path component (base64url-
         // encoded), NOT a query parameter.
         if components.scheme?.lowercased() == "https",
-           let host = components.host,
+           let host = components.host?.lowercased(),
            validHosts.contains(host),
            components.path.hasPrefix("/users/log-in/")
         {

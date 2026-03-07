@@ -1,6 +1,7 @@
 import KMPObservableViewModelSwiftUI
 import SwiftUI
 import Shared
+import Foundation
 
 // MARK: - LoginView
 
@@ -49,10 +50,12 @@ struct LoginView: View {
             .bearerToken
     }
 
-    /// Basic client-side email validation (non-empty + contains "@").
+    /// Lightweight client-side email validation used only to gate the CTA.
     private var isEmailValid: Bool {
         let trimmed = email.trimmingCharacters(in: .whitespacesAndNewlines)
-        return !trimmed.isEmpty && trimmed.contains("@")
+        let pattern = #"^[^\s@]+@[^\s@]+\.[^\s@]+$"#
+        let predicate = NSPredicate(format: "SELF MATCHES %@", pattern)
+        return predicate.evaluate(with: trimmed)
     }
 
     /// Whether the form is currently submitting.

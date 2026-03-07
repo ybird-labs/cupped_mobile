@@ -75,6 +75,10 @@ final class CookieStore: NSObject,
     /// triggers a Keychain write.
     private var debounceTask: Task<Void, Never>?
 
+    /// Monotonic guard that invalidates stale async writes
+    /// after logout or explicit cookie clearing.
+    private var cookieWriteGeneration = 0
+
     private override init() {
         super.init()
     }
@@ -98,7 +102,7 @@ final class CookieStore: NSObject,
         cookieStore: WKHTTPCookieStore,
         targetHost: String
     ) {
-        self.targetHost = targetHost
+        self.targetHost = Self.normalizeDomain(targetHost)
         cookieStore.add(self)
     }
 
@@ -116,10 +120,14 @@ final class CookieStore: NSObject,
         in cookieStore: WKHTTPCookieStore
     ) {
         debounceTask?.cancel()
+        let generation = cookieWriteGeneration
         debounceTask = Task {
             try? await Task.sleep(for: .milliseconds(500))
             guard !Task.isCancelled else { return }
-            await persistCookies(from: cookieStore)
+            await persistCookies(
+                from: cookieStore,
+                generation: generation
+            )
         }
     }
 
@@ -166,7 +174,19 @@ final class CookieStore: NSObject,
     func persistCookies(
         from cookieStore: WKHTTPCookieStore
     ) async {
+        await persistCookies(
+            from: cookieStore,
+            generation: cookieWriteGeneration
+        )
+    }
+
+    private func persistCookies(
+        from cookieStore: WKHTTPCookieStore,
+        generation: Int
+    ) async {
+        guard generation == cookieWriteGeneration else { return }
         let cookies = await cookieStore.allCookies()
+        guard generation == cookieWriteGeneration else { return }
 
         // Only persist cookies for our server domain.
         // This avoids saving third-party tracking cookies
@@ -175,8 +195,10 @@ final class CookieStore: NSObject,
         let domainCookies: [HTTPCookie]
         if let host = targetHost {
             domainCookies = cookies.filter {
-                $0.domain.contains(host)
-                || host.contains($0.domain)
+                Self.matchesPersistedDomain(
+                    cookieDomain: $0.domain,
+                    host: host
+                )
             }
         } else {
             domainCookies = cookies
@@ -202,6 +224,7 @@ final class CookieStore: NSObject,
             kSecAttrService as String: service,
             kSecAttrAccount as String: account
         ]
+        guard generation == cookieWriteGeneration else { return }
         SecItemDelete(deleteQuery as CFDictionary)
 
         guard !valid.isEmpty else { return }
@@ -217,6 +240,7 @@ final class CookieStore: NSObject,
                 withRootObject: props,
                 requiringSecureCoding: false
             ) else { return }
+        guard generation == cookieWriteGeneration else { return }
 
         let addQuery: [String: Any] = [
             kSecClass as String:
@@ -313,6 +337,8 @@ final class CookieStore: NSObject,
     /// Call during logout to ensure stale sessions are not
     /// restored on next launch.
     func clearPersistedCookies() {
+        cookieWriteGeneration += 1
+
         // Cancel any pending debounced write so it cannot
         // run after the clear and re-persist stale cookies.
         debounceTask?.cancel()
@@ -325,5 +351,28 @@ final class CookieStore: NSObject,
             kSecAttrAccount as String: account
         ]
         SecItemDelete(query as CFDictionary)
+    }
+
+    private static func matchesPersistedDomain(
+        cookieDomain: String,
+        host: String
+    ) -> Bool {
+        let normalizedCookieDomain = normalizeDomain(cookieDomain)
+        let normalizedHost = normalizeDomain(host)
+
+        guard !normalizedCookieDomain.isEmpty,
+              !normalizedHost.isEmpty else {
+            return false
+        }
+
+        return normalizedHost == normalizedCookieDomain
+            || normalizedHost.hasSuffix(".\(normalizedCookieDomain)")
+    }
+
+    private static func normalizeDomain(_ domain: String) -> String {
+        domain
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+            .trimmingCharacters(in: CharacterSet(charactersIn: "."))
     }
 }
