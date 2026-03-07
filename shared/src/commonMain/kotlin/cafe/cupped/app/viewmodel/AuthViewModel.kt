@@ -192,7 +192,7 @@ open class AuthViewModel internal constructor(
                     lowered = lowered,
                     fallback = fallback
                 )?.let { return it }
-                return msg
+                return fallback
             }
 
             // Clean, short messages pass through when they do not reveal auth internals.
@@ -201,6 +201,9 @@ open class AuthViewModel internal constructor(
                     lowered = lowered,
                     fallback = fallback
                 )?.let { return it }
+                if (containsSensitiveAuthDetail(lowered) || looksLikeAuthFailure) {
+                    return fallback
+                }
                 return msg
             }
 
@@ -212,7 +215,9 @@ open class AuthViewModel internal constructor(
             lowered: String,
             fallback: String
         ): String? {
-            if (lowered.contains("unexpected verify response")) return null
+            if (lowered.contains("unexpected verify response")) {
+                return "Unexpected verify response from server"
+            }
 
             return when {
                 lowered.contains("too many requests")
@@ -243,6 +248,17 @@ open class AuthViewModel internal constructor(
 
                 else -> null
             }
+        }
+
+        private fun containsSensitiveAuthDetail(lowered: String): Boolean {
+            return lowered.contains("token already used")
+                || lowered.contains("already consumed")
+                || lowered.contains("token revoked")
+                || lowered.contains("token invalidated")
+                || lowered.contains("used token")
+                || lowered.contains("expired token")
+                || lowered.contains("already used")
+                || lowered.contains("revoked token")
         }
     }
 }

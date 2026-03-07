@@ -40,4 +40,27 @@ class AuthViewModelTest {
             message
         )
     }
+
+    @Test
+    fun userFriendlyErrorCuratesSensitiveTokenStateDetails() {
+        val message = AuthViewModel.userFriendlyError(
+            error = Exception("Token already used"),
+            fallback = "Failed to verify token"
+        )
+
+        assertEquals(
+            "This link has expired or is invalid. Please request a new one.",
+            message
+        )
+    }
+
+    @Test
+    fun userFriendlyErrorPreservesSafeShortNonAuthMessages() {
+        val message = AuthViewModel.userFriendlyError(
+            error = Exception("Temporarily unavailable"),
+            fallback = "Failed to verify token"
+        )
+
+        assertEquals("Temporarily unavailable", message)
+    }
 }
