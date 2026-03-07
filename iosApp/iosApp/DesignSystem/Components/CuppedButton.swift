@@ -50,13 +50,13 @@ struct CuppedButton: View {
             .overlay {
                 if style == .tertiary {
                     RoundedRectangle(cornerRadius: Radius.lg, style: .continuous)
-                        .strokeBorder(Color.cuppedInk.opacity(0.15), lineWidth: 1)
+                        .strokeBorder(Color.cuppedTextPrimary.opacity(0.15), lineWidth: 1)
                 }
             }
         }
         .shadow(
             color: shouldShowShadow
-                ? Color.cuppedPrimary.opacity(0.3)
+                ? Color.cuppedActionPrimary.opacity(0.3)
                 : .clear,
             radius: 10,
             x: 0,
@@ -77,8 +77,8 @@ struct CuppedButton: View {
     private var resolvedBackground: Color {
         if isVisuallyDisabled {
             switch style {
-            case .primary, .secondary: return .cuppedCanvasBorder
-            case .tertiary: return .cuppedCard
+            case .primary, .secondary: return .cuppedBorderDefault
+            case .tertiary: return .cuppedSurfaceCard
             case .text: return .clear
             }
         }
@@ -87,16 +87,16 @@ struct CuppedButton: View {
 
     /// Foreground color accounting for disabled state.
     private var resolvedForeground: Color {
-        if isVisuallyDisabled { return .cuppedMuted }
+        if isVisuallyDisabled { return .cuppedTextMuted }
         return activeForeground
     }
 
     /// Active (enabled) background color.
     private var activeBackground: Color {
         switch style {
-        case .primary: .cuppedPrimary
-        case .secondary: .cuppedInk
-        case .tertiary: .cuppedCard
+        case .primary: .cuppedActionPrimary
+        case .secondary: .cuppedTextPrimary
+        case .tertiary: .cuppedSurfaceCard
         case .text: .clear
         }
     }
@@ -105,8 +105,8 @@ struct CuppedButton: View {
     private var activeForeground: Color {
         switch style {
         case .primary, .secondary: .white
-        case .tertiary: .cuppedInk
-        case .text: .cuppedPrimary
+        case .tertiary: .cuppedTextPrimary
+        case .text: .cuppedActionPrimary
         }
     }
 

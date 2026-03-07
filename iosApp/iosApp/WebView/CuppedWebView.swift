@@ -14,6 +14,18 @@
 
 import SwiftUI
 import WebKit
+import Shared
+
+private extension UIColor {
+    convenience init(_ token: ColorToken) {
+        self.init(
+            red: CGFloat(token.red),
+            green: CGFloat(token.green),
+            blue: CGFloat(token.blue),
+            alpha: CGFloat(token.alpha)
+        )
+    }
+}
 
 /// A SwiftUI wrapper around `WKWebView` that loads a
 /// Phoenix LiveView page.
@@ -60,12 +72,7 @@ struct CuppedWebView: UIViewRepresentable {
         // Set the under-page bounce area to the app's
         // canvas color so overscroll matches the design
         // system rather than showing default white.
-        let canvasColor = UIColor(
-            red: 248 / 255,
-            green: 250 / 255,
-            blue: 252 / 255,
-            alpha: 1
-        )
+        let canvasColor = UIColor(CuppedColors.shared.surfaceApp)
         webView.underPageBackgroundColor = canvasColor
         webView.isOpaque = false
         webView.backgroundColor = canvasColor

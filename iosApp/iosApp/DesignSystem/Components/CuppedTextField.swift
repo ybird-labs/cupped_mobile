@@ -48,9 +48,9 @@ struct CuppedTextField: View {
     private var hasError: Bool { error != nil }
 
     private var borderColor: Color {
-        if hasError { return .cuppedError }
-        if isFocused { return .cuppedPrimary }
-        return .cuppedCanvasBorder
+        if hasError { return .cuppedInputBorderCritical }
+        if isFocused { return .cuppedInputBorderFocused }
+        return .cuppedInputBorder
     }
 
     private var borderWidth: CGFloat {
@@ -76,7 +76,7 @@ struct CuppedTextField: View {
             Text(label)
                 .font(.cuppedCaption)
                 .fontWeight(.medium)
-                .foregroundStyle(Color.cuppedSecondary)
+                .foregroundStyle(Color.cuppedTextSecondary)
                 .tracking(1.2)
         }
     }
@@ -90,7 +90,7 @@ struct CuppedTextField: View {
         }
         .padding(.horizontal, Spacing.md)
         .padding(.vertical, Spacing.base)
-        .background(Color.cuppedCard)
+        .background(Color.cuppedSurfaceCard)
         .clipShape(
             RoundedRectangle(
                 cornerRadius: Radius.md,
@@ -106,7 +106,7 @@ struct CuppedTextField: View {
         }
         .shadow(
             color: isFocused
-                ? Color.cuppedPrimary.opacity(0.2)
+                ? Color.cuppedActionPrimary.opacity(0.2)
                 : .clear,
             radius: isFocused ? 4 : 0,
             x: 0, y: 0
@@ -121,7 +121,7 @@ struct CuppedTextField: View {
     private var iconView: some View {
         if let icon {
             Image(systemName: icon)
-                .foregroundStyle(Color.cuppedInputTint)
+                .foregroundStyle(Color.cuppedInputCursor)
                 .font(.system(size: 16))
         }
     }
@@ -133,12 +133,12 @@ struct CuppedTextField: View {
             if text.isEmpty {
                 Text(placeholder)
                     .font(.cuppedBody)
-                    .foregroundStyle(Color.cuppedInputPlaceholder.opacity(0.5))
+                    .foregroundStyle(Color.cuppedInputPlaceholderBase.opacity(0.5))
                     .allowsHitTesting(false)
             }
             TextField("", text: $text)
                 .font(.cuppedBody)
-                .foregroundStyle(Color.cuppedInk)
+                .foregroundStyle(Color.cuppedTextPrimary)
                 .keyboardType(keyboardType)
                 .textContentType(textContentType)
                 .textInputAutocapitalization(autocapitalization)
@@ -147,7 +147,7 @@ struct CuppedTextField: View {
                 .focused($isFocused)
                 .disabled(isLoading)
         }
-        .tint(Color.cuppedInputTint)
+        .tint(Color.cuppedInputCursor)
     }
 
     // MARK: - Error
@@ -157,7 +157,7 @@ struct CuppedTextField: View {
         if let error {
             Text(error)
                 .font(.cuppedSubheadline)
-                .foregroundStyle(Color.cuppedError)
+                .foregroundStyle(Color.cuppedStatusErrorForeground)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .transition(
                     .opacity.combined(
@@ -203,5 +203,5 @@ struct CuppedTextField: View {
         )
     }
     .padding(Spacing.lg)
-    .background(Color.cuppedCanvas)
+    .background(Color.cuppedSurfaceApp)
 }

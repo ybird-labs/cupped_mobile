@@ -48,7 +48,7 @@ struct AuthFlowOverlay: View {
                        !debugDetails.isEmpty {
                         Text(debugDetails)
                             .font(.cuppedCaption)
-                            .foregroundStyle(Color.cuppedMuted)
+                            .foregroundStyle(Color.cuppedTextMuted)
                             .textSelection(.enabled)
                             .padding(.horizontal, Spacing.xs)
                     }
@@ -58,7 +58,7 @@ struct AuthFlowOverlay: View {
                     }
                     .font(.cuppedSubheadline)
                     .fontWeight(.medium)
-                    .foregroundStyle(Color.cuppedPrimary)
+                    .foregroundStyle(Color.cuppedActionPrimary)
                     .padding(.horizontal, Spacing.xs)
                 }
             }
@@ -88,17 +88,17 @@ struct AuthFlowOverlay: View {
             VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text(title)
                     .font(.cuppedText(size: 14, weight: .semibold))
-                    .foregroundStyle(Color.cuppedInk)
+                    .foregroundStyle(Color.cuppedTextPrimary)
 
                 Text(message)
                     .font(.cuppedSubheadline)
-                    .foregroundStyle(Color.cuppedSecondary)
+                    .foregroundStyle(Color.cuppedTextSecondary)
             }
 
             Spacer(minLength: 0)
         }
         .padding(Spacing.base)
-        .background(Color.cuppedInfoLight.opacity(0.5))
+        .background(Color.cuppedStatusInfoBackground.opacity(0.5))
         .clipShape(
             RoundedRectangle(
                 cornerRadius: Radius.md,
@@ -110,7 +110,7 @@ struct AuthFlowOverlay: View {
                 cornerRadius: Radius.md,
                 style: .continuous
             )
-            .strokeBorder(Color.cuppedInfo.opacity(0.25), lineWidth: 1)
+            .strokeBorder(Color.cuppedStatusInfoForeground.opacity(0.25), lineWidth: 1)
         }
         .frame(maxWidth: 480, alignment: .leading)
         .padding(.horizontal, Spacing.lg)
@@ -121,7 +121,7 @@ struct AuthFlowOverlay: View {
 
 #Preview("Magic Link Progress") {
     ZStack(alignment: .top) {
-        Color.cuppedCanvas.ignoresSafeArea()
+        Color.cuppedSurfaceApp.ignoresSafeArea()
         AuthFlowOverlay()
     }
     .environment({
@@ -133,7 +133,7 @@ struct AuthFlowOverlay: View {
 
 #Preview("Magic Link Success") {
     ZStack(alignment: .top) {
-        Color.cuppedCanvas.ignoresSafeArea()
+        Color.cuppedSurfaceApp.ignoresSafeArea()
         AuthFlowOverlay()
     }
     .environment({
@@ -147,7 +147,7 @@ struct AuthFlowOverlay: View {
 
 #Preview("Magic Link Failure") {
     ZStack(alignment: .top) {
-        Color.cuppedCanvas.ignoresSafeArea()
+        Color.cuppedSurfaceApp.ignoresSafeArea()
         AuthFlowOverlay()
     }
     .environment({

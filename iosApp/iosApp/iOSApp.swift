@@ -106,7 +106,7 @@ struct iOSApp: App {
                         // Canvas-colored splash matching the
                         // design system. Uses the token directly
                         // so it stays in sync with CuppedColors.
-                        Color.cuppedCanvas
+                        Color.cuppedSurfaceApp
                             .ignoresSafeArea()
                     }
                 }
@@ -114,7 +114,7 @@ struct iOSApp: App {
                 AuthFlowOverlay()
             }
             .environment(authCoordinator)
-            .tint(.cuppedPrimary)
+            .tint(.cuppedActionPrimary)
             .animation(.cuppedSpring, value: authCoordinator.authFlowStatus)
             .task {
                 // This startup task intentionally runs before any auth-gated view

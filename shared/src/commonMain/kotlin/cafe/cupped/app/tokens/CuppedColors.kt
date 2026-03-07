@@ -60,4 +60,44 @@ object CuppedColors {
     val xp = ColorToken(0xFFFBBF24u)
     val streak = ColorToken(0xFFF97316u)
     val badge = ColorToken(0xFFA855F7u)
+
+    // Semantic Roles — Surfaces
+    val surfaceApp = canvas
+    val surfaceCard = card
+
+    // Semantic Roles — Borders
+    val borderDefault = canvasBorder
+    val borderSubtle = canvasBorderSubtle
+    val borderInteractive = primary
+    val borderCritical = error
+    val borderInfo = info
+
+    // Semantic Roles — Content
+    val textPrimary = ink
+    val textSecondary = secondary
+    val textMuted = muted
+    val textInverse = inkInverse
+
+    // Semantic Roles — Actions
+    val actionPrimary = primary
+    val actionPrimaryHover = primaryHover
+    val actionPrimarySubtle = primaryLight
+    val actionPrimaryMuted = primaryMuted
+
+    // Semantic Roles — Inputs
+    val inputBorder = borderDefault
+    val inputBorderFocused = borderInteractive
+    val inputBorderCritical = borderCritical
+    val inputCursor = inputTint
+    val inputPlaceholderBase = inputPlaceholder
+
+    // Semantic Roles — Feedback
+    val statusSuccessForeground = success
+    val statusSuccessBackground = successLight
+    val statusErrorForeground = error
+    val statusErrorBackground = errorLight
+    val statusWarningForeground = warning
+    val statusWarningBackground = warningLight
+    val statusInfoForeground = info
+    val statusInfoBackground = infoLight
 }
