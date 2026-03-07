@@ -21,6 +21,8 @@ struct LoginView: View {
     /// Called with the bearer token when authentication succeeds.
     var onAuthenticated: (String) -> Void
 
+    @Environment(AuthCoordinator.self) private var authCoordinator
+
     // MARK: - State
 
     @StateViewModel var authViewModel = KoinHelper.shared.makeAuthViewModel()
@@ -56,6 +58,11 @@ struct LoginView: View {
     /// Whether the form is currently submitting.
     private var isLoading: Bool {
         currentState is AuthUiStateLoading
+    }
+
+    private var isProcessingMagicLink: Bool {
+        authCoordinator.authFlowStatus == .verifyingMagicLink
+            || authCoordinator.authFlowStatus == .establishingSession
     }
 
     /// Error message from the last failed attempt, if any.
@@ -144,18 +151,21 @@ struct LoginView: View {
     @ViewBuilder
     private var cardContent: some View {
         let state = currentState
-        if let magicLinkState = state as? AuthUiStateMagicLinkSent {
-            MagicLinkSentView(
-                email: magicLinkState.email,
-                isRegisterMode: isRegisterMode,
-                onReset: {
-                    authViewModel.reset()
-                }
-            )
-            .transition(.scale.combined(with: .opacity))
-        } else {
-            inputForm
-                .transition(.opacity)
+        VStack(spacing: Spacing.lg) {
+            if let magicLinkState = state as? AuthUiStateMagicLinkSent {
+                MagicLinkSentView(
+                    email: magicLinkState.email,
+                    isRegisterMode: isRegisterMode,
+                    onReset: {
+                        authCoordinator.clearAuthFlowStatus()
+                        authViewModel.reset()
+                    }
+                )
+                .transition(.scale.combined(with: .opacity))
+            } else {
+                inputForm
+                    .transition(.opacity)
+            }
         }
     }
 
@@ -262,11 +272,12 @@ struct LoginView: View {
             style: .primary,
             icon: isLoading ? nil : "arrow.right",
             isLoading: isLoading,
-            isDisabled: !isEmailValid
+            isDisabled: !isEmailValid || isProcessingMagicLink
         ) {
             let trimmed = email.trimmingCharacters(
                 in: .whitespacesAndNewlines
             )
+            authCoordinator.clearAuthFlowStatus()
             authViewModel.requestMagicLink(email: trimmed)
         }
     }
@@ -285,6 +296,7 @@ struct LoginView: View {
 
             Button {
                 withAnimation(.cuppedSpring) {
+                    authCoordinator.clearAuthFlowStatus()
                     isRegisterMode.toggle()
                 }
             } label: {
@@ -383,8 +395,10 @@ private struct FeatureItem: View {
     LoginView { token in
         print("Authenticated with token: \(token)")
     }
+    .environment(AuthCoordinator())
 }
 
 #Preview("Register Mode") {
     LoginView { _ in }
+        .environment(AuthCoordinator())
 }

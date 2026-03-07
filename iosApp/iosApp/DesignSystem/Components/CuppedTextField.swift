@@ -143,6 +143,7 @@ struct CuppedTextField: View {
                 .textContentType(textContentType)
                 .textInputAutocapitalization(autocapitalization)
                 .autocorrectionDisabled(disableAutocorrection)
+                .accessibilityLabel(label ?? placeholder)
                 .focused($isFocused)
                 .disabled(isLoading)
         }

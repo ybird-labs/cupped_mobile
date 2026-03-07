@@ -242,9 +242,11 @@ final class CookieStore: NSObject,
     /// - Parameter cookieStore: The `WKHTTPCookieStore` to
     ///   inject cookies into (use
     ///   ``WebViewConfiguration/cookieStore``).
+    /// - Returns: `true` when at least one still-valid cookie
+    ///   was restored into WebKit.
     func restoreCookies(
         to cookieStore: WKHTTPCookieStore
-    ) async {
+    ) async -> Bool {
         let query: [String: Any] = [
             kSecClass as String:
                 kSecClassGenericPassword,
@@ -263,7 +265,7 @@ final class CookieStore: NSObject,
         guard status == errSecSuccess,
               let data = result as? Data,
               let props = try? NSKeyedUnarchiver
-                  .unarchivedObject(
+                   .unarchivedObject(
                       ofClasses: [
                           NSArray.self,
                           NSDictionary.self,
@@ -271,9 +273,9 @@ final class CookieStore: NSObject,
                           NSNumber.self,
                           NSDate.self
                       ],
-                      from: data
-                  ) as? [[HTTPCookiePropertyKey: Any]]
-        else { return }
+                       from: data
+                   ) as? [[HTTPCookiePropertyKey: Any]]
+        else { return false }
 
         // Discard cookies that expired while the app was
         // not running. Session cookies (no expiresDate)
@@ -289,9 +291,19 @@ final class CookieStore: NSObject,
             return true
         }
 
+        // If the persisted blob exists but contains no
+        // restorable cookies, clear it so future launches do
+        // not mistake stale data for an active session.
+        guard !cookies.isEmpty else {
+            clearPersistedCookies()
+            return false
+        }
+
         for cookie in cookies {
             await cookieStore.setCookie(cookie)
         }
+
+        return true
     }
 
     // MARK: - Clear

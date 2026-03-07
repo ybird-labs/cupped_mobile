@@ -68,68 +68,64 @@ struct iOSApp: App {
 
     var body: some Scene {
         WindowGroup {
-            Group {
-                if isBootstrapped {
-                    if authCoordinator.isAuthenticated {
-                        if showBiometricPrompt {
-                            BiometricPromptView {
-                                UserDefaults.standard.set(
-                                    true,
-                                    forKey:
-                                        "cafe.cupped.biometric.prompted"
-                                )
-                                showBiometricPrompt = false
-                            }
-                        } else {
-                            MainTabView()
-                                .environment(
-                                    authCoordinator
-                                )
-                        }
-                    } else {
-                        LoginView { bearerToken in
-                            Task {
-                                await authCoordinator
-                                    .exchangeAndPersist(
-                                        bearerToken:
-                                            bearerToken
-                                    )
-
-                                // Show biometric prompt
-                                // once after first login
-                                // if biometrics are
-                                // available but not yet
-                                // enabled or prompted.
-                                if BiometricService.shared
-                                    .isAvailable,
-                                   !BiometricService.shared
-                                    .isEnabled,
-                                   !UserDefaults.standard
-                                    .bool(
+            ZStack(alignment: .top) {
+                Group {
+                    if isBootstrapped {
+                        if authCoordinator.isAuthenticated {
+                            if showBiometricPrompt {
+                                BiometricPromptView {
+                                    UserDefaults.standard.set(
+                                        true,
                                         forKey:
                                             "cafe.cupped.biometric.prompted"
                                     )
-                                {
-                                    showBiometricPrompt
-                                        = true
+                                    showBiometricPrompt = false
+                                }
+                            } else {
+                                MainTabView()
+                                    .environment(
+                                        authCoordinator
+                                    )
+                            }
+                        } else {
+                            LoginView { bearerToken in
+                                Task {
+                                    let didAuthenticate = await authCoordinator
+                                        .exchangeAndPersist(
+                                            bearerToken:
+                                                bearerToken
+                                        )
+
+                                    if didAuthenticate {
+                                        maybeShowBiometricPromptAfterInteractiveAuth()
+                                    }
                                 }
                             }
                         }
+                    } else {
+                        // Canvas-colored splash matching the
+                        // design system. Uses the token directly
+                        // so it stays in sync with CuppedColors.
+                        Color.cuppedCanvas
+                            .ignoresSafeArea()
                     }
-                } else {
-                    // Canvas-colored splash matching the
-                    // design system. Uses the token directly
-                    // so it stays in sync with CuppedColors.
-                    Color.cuppedCanvas
-                        .ignoresSafeArea()
                 }
+
+                AuthFlowOverlay()
             }
+            .environment(authCoordinator)
             .tint(.cuppedPrimary)
+            .animation(.cuppedSpring, value: authCoordinator.authFlowStatus)
             .task {
+                // This startup task intentionally runs before any auth-gated view
+                // can present a WKWebView. Keeping restore, observer registration,
+                // and auth detection in one ordered block avoids session races that
+                // would be hard to spot in testing.
+
                 // Step 1: Restore cookies from Keychain
                 // into WKHTTPCookieStore BEFORE any
                 // WebView renders.
-                await CookieStore.shared.restoreCookies(
+                let restoredSession = await CookieStore.shared.restoreCookies(
                     to: WebViewConfiguration.cookieStore
                 )
 
@@ -144,8 +140,7 @@ struct iOSApp: App {
                 )
 
                 // Step 3: Check for existing session.
-                if CookieStore.shared
-                    .hasPersistedCookies() {
+                if restoredSession {
                     // Cookies were restored in Step 1 —
                     // user has an active session.
                     authCoordinator.isAuthenticated = true
@@ -161,7 +156,7 @@ struct iOSApp: App {
                         .shared.authenticate(),
                        let token = TokenStore.shared
                            .retrieve(context: authContext) {
-                        await authCoordinator
+                        _ = await authCoordinator
                             .exchangeAndPersist(
                                 bearerToken: token
                             )
@@ -173,6 +168,9 @@ struct iOSApp: App {
                 isBootstrapped = true
             }
             .onOpenURL { url in
+                // Deep links can arrive while the app is already running or during
+                // cold start handoff from the system. Delegate all parsing to one
+                // place so both entry points follow the same auth rules.
                 handleDeepLink(url)
             }
         }
@@ -205,6 +203,8 @@ struct iOSApp: App {
     /// - Custom scheme:
     ///   `cupped://auth/callback?token=xxx`
     private func handleDeepLink(_ url: URL) {
+        // Ignore unrecognized URLs rather than surfacing an auth error. The app
+        // may receive links for unrelated app features in the future.
         guard let components = URLComponents(
             url: url,
             resolvingAgainstBaseURL: false
@@ -236,8 +236,11 @@ struct iOSApp: App {
             else { return }
 
             Task {
-                await authCoordinator
+                let didAuthenticate = await authCoordinator
                     .handleMagicLinkToken(token)
+                if didAuthenticate {
+                    maybeShowBiometricPromptAfterInteractiveAuth()
+                }
             }
             return
         }
@@ -253,10 +256,24 @@ struct iOSApp: App {
            !token.isEmpty
         {
             Task {
-                await authCoordinator
+                let didAuthenticate = await authCoordinator
                     .handleMagicLinkToken(token)
+                if didAuthenticate {
+                    maybeShowBiometricPromptAfterInteractiveAuth()
+                }
             }
             return
+        }
+    }
+
+    @MainActor
+    private func maybeShowBiometricPromptAfterInteractiveAuth() {
+        if BiometricService.shared.isAvailable,
+           !BiometricService.shared.isEnabled,
+           !UserDefaults.standard.bool(
+               forKey: "cafe.cupped.biometric.prompted"
+           ) {
+            showBiometricPrompt = true
         }
     }
 }

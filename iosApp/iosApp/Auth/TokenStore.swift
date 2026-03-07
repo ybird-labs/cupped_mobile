@@ -38,6 +38,8 @@ final class TokenStore {
 
     private init() {}
 
+    deinit {}
+
     // MARK: - Save
 
     /// Saves a bearer token to the Keychain.

@@ -29,6 +29,14 @@ import Shared
 import WebKit
 import Observation
 
+enum AuthFlowStatus: Equatable {
+    case idle
+    case verifyingMagicLink
+    case establishingSession
+    case succeeded(message: String)
+    case failed(message: String, debugDetails: String?)
+}
+
 /// Orchestrates authentication state for the entire app.
 ///
 /// Created once by `iOSApp` and passed into views that need
@@ -37,6 +45,9 @@ import Observation
 /// view invalidation.
 @MainActor @Observable
 final class AuthCoordinator {
+    private static let deepLinkSuccessDwellNanoseconds: UInt64 = 1_500_000_000
+
+    deinit {}
 
     // MARK: - Published State
 
@@ -51,6 +62,11 @@ final class AuthCoordinator {
     /// The last exchange error message, if any. Cleared on
     /// the next successful exchange or login attempt.
     var exchangeError: String?
+
+    /// User-facing status for cross-screen auth flows like
+    /// deep-link sign-in. This gives LoginView enough
+    /// information to show progress and retry guidance.
+    var authFlowStatus: AuthFlowStatus = .idle
 
     /// Monotonically increasing counter incremented on each
     /// logout. Used by `exchangeAndPersist` to detect when
@@ -73,10 +89,17 @@ final class AuthCoordinator {
     ///
     /// - Parameter bearerToken: The API bearer token from
     ///   KMP AuthViewModel's Authenticated state.
-    func exchangeAndPersist(bearerToken: String) async {
-        guard !isExchanging else { return }
+    func exchangeAndPersist(bearerToken: String) async -> Bool {
+        guard !isExchanging else { return false }
         isExchanging = true
         exchangeError = nil
+        let isDeepLinkFlow =
+            authFlowStatus == .verifyingMagicLink
+            || authFlowStatus == .establishingSession
+
+        if !isDeepLinkFlow {
+            authFlowStatus = .idle
+        }
 
         // Capture the current logout generation before any
         // async work. If logout() fires while we're awaiting
@@ -94,7 +117,7 @@ final class AuthCoordinator {
         )
 
         // Bail out if a logout occurred during the exchange.
-        guard logoutGeneration == generation else { return }
+        guard logoutGeneration == generation else { return false }
 
         switch result {
         case .success:
@@ -106,15 +129,40 @@ final class AuthCoordinator {
 
             // Re-check after second await — logout may have
             // fired between the exchange and cookie persist.
-            guard logoutGeneration == generation else { return }
+            guard logoutGeneration == generation else { return false }
 
             // Save bearer token for biometric re-auth.
             TokenStore.shared.save(token: bearerToken)
 
+            let shouldShowDeepLinkSuccess =
+                authFlowStatus == .establishingSession
+
+            if shouldShowDeepLinkSuccess {
+                authFlowStatus = .succeeded(
+                    message: "Magic link verified. You're signed in."
+                )
+                try? await Task.sleep(
+                    nanoseconds: Self.deepLinkSuccessDwellNanoseconds
+                )
+
+                // A logout or newer auth flow may have happened during the dwell.
+                guard logoutGeneration == generation else { return false }
+            }
+
+            authFlowStatus = .idle
             isAuthenticated = true
+            return true
 
         case .failure(let reason):
             exchangeError = reason
+            if authFlowStatus == .verifyingMagicLink
+                || authFlowStatus == .establishingSession {
+                authFlowStatus = Self.failureStatus(
+                    stage: .establishingSession,
+                    raw: reason
+                )
+            }
+            return false
         }
     }
 
@@ -131,10 +179,11 @@ final class AuthCoordinator {
     ///
     /// - Parameter token: The magic link token from the URL
     ///   query parameter.
-    func handleMagicLinkToken(_ token: String) async {
-        guard !isExchanging else { return }
+    func handleMagicLinkToken(_ token: String) async -> Bool {
+        guard !isExchanging else { return false }
         isExchanging = true
         exchangeError = nil
+        authFlowStatus = .verifyingMagicLink
 
         defer { isExchanging = false }
 
@@ -162,7 +211,7 @@ final class AuthCoordinator {
             // Respect structured concurrency: if the parent
             // Task is cancelled (e.g., view disappeared),
             // stop polling instead of running until timeout.
-            if Task.isCancelled { return }
+            if Task.isCancelled { return false }
 
             let state = authVM.uiState.value
 
@@ -170,16 +219,20 @@ final class AuthCoordinator {
                 as? AuthUiStateAuthenticated {
                 // Re-enter without the isExchanging guard
                 // by calling the exchange directly.
+                authFlowStatus = .establishingSession
                 isExchanging = false
-                await exchangeAndPersist(
+                return await exchangeAndPersist(
                     bearerToken: authenticated.bearerToken
                 )
-                return
             }
 
             if let error = state as? AuthUiStateError {
                 exchangeError = error.message
-                return
+                authFlowStatus = Self.failureStatus(
+                    stage: .verifyingMagicLink,
+                    raw: error.message
+                )
+                return false
             }
 
             try? await Task.sleep(nanoseconds: interval)
@@ -187,6 +240,11 @@ final class AuthCoordinator {
         }
 
         exchangeError = "Magic link verification timed out"
+        authFlowStatus = Self.failureStatus(
+            stage: .verifyingMagicLink,
+            raw: exchangeError ?? "Magic link verification timed out"
+        )
+        return false
     }
 
     // MARK: - Logout
@@ -221,5 +279,59 @@ final class AuthCoordinator {
         // back to LoginView.
         isAuthenticated = false
         exchangeError = nil
+        authFlowStatus = .idle
+    }
+
+    func clearAuthFlowStatus() {
+        authFlowStatus = .idle
+    }
+
+    private static func failureStatus(
+        stage: AuthFlowStatus,
+        raw: String
+    ) -> AuthFlowStatus {
+        .failed(
+            message: userFacingMessage(for: raw, stage: stage),
+            debugDetails: raw
+        )
+    }
+
+    private static func userFacingMessage(
+        for raw: String,
+        stage: AuthFlowStatus
+    ) -> String {
+        let lowered = raw.lowercased()
+
+        if lowered.contains("http 401")
+            || lowered.contains("http 404")
+            || lowered.contains("http 422")
+            || lowered.contains("expired")
+            || lowered.contains("invalid")
+            || lowered.contains("timed out")
+            || lowered.contains("not found") {
+            return "This magic link expired or is invalid. Request a new one."
+        }
+
+        if lowered.contains("network")
+            || lowered.contains("nsurlerrordomain")
+            || lowered.contains("cfnetwork")
+            || lowered.contains("offline")
+            || lowered.contains("connection") {
+            return "Unable to sign you in right now. Check your connection and try again."
+        }
+
+        if lowered.contains("redirected to") {
+            return "We verified your link, but could not finish signing you in. Please try again."
+        }
+
+        if lowered.contains("http 403") || lowered.contains("http 500") {
+            return "We verified your link, but could not start your session. Please try again."
+        }
+
+        if stage == .establishingSession {
+            return "We verified your link, but could not finish signing you in. Please try again."
+        }
+
+        return "Something went wrong signing you in. Please try again."
     }
 }

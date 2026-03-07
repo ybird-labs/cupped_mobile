@@ -41,6 +41,8 @@ final class BiometricService {
 
     private init() {}
 
+    deinit {}
+
     // MARK: - Capability
 
     /// The type of biometric authentication available on this device.
