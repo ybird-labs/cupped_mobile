@@ -1,5 +1,6 @@
 package cafe.cupped.app.network
 
+import cafe.cupped.app.isDebug
 import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -7,16 +8,23 @@ import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
 import kotlin.coroutines.cancellation.CancellationException
+import kotlinx.serialization.json.Json
 
-class CuppedApiClient(
+internal class CuppedApiClient(
     private val httpClient: HttpClient,
     baseUrl: String
 ) {
     private val baseUrl: String = baseUrl.trimEnd('/')
     private val authBaseUrl: String = "$baseUrl/api/v1/auth"
+    private val json = Json {
+        ignoreUnknownKeys = true
+        encodeDefaults = true
+    }
 
     /**
      * Returns true only if the server responds with a 2xx status code.
@@ -56,12 +64,16 @@ class CuppedApiClient(
             if (response.status.value in 200..299) {
                 Result.success(response.body<MagicLinkResponse>())
             } else {
-                val error = try {
-                    response.body<AuthErrorResponse>()
-                } catch (_: Exception) {
-                    AuthErrorResponse("Request failed: HTTP ${response.status.value}")
-                }
-                Result.failure(Exception(error.error))
+                val bodyText = response.bodyAsText()
+                Result.failure(
+                    Exception(
+                        parseErrorMessage(
+                            bodyText = bodyText,
+                            statusCode = response.status.value,
+                            fallbackPrefix = "Request failed"
+                        )
+                    )
+                )
             }
         } catch (e: CancellationException) {
             throw e
@@ -88,14 +100,39 @@ class CuppedApiClient(
                 setBody(VerifyTokenRequest(token = token))
             }
             if (response.status.value in 200..299) {
-                Result.success(response.body<VerifyTokenResponse>())
-            } else {
-                val error = try {
-                    response.body<AuthErrorResponse>()
-                } catch (_: Exception) {
-                    AuthErrorResponse("Verification failed: HTTP ${response.status.value}")
+                val bodyText = response.bodyAsText()
+                try {
+                    Result.success(
+                        json.decodeFromString<VerifyTokenResponse>(bodyText)
+                    )
+                } catch (e: Exception) {
+                    debugVerifyResponse(
+                        token = token,
+                        statusCode = response.status.value,
+                        contentType = response.headers[HttpHeaders.ContentType],
+                        bodyText = bodyText,
+                        reason = "decode failed: ${e.message}"
+                    )
+                    Result.failure(Exception("Unexpected verify response from server"))
                 }
-                Result.failure(Exception(error.error))
+            } else {
+                val bodyText = response.bodyAsText()
+                debugVerifyResponse(
+                    token = token,
+                    statusCode = response.status.value,
+                    contentType = response.headers[HttpHeaders.ContentType],
+                    bodyText = bodyText,
+                    reason = "non-success response"
+                )
+                Result.failure(
+                    Exception(
+                        parseErrorMessage(
+                            bodyText = bodyText,
+                            statusCode = response.status.value,
+                            fallbackPrefix = "Verification failed"
+                        )
+                    )
+                )
             }
         } catch (e: CancellationException) {
             throw e
@@ -103,5 +140,47 @@ class CuppedApiClient(
             Napier.e("Token verification failed", e)
             Result.failure(e)
         }
+    }
+
+    private fun parseErrorMessage(
+        bodyText: String,
+        statusCode: Int,
+        fallbackPrefix: String
+    ): String {
+        val fallbackMessage = "$fallbackPrefix: HTTP $statusCode"
+        if (bodyText.isBlank()) return fallbackMessage
+
+        return try {
+            val error = json.decodeFromString<AuthErrorResponse>(bodyText)
+            error.errors?.detail?.ifBlank { null } ?: fallbackMessage
+        } catch (_: Exception) {
+            fallbackMessage
+        }
+    }
+
+    private fun debugVerifyResponse(
+        token: String,
+        statusCode: Int,
+        contentType: String?,
+        bodyText: String,
+        reason: String
+    ) {
+        if (!isDebug) return
+
+        Napier.d(
+            tag = "AUTH",
+            message = buildString {
+                append("verifyMagicLinkToken ")
+                append(reason)
+                append(" status=")
+                append(statusCode)
+                append(" contentType=")
+                append(contentType ?: "unknown")
+                append(" tokenLength=")
+                append(token.length)
+                append(" bodySnippet=")
+                append(bodyText.take(256))
+            }
+        )
     }
 }

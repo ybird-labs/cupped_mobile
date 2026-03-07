@@ -24,13 +24,28 @@ data class VerifyTokenRequest(
 
 @Serializable
 data class VerifyTokenResponse(
-    @SerialName("bearer_token")
-    val bearerToken: String
+    @SerialName("token")
+    val bearerToken: String,
+    val user: AuthenticatedUserResponse? = null
 )
 
 // -- Auth Error --
 
 @Serializable
 data class AuthErrorResponse(
-    val error: String
+    val errors: AuthErrorDetail? = null
+)
+
+@Serializable
+data class AuthenticatedUserResponse(
+    val id: String,
+    val email: String,
+    val role: String,
+    @SerialName("confirmed_at")
+    val confirmedAt: String? = null
+)
+
+@Serializable
+data class AuthErrorDetail(
+    val detail: String
 )

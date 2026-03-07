@@ -52,7 +52,7 @@ sealed interface AuthUiState {
  * Uses KMP-ObservableViewModel StateFlow, same pattern as
  * SmokeTestViewModel. SwiftUI observes via @StateObject.
  */
-open class AuthViewModel(
+open class AuthViewModel internal constructor(
     private val apiClient: CuppedApiClient
 ) : ViewModel() {
 
@@ -65,6 +65,10 @@ open class AuthViewModel(
      * Requests a magic link for the given email address.
      *
      * Transitions: Idle/Error → Loading → MagicLinkSent/Error
+     *
+     * A successful response means the request was accepted, not that the email
+     * belongs to an existing account. The backend intentionally keeps that detail
+     * opaque to avoid account enumeration.
      */
     fun requestMagicLink(email: String) {
         if (_uiState.value is AuthUiState.Loading) return
@@ -94,6 +98,9 @@ open class AuthViewModel(
      * Verifies a magic link token received via deep link.
      *
      * Transitions: any → Loading → Authenticated/Error
+     *
+     * Success returns a bearer token for the native layer to exchange into a web
+     * session cookie. This view model never writes WebView cookies directly.
      */
     fun verifyToken(token: String) {
         if (_uiState.value is AuthUiState.Loading) return
@@ -141,12 +148,17 @@ open class AuthViewModel(
          *
          * This runs in commonMain so both platforms get the
          * same sanitization.
+         *
+         * The goal is to preserve actionable user feedback while stripping verbose
+         * platform-specific transport dumps that would leak implementation details
+         * into the UI.
          */
         internal fun userFriendlyError(
             error: Throwable,
             fallback: String
         ): String {
             val msg = error.message ?: return fallback
+            val lowered = msg.lowercase()
 
             // iOS NSURLError dumps contain these markers
             val isNSURLError = msg.contains("NSURLErrorDomain")
@@ -167,11 +179,70 @@ open class AuthViewModel(
                 }
             }
 
-            // Clean, short messages pass through (e.g. "HTTP 401")
-            if (msg.length < 120 && !msg.contains("{")) return msg
+            val looksLikeAuthFailure = lowered.contains("invalid")
+                || lowered.contains("expired")
+                || lowered.contains("unauthorized")
+                || lowered.contains("too many requests")
+                || lowered.contains("rate limit")
+                || lowered.contains("verification failed: http")
+                || lowered.contains("unexpected verify response")
+
+            if (looksLikeAuthFailure && msg.length < 200) {
+                curatedAuthMessage(
+                    lowered = lowered,
+                    fallback = fallback
+                )?.let { return it }
+                return msg
+            }
+
+            // Clean, short messages pass through when they do not reveal auth internals.
+            if (msg.length < 120 && !msg.contains("{")) {
+                curatedAuthMessage(
+                    lowered = lowered,
+                    fallback = fallback
+                )?.let { return it }
+                return msg
+            }
 
             // Anything else — use fallback
             return fallback
+        }
+
+        private fun curatedAuthMessage(
+            lowered: String,
+            fallback: String
+        ): String? {
+            if (lowered.contains("unexpected verify response")) return null
+
+            return when {
+                lowered.contains("too many requests")
+                    || lowered.contains("rate limit") -> {
+                    "Too many requests. Please try again later."
+                }
+
+                lowered.contains("expired")
+                    || lowered.contains("invalid")
+                    || lowered.contains("unauthorized")
+                    || lowered.contains("forbidden")
+                    || lowered.contains("not found")
+                    || lowered.contains("credentials")
+                    || lowered.contains("token")
+                    || lowered.contains("login")
+                    || lowered.contains("signup")
+                    || lowered.contains("user") -> {
+                    when {
+                        fallback.contains("verify", ignoreCase = true) ->
+                            "This link has expired or is invalid. Please request a new one."
+
+                        fallback.contains("magic link", ignoreCase = true) ->
+                            "Unable to continue with magic link sign-in. Please try again."
+
+                        else -> fallback
+                    }
+                }
+
+                else -> null
+            }
         }
     }
 }
