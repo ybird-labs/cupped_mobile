@@ -3,6 +3,12 @@ package cafe.cupped.app.bridge
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+/**
+ * Union of payloads that may cross the web/native bridge.
+ *
+ * Messages are intentionally transport-focused: they describe user-visible side
+ * effects or state changes, not platform-specific implementation details.
+ */
 @Serializable
 sealed class BridgeMessage {
     /** Auth state changed — no raw credentials, just the action */
@@ -65,12 +71,12 @@ sealed class BridgeMessage {
     @SerialName("connectivity_changed")
     data class ConnectivityChanged(val status: ConnectivityStatus) : BridgeMessage()
 
-    /** Result of a navigate request */
+    /** Result of a navigate request so the web side can fall back when native declined it. */
     @Serializable
     @SerialName("navigate_result")
     data class NavigateResult(val handled: Boolean) : BridgeMessage()
 
-    /** Generic error response for request/response pairs */
+    /** Generic error response for request/response pairs that cannot complete successfully. */
     @Serializable
     @SerialName("error")
     data class Error(val code: String, val message: String) : BridgeMessage()
