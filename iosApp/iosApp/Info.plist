@@ -8,8 +8,8 @@
 	<true/>
 	<key>UIAppFonts</key>
 	<array>
-		<string>Fraunces[SOFT,opsz,wght].ttf</string>
-		<string>Fraunces-Italic[SOFT,opsz,wght].ttf</string>
+		<string>Lora[wght].ttf</string>
+		<string>Lora-Italic[wght].ttf</string>
 		<string>PlusJakartaSans[wght].ttf</string>
 		<string>PlusJakartaSans-Italic[wght].ttf</string>
 	</array>

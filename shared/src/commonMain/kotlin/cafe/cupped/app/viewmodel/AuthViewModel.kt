@@ -1,0 +1,264 @@
+package cafe.cupped.app.viewmodel
+
+import cafe.cupped.app.network.CuppedApiClient
+import com.rickclephas.kmp.observableviewmodel.MutableStateFlow
+import com.rickclephas.kmp.observableviewmodel.ViewModel
+import com.rickclephas.kmp.observableviewmodel.coroutineScope
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+
+/**
+ * UI state for the authentication screen.
+ *
+ * Drives the SwiftUI login/register views via KMP-ObservableViewModel.
+ * Does NOT manage session cookies — that's handled on the iOS side
+ * by MobileSessionClient after receiving a bearer token.
+ */
+sealed interface AuthUiState {
+    /** Initial state — no action taken yet. */
+    data object Idle : AuthUiState
+
+    /** API call in progress (magic link request or token verification). */
+    data object Loading : AuthUiState
+
+    /** Magic link email sent successfully. */
+    data class MagicLinkSent(val email: String) : AuthUiState
+
+    /**
+     * Token verified — bearer token available.
+     * The iOS side takes this token and exchanges it for a session
+     * cookie via MobileSessionClient.
+     */
+    data class Authenticated(val bearerToken: String) : AuthUiState
+
+    /** An error occurred. */
+    data class Error(val message: String) : AuthUiState
+}
+
+/**
+ * ViewModel for the native login/register screens.
+ *
+ * ## Flow
+ * 1. User enters email → [requestMagicLink] → state becomes
+ *    [AuthUiState.MagicLinkSent]
+ * 2. User clicks magic link in email → app receives token via
+ *    deep link → [verifyToken] → state becomes
+ *    [AuthUiState.Authenticated]
+ * 3. iOS side takes bearerToken from Authenticated state and
+ *    passes to MobileSessionClient for cookie exchange
+ *
+ * ## State Management
+ * Uses KMP-ObservableViewModel StateFlow, same pattern as
+ * SmokeTestViewModel. SwiftUI observes via @StateObject.
+ */
+open class AuthViewModel internal constructor(
+    private val apiClient: CuppedApiClient
+) : ViewModel() {
+
+    private val _uiState = MutableStateFlow<AuthUiState>(
+        viewModelScope, AuthUiState.Idle
+    )
+    val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
+
+    /**
+     * Requests a magic link for the given email address.
+     *
+     * Transitions: Idle/Error → Loading → MagicLinkSent/Error
+     *
+     * A successful response means the request was accepted, not that the email
+     * belongs to an existing account. The backend intentionally keeps that detail
+     * opaque to avoid account enumeration.
+     */
+    fun requestMagicLink(email: String) {
+        if (_uiState.value is AuthUiState.Loading) return
+
+        val normalizedEmail = email.trim()
+        if (normalizedEmail.isEmpty() || !normalizedEmail.contains("@")) {
+            _uiState.value = AuthUiState.Error("Please enter a valid email address")
+            return
+        }
+
+        viewModelScope.coroutineScope.launch {
+            _uiState.value = AuthUiState.Loading
+            apiClient.requestMagicLink(normalizedEmail).fold(
+                onSuccess = {
+                    _uiState.value = AuthUiState.MagicLinkSent(normalizedEmail)
+                },
+                onFailure = { error ->
+                    _uiState.value = AuthUiState.Error(
+                        userFriendlyError(error, "Failed to send magic link")
+                    )
+                }
+            )
+        }
+    }
+
+    /**
+     * Verifies a magic link token received via deep link.
+     *
+     * Transitions: any → Loading → Authenticated/Error
+     *
+     * Success returns a bearer token for the native layer to exchange into a web
+     * session cookie. This view model never writes WebView cookies directly.
+     */
+    fun verifyToken(token: String) {
+        if (_uiState.value is AuthUiState.Loading) return
+
+        val normalizedToken = token.trim()
+        if (normalizedToken.isEmpty()) {
+            _uiState.value = AuthUiState.Error("Invalid or missing token")
+            return
+        }
+
+        viewModelScope.coroutineScope.launch {
+            _uiState.value = AuthUiState.Loading
+            apiClient.verifyMagicLinkToken(normalizedToken).fold(
+                onSuccess = { response ->
+                    _uiState.value = AuthUiState.Authenticated(
+                        response.bearerToken
+                    )
+                },
+                onFailure = { error ->
+                    _uiState.value = AuthUiState.Error(
+                        userFriendlyError(error, "Failed to verify token")
+                    )
+                }
+            )
+        }
+    }
+
+    /**
+     * Resets state to Idle. Used when user wants to try a
+     * different email or dismiss an error.
+     */
+    fun reset() {
+        _uiState.value = AuthUiState.Idle
+    }
+
+    companion object {
+        /**
+         * Converts a raw platform exception message into a
+         * user-friendly string.
+         *
+         * On iOS, Ktor wraps NSURLError into the exception
+         * message — this includes the full NSError description
+         * with domain, code, and UserInfo dictionary. On Android,
+         * messages are typically already clean.
+         *
+         * This runs in commonMain so both platforms get the
+         * same sanitization.
+         *
+         * The goal is to preserve actionable user feedback while stripping verbose
+         * platform-specific transport dumps that would leak implementation details
+         * into the UI.
+         */
+        internal fun userFriendlyError(
+            error: Throwable,
+            fallback: String
+        ): String {
+            val msg = error.message ?: return fallback
+            val lowered = msg.lowercase()
+
+            // iOS NSURLError dumps contain these markers
+            val isNSURLError = msg.contains("NSURLErrorDomain")
+                || msg.contains("kCFStreamError")
+                || msg.contains("CFNetwork")
+
+            if (isNSURLError) {
+                return when {
+                    msg.contains("Could not connect to the server", ignoreCase = true) ->
+                        "Unable to reach the server. Check your connection and try again."
+                    msg.contains("timed out", ignoreCase = true) ->
+                        "The request timed out. Please try again."
+                    msg.contains("not connected to the internet", ignoreCase = true) ->
+                        "No internet connection. Please check your network."
+                    msg.contains("cannot find host", ignoreCase = true) ->
+                        "Server not found. Please try again later."
+                    else -> "Unable to connect. Please try again."
+                }
+            }
+
+            val looksLikeAuthFailure = lowered.contains("invalid")
+                || lowered.contains("expired")
+                || lowered.contains("unauthorized")
+                || lowered.contains("too many requests")
+                || lowered.contains("rate limit")
+                || lowered.contains("verification failed: http")
+                || lowered.contains("unexpected verify response")
+
+            if (looksLikeAuthFailure && msg.length < 200) {
+                curatedAuthMessage(
+                    lowered = lowered,
+                    fallback = fallback
+                )?.let { return it }
+                return fallback
+            }
+
+            // Clean, short messages pass through when they do not reveal auth internals.
+            if (msg.length < 120 && !msg.contains("{")) {
+                curatedAuthMessage(
+                    lowered = lowered,
+                    fallback = fallback
+                )?.let { return it }
+                if (containsSensitiveAuthDetail(lowered) || looksLikeAuthFailure) {
+                    return fallback
+                }
+                return msg
+            }
+
+            // Anything else — use fallback
+            return fallback
+        }
+
+        private fun curatedAuthMessage(
+            lowered: String,
+            fallback: String
+        ): String? {
+            if (lowered.contains("unexpected verify response")) {
+                return "Unexpected verify response from server"
+            }
+
+            return when {
+                lowered.contains("too many requests")
+                    || lowered.contains("rate limit") -> {
+                    "Too many requests. Please try again later."
+                }
+
+                lowered.contains("expired")
+                    || lowered.contains("invalid")
+                    || lowered.contains("unauthorized")
+                    || lowered.contains("forbidden")
+                    || lowered.contains("not found")
+                    || lowered.contains("credentials")
+                    || lowered.contains("token")
+                    || lowered.contains("login")
+                    || lowered.contains("signup")
+                    || lowered.contains("user") -> {
+                    when {
+                        fallback.contains("verify", ignoreCase = true) ->
+                            "This link has expired or is invalid. Please request a new one."
+
+                        fallback.contains("magic link", ignoreCase = true) ->
+                            "Unable to continue with magic link sign-in. Please try again."
+
+                        else -> fallback
+                    }
+                }
+
+                else -> null
+            }
+        }
+
+        private fun containsSensitiveAuthDetail(lowered: String): Boolean {
+            return lowered.contains("token already used")
+                || lowered.contains("already consumed")
+                || lowered.contains("token revoked")
+                || lowered.contains("token invalidated")
+                || lowered.contains("used token")
+                || lowered.contains("expired token")
+                || lowered.contains("already used")
+                || lowered.contains("revoked token")
+        }
+    }
+}
