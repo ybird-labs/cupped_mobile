@@ -19,6 +19,8 @@ extension Color {
 extension Color {
     static let cuppedCanvas = Color(CuppedColors.shared.canvas)
     static let cuppedCard = Color(CuppedColors.shared.card)
+    static let cuppedSurfaceApp = Color(CuppedColors.shared.canvas)
+    static let cuppedSurfaceCard = Color(CuppedColors.shared.card)
 }
 
 // MARK: - Surface Borders
@@ -26,6 +28,7 @@ extension Color {
 extension Color {
     static let cuppedCanvasBorder = Color(CuppedColors.shared.canvasBorder)
     static let cuppedCanvasBorderSubtle = Color(CuppedColors.shared.canvasBorderSubtle)
+    static let cuppedBorderDefault = Color(CuppedColors.shared.canvasBorder)
 }
 
 // MARK: - Text
@@ -35,6 +38,9 @@ extension Color {
     static let cuppedSecondary = Color(CuppedColors.shared.secondary)
     static let cuppedMuted = Color(CuppedColors.shared.muted)
     static let cuppedInkInverse = Color(CuppedColors.shared.inkInverse)
+    static let cuppedTextPrimary = Color(CuppedColors.shared.ink)
+    static let cuppedTextSecondary = Color(CuppedColors.shared.secondary)
+    static let cuppedTextMuted = Color(CuppedColors.shared.muted)
 }
 
 // MARK: - Brand
@@ -44,6 +50,7 @@ extension Color {
     static let cuppedPrimaryHover = Color(CuppedColors.shared.primaryHover)
     static let cuppedPrimaryLight = Color(CuppedColors.shared.primaryLight)
     static let cuppedPrimaryMuted = Color(CuppedColors.shared.primaryMuted).opacity(0.12)
+    static let cuppedActionPrimary = Color(CuppedColors.shared.primary)
 }
 
 // MARK: - Feedback
@@ -53,6 +60,19 @@ extension Color {
     static let cuppedError = Color(CuppedColors.shared.error)
     static let cuppedWarning = Color(CuppedColors.shared.warning)
     static let cuppedInfo = Color(CuppedColors.shared.info)
+    static let cuppedStatusErrorForeground = Color(CuppedColors.shared.error)
+}
+
+// MARK: - Input Fields
+
+extension Color {
+    static let cuppedInputTint = Color(CuppedColors.shared.muted)
+    static let cuppedInputPlaceholder = Color(CuppedColors.shared.muted)
+    static let cuppedInputBorder = Color(CuppedColors.shared.canvasBorder)
+    static let cuppedInputBorderFocused = Color(CuppedColors.shared.primary)
+    static let cuppedInputBorderCritical = Color(CuppedColors.shared.error)
+    static let cuppedInputCursor = Color(CuppedColors.shared.muted)
+    static let cuppedInputPlaceholderBase = Color(CuppedColors.shared.muted)
 }
 
 // MARK: - Feedback Light Backgrounds

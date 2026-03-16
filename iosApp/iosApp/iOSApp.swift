@@ -1,141 +1,121 @@
-// iOSApp.swift
-// Cupped - cafe.cupped.app
-//
-// The @main entry point for the iOS app. Responsibilities:
-//   1. Initialize KMP/Koin with the API base URL from
-//      Config.xcconfig (via Info.plist).
-//   2. Restore persisted cookies from Keychain BEFORE
-//      any WKWebView navigates (bootstrap gate).
-//   3. Start the WKHTTPCookieStoreObserver for incremental
-//      cookie saves.
-//   4. Persist cookies to Keychain when the app moves to
-//      the background (belt-and-suspenders with observer).
-//   5. In DEBUG builds, gate on DevAuthView when no
-//      persisted cookies exist (added in Task 7).
-
-import SwiftUI
 import Shared
+import SwiftUI
 
 @main
 struct iOSApp: App {
-    /// Gates content presentation until cookie restore
-    /// completes. While `false`, a canvas-colored splash
-    /// is shown instead of MainTabView. This guarantees
-    /// cookies are in the WKHTTPCookieStore BEFORE any
-    /// WKWebView loads a URL.
     @State private var isBootstrapped = false
-
-    #if DEBUG
-    /// Whether the dev auth screen has been dismissed
-    /// (token exchanged or skipped). Only used in DEBUG
-    /// builds to gate DevAuthView.
-    @State private var isDevAuthenticated = false
-    #endif
-
-    /// Tracks app lifecycle for background cookie persist.
+    @State private var authCoordinator = AuthCoordinator()
     @Environment(\.scenePhase) private var scenePhase
 
-    /// Server hostname extracted from the API base URL.
-    /// Used by CookieStore to filter cookies by domain.
     private let serverHost: String
 
-    #if DEBUG
-    /// Whether to show the DevAuthView screen.
-    ///
-    /// Returns `true` when:
-    /// - The user hasn't dismissed DevAuthView in this
-    ///   session (`isDevAuthenticated` is false), AND
-    /// - No cookies exist in the Keychain from a previous
-    ///   session (`hasPersistedCookies()` is false).
-    private var shouldShowDevAuth: Bool {
-        !isDevAuthenticated
-        && !CookieStore.shared.hasPersistedCookies()
-    }
-    #endif
-
     init() {
-        // Read the API base URL injected from
-        // Config.xcconfig -> Info.plist -> APIBaseURL.
-        // This is the same URL used by CuppedApiClient
-        // (KMP) and WebView URL construction (Swift).
-        guard let baseUrl = Bundle.main.infoDictionary?[
-            "APIBaseURL"] as? String,
+        guard let baseUrl = Bundle.main.infoDictionary?["APIBaseURL"] as? String,
               !baseUrl.isEmpty else {
             fatalError(
                 "APIBaseURL missing from Info.plist"
-                + " – check Config.xcconfig"
+                + " - check Config.xcconfig"
             )
         }
-        KoinHelper.shared.doInitKoin(baseUrl: baseUrl)
 
-        // Extract host for cookie domain filtering.
-        self.serverHost = URL(string: baseUrl)?.host()
-            ?? "localhost"
+        KoinHelper.shared.doInitKoin(baseUrl: baseUrl)
+        self.serverHost = URL(string: baseUrl)?.host() ?? "localhost"
     }
 
     var body: some Scene {
         WindowGroup {
-            Group {
-                if isBootstrapped {
-                    #if DEBUG
-                    if shouldShowDevAuth {
-                        DevAuthView(
-                            isAuthenticated:
-                                $isDevAuthenticated
-                        )
+            ZStack(alignment: .top) {
+                Group {
+                    if isBootstrapped {
+                        if authCoordinator.isAuthenticated {
+                            MainTabView()
+                                .environment(authCoordinator)
+                        } else {
+                            LoginView { bearerToken in
+                                Task {
+                                    _ = await authCoordinator.exchangeAndPersist(
+                                        bearerToken: bearerToken
+                                    )
+                                }
+                            }
+                        }
                     } else {
-                        MainTabView()
+                        Color.cuppedSurfaceApp
+                            .ignoresSafeArea()
                     }
-                    #else
-                    MainTabView()
-                    #endif
-                } else {
-                    // Canvas-colored splash matching the
-                    // design system. Shown only during the
-                    // brief async cookie restore.
-                    Color(
-                        red: 248 / 255,
-                        green: 250 / 255,
-                        blue: 252 / 255
-                    )
-                    .ignoresSafeArea()
                 }
+
+                AuthFlowOverlay()
             }
+            .environment(authCoordinator)
+            .tint(.cuppedActionPrimary)
+            .animation(.cuppedSpring, value: authCoordinator.authFlowStatus)
             .task {
-                // Step 1: Restore cookies from Keychain
-                // into WKHTTPCookieStore BEFORE any
-                // WebView renders.
-                await CookieStore.shared.restoreCookies(
+                let restoredSession = await CookieStore.shared.restoreCookies(
                     to: WebViewConfiguration.cookieStore
                 )
 
-                // Step 2: Start observing cookie changes
-                // for incremental Keychain saves. This
-                // closes the race condition where the app
-                // is force-quit before the background save.
                 CookieStore.shared.startObserving(
-                    cookieStore:
-                        WebViewConfiguration.cookieStore,
+                    cookieStore: WebViewConfiguration.cookieStore,
                     targetHost: serverHost
                 )
 
-                // Step 3: Ungate content — WebViews may
-                // now safely navigate.
+                if restoredSession {
+                    authCoordinator.isAuthenticated = true
+                }
+
                 isBootstrapped = true
+            }
+            .onOpenURL { url in
+                handleDeepLink(url)
             }
         }
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .background {
-                // Belt-and-suspenders persist alongside the
-                // WKHTTPCookieStoreObserver. Ensures cookies
-                // are saved even if the observer callback
-                // hasn't fired for the latest changes.
                 Task {
                     await CookieStore.shared.persistCookies(
-                        from:
-                            WebViewConfiguration.cookieStore
+                        from: WebViewConfiguration.cookieStore
                     )
                 }
+            }
+        }
+    }
+
+    private func handleDeepLink(_ url: URL) {
+        guard let components = URLComponents(
+            url: url,
+            resolvingAgainstBaseURL: false
+        ) else { return }
+
+        let validHosts: Set<String> = [
+            serverHost.lowercased(),
+            "cupped.cafe",
+        ].filter { !$0.isEmpty }.reduce(into: []) {
+            $0.insert($1.lowercased())
+        }
+
+        if components.scheme?.lowercased() == "https",
+           let host = components.host?.lowercased(),
+           validHosts.contains(host),
+           components.path.hasPrefix("/users/log-in/") {
+            let token = url.lastPathComponent
+            guard !token.isEmpty, token != "log-in" else { return }
+
+            Task {
+                _ = await authCoordinator.handleMagicLinkToken(token)
+            }
+            return
+        }
+
+        if components.scheme?.lowercased() == "cupped",
+           components.host == "auth",
+           components.path == "/callback",
+           let token = components.queryItems?
+               .first(where: { $0.name == "token" })?
+               .value,
+           !token.isEmpty {
+            Task {
+                _ = await authCoordinator.handleMagicLinkToken(token)
             }
         }
     }

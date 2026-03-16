@@ -1,3 +1,4 @@
+import co.touchlab.skie.configuration.FlowInterop
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -5,6 +6,14 @@ plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.skie)
     alias(libs.plugins.kotlinx.serialization)
+}
+
+skie {
+    features {
+        group("cafe.cupped.app.viewmodel") {
+            FlowInterop.Enabled(false)
+        }
+    }
 }
 
 kotlin {
@@ -45,6 +54,7 @@ kotlin {
         commonTest.dependencies {
             implementation(libs.kotlin.test)
             implementation(libs.kotlinx.coroutines.test)
+            implementation(libs.ktor.client.mock)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)

@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
-open class SmokeTestViewModel(
+open class SmokeTestViewModel internal constructor(
     private val apiClient: CuppedApiClient
 ) : ViewModel() {
 
