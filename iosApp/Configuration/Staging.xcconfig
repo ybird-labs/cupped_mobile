@@ -1,0 +1,11 @@
+// Staging.xcconfig
+// Staging server on Fly.dev.
+
+#include "Base.xcconfig"
+
+PRODUCT_BUNDLE_IDENTIFIER = cafe.cupped.app.staging
+API_BASE_URL = https:/$()/cupped.fly.dev
+
+// KMP Gradle plugin only knows Debug/Release. Map Staging → Release
+// so embedAndSignAppleFrameworkForXcode builds the optimized framework.
+KOTLIN_FRAMEWORK_BUILD_TYPE = Release

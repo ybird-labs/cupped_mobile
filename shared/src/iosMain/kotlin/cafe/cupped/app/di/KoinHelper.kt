@@ -1,5 +1,7 @@
 package cafe.cupped.app.di
 
+import cafe.cupped.app.bridge.BridgeDispatcher
+import cafe.cupped.app.bridge.BridgePlatformDelegate
 import cafe.cupped.app.isDebug
 import cafe.cupped.app.logging.NapierInit
 import cafe.cupped.app.navigation.PathConfigRouter
@@ -61,4 +63,10 @@ object KoinHelper {
     fun getBaseUrl(): String =
         KoinPlatformTools.defaultContext()
             .get().get(named("baseUrl"))
+
+    fun makeBridgeDispatcher(delegate: BridgePlatformDelegate): BridgeDispatcher =
+        BridgeDispatcher(
+            router = getPathConfigRouter(),
+            delegate = delegate
+        )
 }

@@ -140,6 +140,23 @@ class BridgeCodecTest {
     }
 
     @Test
+    fun navigateResultHandled() {
+        val msg = BridgeMessage.NavigateResult(handled = true)
+        val json = BridgeCodec.encode(msg)
+        val decoded = BridgeCodec.decode(json)
+        assertEquals(msg, decoded)
+        assertTrue(json.contains("\"type\":\"navigate_result\""))
+    }
+
+    @Test
+    fun navigateResultUnhandled() {
+        val msg = BridgeMessage.NavigateResult(handled = false)
+        val json = BridgeCodec.encode(msg)
+        val decoded = BridgeCodec.decode(json)
+        assertEquals(msg, decoded)
+    }
+
+    @Test
     fun errorMessage() {
         val msg = BridgeMessage.Error(code = "camera_failed", message = "No camera access")
         val json = BridgeCodec.encode(msg)
