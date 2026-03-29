@@ -2,11 +2,11 @@
 // Cupped - cafe.cupped.app
 //
 // Orchestrates the full authentication flow: deep link handling,
-// bearer → session cookie exchange, biometric re-auth, and logout.
+// bearer → session cookie exchange, and logout.
 //
 // Bridges KMP AuthViewModel (token verification) with iOS-side
 // MobileSessionClient (cookie exchange), CookieStore (Keychain
-// persistence), and TokenStore (bearer token persistence).
+// persistence).
 //
 // ## Architecture
 // AuthCoordinator is the single source of truth for "is the user
@@ -19,9 +19,7 @@
 //    exchangeAndPersist → isAuthenticated = true
 // 2. **Deep link:** .onOpenURL → handleMagicLinkToken → verifyToken
 //    → exchangeAndPersist → isAuthenticated = true
-// 3. **Biometric re-auth:** iOSApp bootstrap → BiometricService →
-//    TokenStore.retrieve → exchangeAndPersist → isAuthenticated = true
-// 4. **Logout:** Clear cookies, tokens, biometric flag →
+// 3. **Logout:** Clear cookies and in-memory auth state →
 //    isAuthenticated = false
 
 import Foundation
@@ -82,15 +80,13 @@ final class AuthCoordinator {
     // MARK: - Exchange
 
     /// Exchanges a bearer token for a session cookie and
-    /// persists both to Keychain.
+    /// persists the resulting session cookies to Keychain.
     ///
     /// ## Steps
     /// 1. Create a fresh `MobileSessionClient`
     /// 2. Exchange bearer token → Phoenix session cookie
     /// 3. Persist cookies to Keychain via `CookieStore`
-    /// 4. Save bearer token via `TokenStore` (for biometric
-    ///    re-auth on next launch)
-    /// 5. Set `isAuthenticated = true`
+    /// 4. Set `isAuthenticated = true`
     ///
     /// - Parameter bearerToken: The API bearer token from
     ///   KMP AuthViewModel's Authenticated state.
@@ -135,13 +131,6 @@ final class AuthCoordinator {
             // Re-check after second await — logout may have
             // fired between the exchange and cookie persist.
             guard logoutGeneration == generation else { return false }
-
-            // Save bearer token for biometric re-auth.
-            let tokenSaved = TokenStore.shared.save(token: bearerToken)
-            if !tokenSaved {
-                Self.logger.error("Failed to persist bearer token for biometric re-auth")
-                BiometricService.shared.isEnabled = false
-            }
 
             let shouldShowDeepLinkSuccess =
                 authFlowStatus == .establishingSession
@@ -261,8 +250,8 @@ final class AuthCoordinator {
 
     // MARK: - Logout
 
-    /// Clears all authentication state: cookies, tokens,
-    /// biometric preference, and WKWebView cookie store.
+    /// Clears all authentication state: cookies and WKWebView
+    /// session state.
     ///
     /// After logout, the user sees LoginView.
     func logout() async {
@@ -281,13 +270,7 @@ final class AuthCoordinator {
         // 2. Clear persisted cookies from Keychain.
         CookieStore.shared.clearPersistedCookies()
 
-        // 3. Clear bearer token from Keychain.
-        TokenStore.shared.delete()
-
-        // 4. Disable biometric auth preference.
-        BiometricService.shared.isEnabled = false
-
-        // 5. Update auth state — triggers UI transition
+        // 3. Update auth state — triggers UI transition
         // back to LoginView.
         isAuthenticated = false
         exchangeError = nil

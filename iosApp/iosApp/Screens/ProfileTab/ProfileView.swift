@@ -1,11 +1,10 @@
 // ProfileView.swift
 // Cupped - cafe.cupped.app
 //
-// Settings & profile screen with biometric toggle and logout.
+// Settings & profile screen with logout.
 // Header section is a placeholder for future profile info.
-// Security section contains the biometric opt-in toggle
-// (only visible when biometrics are available) and sign-out
-// button with confirmation alert.
+// Security section currently contains sign-out with
+// confirmation alert.
 
 import SwiftUI
 
@@ -17,27 +16,6 @@ struct ProfileView: View {
 
     /// Whether the sign-out confirmation alert is showing.
     @State private var showLogoutAlert = false
-
-    // MARK: - Computed
-
-    /// Whether biometric auth is available on this device.
-    private var isBiometricAvailable: Bool {
-        BiometricService.shared.isAvailable
-    }
-
-    /// Human-readable biometric name ("Face ID" / "Touch ID").
-    private var biometricName: String {
-        BiometricService.shared.biometricName
-    }
-
-    /// SF Symbol for the current biometric type.
-    private var biometricIcon: String {
-        switch BiometricService.shared.availableType {
-        case .faceID: "faceid"
-        case .touchID: "touchid"
-        case .none: "lock.shield"
-        }
-    }
 
     /// App version from Info.plist.
     private var appVersion: String {
@@ -110,9 +88,6 @@ struct ProfileView: View {
 
     private var securitySection: some View {
         Section {
-            if isBiometricAvailable {
-                biometricRow
-            }
             logoutRow
         } header: {
             Text("Security")
@@ -120,38 +95,6 @@ struct ProfileView: View {
                 .foregroundStyle(Color.cuppedSecondary)
         }
         .listRowBackground(Color.cuppedCard)
-    }
-
-    /// Biometric toggle row — only rendered when device
-    /// supports Face ID or Touch ID.
-    private var biometricRow: some View {
-        HStack(spacing: Spacing.md) {
-            Image(systemName: biometricIcon)
-                .font(.system(size: 18))
-                .foregroundStyle(Color.cuppedPrimary)
-                .frame(width: 24, alignment: .center)
-
-            Text("Use \(biometricName)")
-                .font(.cuppedBody)
-                .foregroundStyle(Color.cuppedInk)
-
-            Spacer()
-
-            Toggle(
-                "",
-                isOn: Binding(
-                    get: {
-                        BiometricService.shared.isEnabled
-                    },
-                    set: {
-                        BiometricService.shared.isEnabled
-                            = $0
-                    }
-                )
-            )
-            .labelsHidden()
-            .accessibilityLabel("Use \(biometricName)")
-        }
     }
 
     /// Sign-out row with confirmation alert.

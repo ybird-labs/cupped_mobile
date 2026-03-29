@@ -11,8 +11,6 @@
 	<string>$(API_BASE_URL)</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
-	<key>NSFaceIDUsageDescription</key>
-	<string>Cupped uses Face ID to securely sign you in.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

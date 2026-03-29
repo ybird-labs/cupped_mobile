@@ -35,10 +35,6 @@ struct iOSApp: App {
     /// transitions.
     @State private var authCoordinator = AuthCoordinator()
 
-    /// Whether to show the one-time biometric opt-in prompt
-    /// after first successful login.
-    @State private var showBiometricPrompt = false
-
     /// Tracks app lifecycle for background cookie persist.
     @Environment(\.scenePhase) private var scenePhase
 
@@ -72,33 +68,18 @@ struct iOSApp: App {
                 Group {
                     if isBootstrapped {
                         if authCoordinator.isAuthenticated {
-                            if showBiometricPrompt {
-                                BiometricPromptView {
-                                    UserDefaults.standard.set(
-                                        true,
-                                        forKey:
-                                            "cafe.cupped.biometric.prompted"
-                                    )
-                                    showBiometricPrompt = false
-                                }
-                            } else {
-                                MainTabView()
-                                    .environment(
-                                        authCoordinator
-                                    )
-                            }
+                            MainTabView()
+                                .environment(
+                                    authCoordinator
+                                )
                         } else {
                             LoginView { bearerToken in
                                 Task {
-                                    let didAuthenticate = await authCoordinator
+                                    _ = await authCoordinator
                                         .exchangeAndPersist(
                                             bearerToken:
                                                 bearerToken
                                         )
-
-                                    if didAuthenticate {
-                                        maybeShowBiometricPromptAfterInteractiveAuth()
-                                    }
                                 }
                             }
                         }
@@ -144,23 +125,6 @@ struct iOSApp: App {
                     // Cookies were restored in Step 1 —
                     // user has an active session.
                     authCoordinator.isAuthenticated = true
-                } else if BiometricService.shared
-                    .shouldAttemptBiometric {
-                    // No cookies, but user opted into
-                    // biometrics and has a stored token.
-                    // Attempt biometric auth → exchange.
-                    // The returned LAContext is reused for
-                    // Keychain retrieval so the user isn't
-                    // prompted twice.
-                    if let authContext = await BiometricService
-                        .shared.authenticate(),
-                       let token = TokenStore.shared
-                           .retrieve(context: authContext) {
-                        _ = await authCoordinator
-                            .exchangeAndPersist(
-                                bearerToken: token
-                            )
-                    }
                 }
 
                 // Step 4: Ungate content — views may now
@@ -236,11 +200,7 @@ struct iOSApp: App {
             else { return }
 
             Task {
-                let didAuthenticate = await authCoordinator
-                    .handleMagicLinkToken(token)
-                if didAuthenticate {
-                    maybeShowBiometricPromptAfterInteractiveAuth()
-                }
+                await authCoordinator.handleMagicLinkToken(token)
             }
             return
         }
@@ -256,24 +216,9 @@ struct iOSApp: App {
            !token.isEmpty
         {
             Task {
-                let didAuthenticate = await authCoordinator
-                    .handleMagicLinkToken(token)
-                if didAuthenticate {
-                    maybeShowBiometricPromptAfterInteractiveAuth()
-                }
+                await authCoordinator.handleMagicLinkToken(token)
             }
             return
-        }
-    }
-
-    @MainActor
-    private func maybeShowBiometricPromptAfterInteractiveAuth() {
-        if BiometricService.shared.isAvailable,
-           !BiometricService.shared.isEnabled,
-           !UserDefaults.standard.bool(
-               forKey: "cafe.cupped.biometric.prompted"
-           ) {
-            showBiometricPrompt = true
         }
     }
 }
