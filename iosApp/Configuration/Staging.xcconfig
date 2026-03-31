@@ -5,6 +5,7 @@
 
 PRODUCT_BUNDLE_IDENTIFIER = cafe.cupped.app.staging
 API_BASE_URL = https:/$()/cupped.fly.dev
+CODE_SIGN_ENTITLEMENTS = iosApp/iosApp.entitlements
 
 // KMP Gradle plugin only knows Debug/Release. Map Staging → Release
 // so embedAndSignAppleFrameworkForXcode builds the optimized framework.

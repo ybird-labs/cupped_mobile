@@ -5,3 +5,4 @@
 
 PRODUCT_BUNDLE_IDENTIFIER = cafe.cupped.app.dev
 API_BASE_URL = http:/$()/localhost:4000
+CODE_SIGN_ENTITLEMENTS = iosApp/iosApp.entitlements
