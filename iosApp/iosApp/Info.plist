@@ -31,6 +31,9 @@
 	</array>
 	<key>UIUserInterfaceStyle</key>
 	<string>Light</string>
+	<!-- TODO: LaunchLogo imageset has no image files. Add LaunchLogo.png / @2x / @3x
+	     to Assets.xcassets/LaunchLogo.imageset/ and update its Contents.json with
+	     "filename" entries for each scale. -->
 	<key>UILaunchScreen</key>
 	<dict>
 		<key>UIColorName</key>
