@@ -14,6 +14,18 @@
 
 import SwiftUI
 import WebKit
+import Shared
+
+private extension UIColor {
+    convenience init(_ token: ColorToken) {
+        self.init(
+            red: CGFloat(token.red),
+            green: CGFloat(token.green),
+            blue: CGFloat(token.blue),
+            alpha: CGFloat(token.alpha)
+        )
+    }
+}
 
 /// A SwiftUI wrapper around `WKWebView` that loads a
 /// Phoenix LiveView page.
@@ -24,8 +36,8 @@ import WebKit
 /// is a deliberate no-op because WKWebView manages its
 /// own navigation state (redirects, form submissions,
 /// link taps). Reloading on URL mismatch would cause
-/// redirect loops when Phoenix redirects
-/// `/feed` -> `/users/log-in`.
+/// redirect loops when Phoenix redirects the shared feed
+/// path to `/users/log-in`.
 ///
 /// For programmatic navigation after initial load, use
 /// ``Coordinator/navigate(to:)`` instead of changing the
@@ -60,12 +72,7 @@ struct CuppedWebView: UIViewRepresentable {
         // Set the under-page bounce area to the app's
         // canvas color so overscroll matches the design
         // system rather than showing default white.
-        let canvasColor = UIColor(
-            red: 248 / 255,
-            green: 250 / 255,
-            blue: 252 / 255,
-            alpha: 1
-        )
+        let canvasColor = UIColor(CuppedColors.shared.surfaceApp)
         webView.underPageBackgroundColor = canvasColor
         webView.isOpaque = false
         webView.backgroundColor = canvasColor
@@ -102,12 +109,27 @@ struct CuppedWebView: UIViewRepresentable {
     ///
     /// WKWebView manages its own navigation lifecycle.
     /// Re-loading here based on URL comparison would fight
-    /// server-side redirects (e.g., `/feed` -> `/users/log-in`)
-    /// and cause infinite redirect loops.
+    /// server-side redirects (for example the shared feed
+    /// path redirecting to `/users/log-in`) and cause
+    /// infinite redirect loops.
     func updateUIView(
         _ webView: WKWebView,
         context: Context
     ) {}
+
+    /// Breaks the strong reference chain
+    /// WKWebView -> navigationDelegate -> Coordinator -> WebViewState
+    /// when the view is removed from the hierarchy.
+    /// Without this, the WKWebView retains its
+    /// `navigationDelegate` strongly, preventing deallocation.
+    static func dismantleUIView(
+        _ webView: WKWebView,
+        coordinator: Coordinator
+    ) {
+        webView.stopLoading()
+        webView.navigationDelegate = nil
+        coordinator.observations.removeAll()
+    }
 
     func makeCoordinator() -> Coordinator {
         Coordinator(state: state)
@@ -141,7 +163,7 @@ struct CuppedWebView: UIViewRepresentable {
         /// for programmatic navigation and pull-to-refresh.
         weak var webView: WKWebView?
 
-        private var observations: [NSKeyValueObservation] = []
+        fileprivate var observations: [NSKeyValueObservation] = []
 
         init(state: WebViewState) {
             self.state = state
@@ -232,7 +254,43 @@ struct CuppedWebView: UIViewRepresentable {
         func webViewWebContentProcessDidTerminate(
             _ webView: WKWebView
         ) {
+            let usage = Self.formattedMemoryUsage()
+            print(
+                "[CuppedWebView] WebContent process terminated. "
+                + "App memory at time of crash: \(usage). "
+                + "Reloading."
+            )
             webView.reload()
+        }
+
+        /// Returns the current app memory footprint as a
+        /// human-readable string (e.g. "142.3 MB").
+        /// Uses `task_info` to read `phys_footprint`, the
+        /// same metric the OS jetsam monitor uses.
+        private static func formattedMemoryUsage() -> String {
+            var info = task_vm_info_data_t()
+            var count = mach_msg_type_number_t(
+                MemoryLayout<task_vm_info_data_t>.size / MemoryLayout<natural_t>.size
+            )
+            let result = withUnsafeMutablePointer(to: &info) {
+                $0.withMemoryRebound(
+                    to: integer_t.self,
+                    capacity: Int(count)
+                ) {
+                    task_info(
+                        mach_task_self_,
+                        task_flavor_t(TASK_VM_INFO),
+                        $0,
+                        &count
+                    )
+                }
+            }
+            guard result == KERN_SUCCESS else {
+                return "unknown"
+            }
+            let bytes = Double(info.phys_footprint)
+            let mb = bytes / (1024 * 1024)
+            return String(format: "%.1f MB", mb)
         }
 
         /// Records navigation errors (post-commit) in the
@@ -242,7 +300,9 @@ struct CuppedWebView: UIViewRepresentable {
             didFail navigation: WKNavigation!,
             withError error: Error
         ) {
-            Task { @MainActor in state.error = error }
+            Task { @MainActor [weak self] in
+                self?.state.error = error
+            }
         }
 
         /// Records provisional navigation errors
@@ -254,7 +314,9 @@ struct CuppedWebView: UIViewRepresentable {
                 navigation: WKNavigation!,
             withError error: Error
         ) {
-            Task { @MainActor in state.error = error }
+            Task { @MainActor [weak self] in
+                self?.state.error = error
+            }
         }
     }
 }

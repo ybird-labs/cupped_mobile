@@ -1,9 +1,10 @@
 package cafe.cupped.app.viewmodel
 
-/// Swift-visible value accessors for SmokeTestViewModel StateFlow properties.
-/// KMP-ObservableViewModel handles observation internally, but SKIE wraps
-/// StateFlow into SkieSwiftStateFlow which is incompatible with SwiftUI Text().
-/// These extensions expose the unwrapped .value for direct use in Swift views.
+// Swift-visible typed accessors for SmokeTestViewModel StateFlow properties.
+// ObjC generics erasure causes StateFlow<String>.value to appear as Any? in Swift.
+// These extensions expose typed values directly, per KMP-ObservableViewModel README.
+// SKIE Flow interop is disabled for this package (see shared/build.gradle.kts)
+// so KMP-ObservableViewModel's KVO/Observable observation works without interference.
 
 val SmokeTestViewModel.greetingValue: String
     get() = greeting.value

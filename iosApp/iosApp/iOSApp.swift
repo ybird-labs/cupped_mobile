@@ -10,8 +10,12 @@
 //      cookie saves.
 //   4. Persist cookies to Keychain when the app moves to
 //      the background (belt-and-suspenders with observer).
-//   5. In DEBUG builds, gate on DevAuthView when no
-//      persisted cookies exist (added in Task 7).
+//   5. Gate root view on AuthCoordinator.isAuthenticated:
+//      LoginView when not authenticated, MainTabView when
+//      authenticated.
+//   6. Handle deep links for magic link callbacks
+//      (cupped:// custom scheme and Universal Links via
+//      https://<host>/users/log-in/<token>).
 
 import SwiftUI
 import Shared
@@ -19,18 +23,17 @@ import Shared
 @main
 struct iOSApp: App {
     /// Gates content presentation until cookie restore
-    /// completes. While `false`, a canvas-colored splash
-    /// is shown instead of MainTabView. This guarantees
-    /// cookies are in the WKHTTPCookieStore BEFORE any
-    /// WKWebView loads a URL.
+    /// and auth check complete. While `false`, a canvas-
+    /// colored splash is shown. This guarantees cookies are
+    /// in the WKHTTPCookieStore BEFORE any WKWebView loads
+    /// a URL.
     @State private var isBootstrapped = false
 
-    #if DEBUG
-    /// Whether the dev auth screen has been dismissed
-    /// (token exchanged or skipped). Only used in DEBUG
-    /// builds to gate DevAuthView.
-    @State private var isDevAuthenticated = false
-    #endif
+    /// Single source of truth for auth state. Gates root
+    /// view between LoginView and MainTabView. Owned by
+    /// iOSApp and passed to views that trigger auth
+    /// transitions.
+    @State private var authCoordinator = AuthCoordinator()
 
     /// Tracks app lifecycle for background cookie persist.
     @Environment(\.scenePhase) private var scenePhase
@@ -38,20 +41,6 @@ struct iOSApp: App {
     /// Server hostname extracted from the API base URL.
     /// Used by CookieStore to filter cookies by domain.
     private let serverHost: String
-
-    #if DEBUG
-    /// Whether to show the DevAuthView screen.
-    ///
-    /// Returns `true` when:
-    /// - The user hasn't dismissed DevAuthView in this
-    ///   session (`isDevAuthenticated` is false), AND
-    /// - No cookies exist in the Keychain from a previous
-    ///   session (`hasPersistedCookies()` is false).
-    private var shouldShowDevAuth: Bool {
-        !isDevAuthenticated
-        && !CookieStore.shared.hasPersistedCookies()
-    }
-    #endif
 
     init() {
         // Read the API base URL injected from
@@ -75,37 +64,49 @@ struct iOSApp: App {
 
     var body: some Scene {
         WindowGroup {
-            Group {
-                if isBootstrapped {
-                    #if DEBUG
-                    if shouldShowDevAuth {
-                        DevAuthView(
-                            isAuthenticated:
-                                $isDevAuthenticated
-                        )
+            ZStack(alignment: .top) {
+                Group {
+                    if isBootstrapped {
+                        if authCoordinator.isAuthenticated {
+                            MainTabView()
+                                .environment(
+                                    authCoordinator
+                                )
+                        } else {
+                            LoginView { bearerToken in
+                                Task {
+                                    _ = await authCoordinator
+                                        .exchangeAndPersist(
+                                            bearerToken:
+                                                bearerToken
+                                        )
+                                }
+                            }
+                        }
                     } else {
-                        MainTabView()
+                        // Canvas-colored splash matching the
+                        // design system. Uses the token directly
+                        // so it stays in sync with CuppedColors.
+                        Color.cuppedSurfaceApp
+                            .ignoresSafeArea()
                     }
-                    #else
-                    MainTabView()
-                    #endif
-                } else {
-                    // Canvas-colored splash matching the
-                    // design system. Shown only during the
-                    // brief async cookie restore.
-                    Color(
-                        red: 248 / 255,
-                        green: 250 / 255,
-                        blue: 252 / 255
-                    )
-                    .ignoresSafeArea()
                 }
+
+                AuthFlowOverlay()
             }
+            .environment(authCoordinator)
+            .tint(.cuppedActionPrimary)
+            .animation(.cuppedSpring, value: authCoordinator.authFlowStatus)
             .task {
+                // This startup task intentionally runs before any auth-gated view
+                // can present a WKWebView. Keeping restore, observer registration,
+                // and auth detection in one ordered block avoids session races that
+                // would be hard to spot in testing.
+
                 // Step 1: Restore cookies from Keychain
                 // into WKHTTPCookieStore BEFORE any
                 // WebView renders.
-                await CookieStore.shared.restoreCookies(
+                let restoredSession = await CookieStore.shared.restoreCookies(
                     to: WebViewConfiguration.cookieStore
                 )
 
@@ -119,9 +120,22 @@ struct iOSApp: App {
                     targetHost: serverHost
                 )
 
-                // Step 3: Ungate content — WebViews may
-                // now safely navigate.
+                // Step 3: Check for existing session.
+                if restoredSession {
+                    // Cookies were restored in Step 1 —
+                    // user has an active session.
+                    authCoordinator.isAuthenticated = true
+                }
+
+                // Step 4: Ungate content — views may now
+                // safely render.
                 isBootstrapped = true
+            }
+            .onOpenURL { url in
+                // Deep links can arrive while the app is already running or during
+                // cold start handoff from the system. Delegate all parsing to one
+                // place so both entry points follow the same auth rules.
+                handleDeepLink(url)
             }
         }
         .onChange(of: scenePhase) { _, newPhase in
@@ -137,6 +151,74 @@ struct iOSApp: App {
                     )
                 }
             }
+        }
+    }
+
+    // MARK: - Deep Link Handling
+
+    /// Parses magic link callback URLs and triggers token
+    /// verification + exchange.
+    ///
+    /// Supports two URL formats:
+    /// - Universal link:
+    ///   `https://<host>/users/log-in/<token>`
+    ///   where `<host>` is derived from `API_BASE_URL`
+    ///   (per xcconfig) or `cupped.cafe` (future prod).
+    /// - Custom scheme:
+    ///   `cupped://auth/callback?token=xxx`
+    private func handleDeepLink(_ url: URL) {
+        // Ignore unrecognized URLs rather than surfacing an auth error. The app
+        // may receive links for unrelated app features in the future.
+        guard let components = URLComponents(
+            url: url,
+            resolvingAgainstBaseURL: false
+        ) else { return }
+
+        // Hosts that this build considers valid for
+        // universal links. `serverHost` comes from
+        // API_BASE_URL (per-environment xcconfig).
+        // `cupped.cafe` is included so the app works
+        // immediately when production migrates there.
+        let validHosts: Set<String> = [
+            serverHost.lowercased(), "cupped.cafe".lowercased(),
+        ].filter { !$0.isEmpty }.reduce(into: []) {
+            $0.insert($1)
+        }
+
+        // Universal link:
+        // https://<host>/users/log-in/<token>
+        // The token is the last path component (base64url-
+        // encoded), NOT a query parameter.
+        if components.scheme?.lowercased() == "https",
+           let host = components.host?.lowercased(),
+           validHosts.contains(host),
+           components.path.hasPrefix("/users/log-in/")
+        {
+            let token = url.lastPathComponent
+            guard !token.isEmpty,
+                  token != "log-in"
+            else { return }
+
+            Task {
+                await authCoordinator.handleMagicLinkToken(token)
+            }
+            return
+        }
+
+        // Custom scheme fallback:
+        // cupped://auth/callback?token=xxx
+        if components.scheme == "cupped",
+           components.host == "auth",
+           components.path == "/callback",
+           let token = components.queryItems?
+               .first(where: { $0.name == "token" })?
+               .value,
+           !token.isEmpty
+        {
+            Task {
+                await authCoordinator.handleMagicLinkToken(token)
+            }
+            return
         }
     }
 }

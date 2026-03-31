@@ -1,9 +1,11 @@
 package cafe.cupped.app.di
 
+import cafe.cupped.app.bridge.BridgeDispatcher
+import cafe.cupped.app.bridge.BridgePlatformDelegate
 import cafe.cupped.app.isDebug
 import cafe.cupped.app.logging.NapierInit
 import cafe.cupped.app.navigation.PathConfigRouter
-import cafe.cupped.app.network.CuppedApiClient
+import cafe.cupped.app.viewmodel.AuthViewModel
 import cafe.cupped.app.viewmodel.SmokeTestViewModel
 import org.koin.core.context.startKoin
 import org.koin.core.qualifier.named
@@ -35,13 +37,13 @@ object KoinHelper {
     }
 
     // Typed factory methods — Swift cannot call generic koin.get<T>()
-    fun getCuppedApiClient(): CuppedApiClient =
-        KoinPlatformTools.defaultContext().get().get()
-
     fun getPathConfigRouter(): PathConfigRouter =
         KoinPlatformTools.defaultContext().get().get()
 
     fun makeSmokeTestViewModel(): SmokeTestViewModel =
+        KoinPlatformTools.defaultContext().get().get()
+
+    fun makeAuthViewModel(): AuthViewModel =
         KoinPlatformTools.defaultContext().get().get()
 
     /**
@@ -61,4 +63,10 @@ object KoinHelper {
     fun getBaseUrl(): String =
         KoinPlatformTools.defaultContext()
             .get().get(named("baseUrl"))
+
+    fun makeBridgeDispatcher(delegate: BridgePlatformDelegate): BridgeDispatcher =
+        BridgeDispatcher(
+            router = getPathConfigRouter(),
+            delegate = delegate
+        )
 }

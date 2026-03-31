@@ -191,6 +191,10 @@ final class MobileSessionClient: NSObject,
             let box = ContinuationBox(continuation)
             self.continuationBox = box
             self.targetPath = redirectPath
+
+            // Start loading only after all terminal-state bookkeeping is in place.
+            // Some failures (for example invalid local URLs) can synchronously
+            // trigger delegate callbacks during `load(_:)`.
             wv.load(request)
 
             // If the server hangs or the network stalls,
@@ -322,6 +326,10 @@ final class MobileSessionClient: NSObject,
         _ result: MobileSessionResult
     ) {
         guard let box = continuationBox else { return }
+
+        // Clear retained state before resuming the continuation. The awaiting
+        // caller may immediately start another exchange, and we do not want stale
+        // delegate or timeout state to bleed into the next attempt.
         continuationBox = nil
         targetPath = nil
         timeoutTask?.cancel()

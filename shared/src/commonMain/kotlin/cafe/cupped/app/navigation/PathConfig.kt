@@ -3,13 +3,19 @@ package cafe.cupped.app.navigation
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
+/** Named mapping from a path pattern to a route identifier understood by [PathConfigRouter]. */
 @Serializable
 data class PathMapping(val pattern: String, val route: String)
 
 @Serializable
 data class PathConfig(val mappings: List<PathMapping>) {
     companion object {
-        /** Default path config — compiled into the binary, no resource loading needed */
+        /**
+         * Default path config compiled into the binary.
+         *
+         * Keeping this in common code makes native route resolution deterministic
+         * even before any remote or web-owned config has loaded.
+         */
         const val DEFAULT_CONFIG_JSON = """
         {
             "mappings": [
@@ -30,6 +36,7 @@ data class PathConfig(val mappings: List<PathMapping>) {
 
         private val json = Json { ignoreUnknownKeys = true }
 
+        /** Parses the built-in route table used by native/web navigation handoff. */
         fun default(): PathConfig = json.decodeFromString(DEFAULT_CONFIG_JSON)
     }
 }

@@ -2,19 +2,38 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
 	<key>APIBaseURL</key>
 	<string>$(API_BASE_URL)</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>cafe.cupped.app</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>cupped</string>
+			</array>
+		</dict>
+	</array>
 	<key>UIAppFonts</key>
 	<array>
-		<string>Fraunces[SOFT,opsz,wght].ttf</string>
-		<string>Fraunces-Italic[SOFT,opsz,wght].ttf</string>
+		<string>Lora[wght].ttf</string>
+		<string>Lora-Italic[wght].ttf</string>
 		<string>PlusJakartaSans[wght].ttf</string>
 		<string>PlusJakartaSans-Italic[wght].ttf</string>
 	</array>
 	<key>UIUserInterfaceStyle</key>
 	<string>Light</string>
+	<!-- TODO: LaunchLogo imageset has no image files. Add LaunchLogo.png / @2x / @3x
+	     to Assets.xcassets/LaunchLogo.imageset/ and update its Contents.json with
+	     "filename" entries for each scale. -->
 	<key>UILaunchScreen</key>
 	<dict>
 		<key>UIColorName</key>

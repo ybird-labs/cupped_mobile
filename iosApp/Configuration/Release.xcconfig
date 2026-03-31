@@ -1,0 +1,8 @@
+// Release.xcconfig
+// Production build. Currently same as staging until a
+// dedicated production server is provisioned.
+
+#include "Base.xcconfig"
+
+PRODUCT_BUNDLE_IDENTIFIER = cafe.cupped.app
+API_BASE_URL = https:/$()/cupped.fly.dev

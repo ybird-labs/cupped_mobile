@@ -12,17 +12,18 @@ struct ContentView: View {
             }
 
             if showContent {
-                VStack(spacing: 16) {
+                VStack(spacing: Spacing.base) {
                     Image(systemName: "swift")
                         .font(.system(size: 200))
-                        .foregroundColor(.accentColor)
+                        .foregroundStyle(Color.cuppedActionPrimary)
                     Text("SwiftUI: \(Greeting().greet())")
                 }
                 .transition(.move(edge: .top).combined(with: .opacity))
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .padding()
+        .padding(Spacing.base)
+        .background(Color.cuppedSurfaceApp)
     }
 }
 
