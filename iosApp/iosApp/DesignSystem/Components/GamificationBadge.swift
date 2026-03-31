@@ -23,9 +23,13 @@ enum GamificationType {
 
     var label: String {
         switch self {
-        case .xp(let points): "\(points) XP"
-        case .streak(let days): "\(days) \(days == 1 ? "day" : "days") streak"
-        case .badge(let name): name
+        case .xp(let points):
+            let clamped = max(0, points)
+            return "\(clamped) XP"
+        case .streak(let days):
+            let clamped = max(0, days)
+            return "\(clamped) \(clamped == 1 ? "day" : "days") streak"
+        case .badge(let name): return name
         }
     }
 }
