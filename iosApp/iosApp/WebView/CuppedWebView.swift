@@ -36,8 +36,8 @@ private extension UIColor {
 /// is a deliberate no-op because WKWebView manages its
 /// own navigation state (redirects, form submissions,
 /// link taps). Reloading on URL mismatch would cause
-/// redirect loops when Phoenix redirects
-/// `/feed` -> `/users/log-in`.
+/// redirect loops when Phoenix redirects the shared feed
+/// path to `/users/log-in`.
 ///
 /// For programmatic navigation after initial load, use
 /// ``Coordinator/navigate(to:)`` instead of changing the
@@ -109,8 +109,9 @@ struct CuppedWebView: UIViewRepresentable {
     ///
     /// WKWebView manages its own navigation lifecycle.
     /// Re-loading here based on URL comparison would fight
-    /// server-side redirects (e.g., `/feed` -> `/users/log-in`)
-    /// and cause infinite redirect loops.
+    /// server-side redirects (for example the shared feed
+    /// path redirecting to `/users/log-in`) and cause
+    /// infinite redirect loops.
     func updateUIView(
         _ webView: WKWebView,
         context: Context
@@ -269,8 +270,8 @@ struct CuppedWebView: UIViewRepresentable {
         private static func formattedMemoryUsage() -> String {
             var info = task_vm_info_data_t()
             var count = mach_msg_type_number_t(
-                MemoryLayout<task_vm_info_data_t>.size
-            ) / 4
+                MemoryLayout<task_vm_info_data_t>.size / MemoryLayout<natural_t>.size
+            )
             let result = withUnsafeMutablePointer(to: &info) {
                 $0.withMemoryRebound(
                     to: integer_t.self,
