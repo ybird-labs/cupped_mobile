@@ -66,7 +66,7 @@ extension Font {
 
     /// Lora headline with proper variable font weight axis.
     /// Pass an explicit `textStyle` so Dynamic Type scales
-    /// correctly; defaults to `.title` when omitted.
+    /// correctly; defaults to `.title1` when omitted.
     static func cuppedHeadline(
         size: CGFloat,
         weight: CGFloat = 700,
