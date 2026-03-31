@@ -64,9 +64,7 @@ struct CuppedButton: View {
         )
         .buttonStyle(TapScaleButtonStyle())
         .disabled(isInteractionDisabled)
-        .accessibilityLabel(
-            isLoading ? "\(title), loading" : title
-        )
+        .accessibilityLabel(title)
         .accessibilityValue(isLoading ? "Loading" : "")
     }
 
