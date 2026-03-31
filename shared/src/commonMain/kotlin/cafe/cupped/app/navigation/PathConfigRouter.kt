@@ -64,10 +64,10 @@ class PathConfigRouter(private val config: PathConfig = PathConfig.default()) {
      */
     private fun toRoute(routeName: String, params: Map<String, String>): Route {
         return when (routeName) {
-            "feed" -> Route.Feed
-            "discover" -> Route.Discover
+            "feed", "/mobile/feed" -> Route.Feed
+            "discover", "/mobile/discover" -> Route.Discover
             "log" -> Route.Log
-            "community" -> Route.Community
+            "community", "/mobile/community" -> Route.Community
             "profile" -> Route.Profile
             "post" -> Route.Post(params["id"] ?: "")
             "user_profile" -> Route.UserProfile(params["id"] ?: "")
