@@ -7,6 +7,7 @@ struct CommunityView: View {
                 Image(systemName: "person.2.fill")
                     .font(.system(size: 48))
                     .foregroundStyle(Color.cuppedPrimary)
+                    .accessibilityHidden(true)
 
                 Text("Community")
                     .font(.cuppedLargeTitle)
