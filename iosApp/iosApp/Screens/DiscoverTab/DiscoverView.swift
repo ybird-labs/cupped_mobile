@@ -7,6 +7,7 @@ struct DiscoverView: View {
                 Image(systemName: "safari.fill")
                     .font(.system(size: 48))
                     .foregroundStyle(Color.cuppedPrimary)
+                    .accessibilityHidden(true)
 
                 Text("Discover")
                     .font(.cuppedLargeTitle)
