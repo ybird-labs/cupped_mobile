@@ -7,10 +7,10 @@ import kotlin.test.assertIs
 class PathConfigRouterTest {
     private val router = PathConfigRouter()
 
-    @Test fun rootResolvesToFeed() = assertEquals(Route.Feed, router.resolve("/"))
-    @Test fun feedPath() = assertEquals(Route.Feed, router.resolve("/feed"))
-    @Test fun discoverPath() = assertEquals(Route.Discover, router.resolve("/discover"))
-    @Test fun profilePath() = assertEquals(Route.Profile, router.resolve("/profile"))
+    @Test fun rootResolvesToFeed() = assertEquals(Route.Feed, router.resolve(AppPaths.root))
+    @Test fun feedPath() = assertEquals(Route.Feed, router.resolve(AppPaths.feed))
+    @Test fun discoverPath() = assertEquals(Route.Discover, router.resolve(AppPaths.discover))
+    @Test fun profilePath() = assertEquals(Route.Profile, router.resolve(AppPaths.profile))
 
     @Test fun postWithId() {
         val route = router.resolve("/posts/abc-123")
@@ -37,10 +37,10 @@ class PathConfigRouterTest {
     }
 
     @Test fun queryParamsStripped() {
-        assertEquals(Route.Feed, router.resolve("/feed?tab=latest"))
+        assertEquals(Route.Feed, router.resolve(AppPaths.feed + "?tab=latest"))
     }
 
     @Test fun fragmentStripped() {
-        assertEquals(Route.Feed, router.resolve("/feed#top"))
+        assertEquals(Route.Feed, router.resolve(AppPaths.feed + "#top"))
     }
 }

@@ -25,6 +25,7 @@
 //     resolution to prevent retain cycles.
 
 import Foundation
+import Shared
 import WebKit
 
 /// The result of a mobile-session token exchange.
@@ -49,7 +50,8 @@ enum MobileSessionResult {
 /// 2. POSTs the bearer token to `/auth/mobile-session`
 ///    using ``FormURLEncoder`` for correct form encoding.
 /// 3. Phoenix validates the token, sets the `_brewer_key`
-///    signed session cookie, and redirects to `/feed`.
+///    signed session cookie, and redirects to the shared
+///    feed path.
 /// 4. The navigation delegate detects the redirect target
 ///    and resolves the `async` call with
 ///    ``MobileSessionResult/success`` or
@@ -87,7 +89,7 @@ final class MobileSessionClient: NSObject,
     private var continuationBox: ContinuationBox?
 
     /// The expected redirect path to match against
-    /// (e.g., "/feed").
+    /// (e.g., `KoinHelper.shared.feedPath()`).
     private var targetPath: String?
 
     /// Safety timeout task. Cancelled on resolution.
@@ -141,7 +143,7 @@ final class MobileSessionClient: NSObject,
     ///   - baseURL: The Phoenix server base URL (e.g.,
     ///     `"http://localhost:4000"`).
     ///   - redirectPath: The path Phoenix should redirect
-    ///     to on success. Defaults to `"/feed"`.
+    ///     to on success. Defaults to the shared feed path.
     /// - Returns: ``MobileSessionResult/success`` if
     ///   Phoenix redirected to `redirectPath`, or
     ///   ``MobileSessionResult/failure(reason:)`` with
@@ -149,7 +151,7 @@ final class MobileSessionClient: NSObject,
     func exchangeToken(
         _ bearerToken: String,
         baseURL: String,
-        redirectPath: String = "/feed"
+        redirectPath: String = KoinHelper.shared.feedPath()
     ) async -> MobileSessionResult {
         let urlString =
             "\(baseURL)/auth/mobile-session"
@@ -233,7 +235,7 @@ final class MobileSessionClient: NSObject,
         didFinish navigation: WKNavigation!
     ) {
         let finalURL = webView.url
-        let target = targetPath ?? "/feed"
+        let target = targetPath ?? KoinHelper.shared.feedPath()
         if let url = finalURL,
            url.path == target
            || url.path == target + "/" {
