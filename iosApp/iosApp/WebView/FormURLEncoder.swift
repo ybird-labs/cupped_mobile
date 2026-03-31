@@ -31,7 +31,7 @@ import Foundation
 /// ```swift
 /// request.httpBody = FormURLEncoder.encodeToData([
 ///     ("token", bearerToken),
-///     ("redirect_to", "/feed")
+///     ("redirect_to", KoinHelper.shared.feedPath())
 /// ])
 /// ```
 enum FormURLEncoder {

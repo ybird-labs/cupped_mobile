@@ -4,6 +4,7 @@ import cafe.cupped.app.bridge.BridgeDispatcher
 import cafe.cupped.app.bridge.BridgePlatformDelegate
 import cafe.cupped.app.isDebug
 import cafe.cupped.app.logging.NapierInit
+import cafe.cupped.app.navigation.AppPaths
 import cafe.cupped.app.navigation.PathConfigRouter
 import cafe.cupped.app.viewmodel.AuthViewModel
 import cafe.cupped.app.viewmodel.SmokeTestViewModel
@@ -52,7 +53,7 @@ object KoinHelper {
      *
      * This is the same value passed to [initKoin] from
      * Config.xcconfig via Info.plist. Swift code calls this
-     * to construct WebView URLs (e.g., `baseUrl + "/feed"`)
+     * to construct WebView URLs from shared route paths
      * and the mobile-session exchange endpoint.
      *
      * @return The base URL string (e.g.,
@@ -63,6 +64,10 @@ object KoinHelper {
     fun getBaseUrl(): String =
         KoinPlatformTools.defaultContext()
             .get().get(named("baseUrl"))
+
+    fun feedPath(): String = AppPaths.feed
+
+    fun feedUrl(): String = getBaseUrl() + AppPaths.feed
 
     fun makeBridgeDispatcher(delegate: BridgePlatformDelegate): BridgeDispatcher =
         BridgeDispatcher(

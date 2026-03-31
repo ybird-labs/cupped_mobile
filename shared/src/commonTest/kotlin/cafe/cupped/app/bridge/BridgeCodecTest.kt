@@ -1,5 +1,6 @@
 package cafe.cupped.app.bridge
 
+import cafe.cupped.app.navigation.AppPaths
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -29,7 +30,7 @@ class BridgeCodecTest {
 
     @Test
     fun navigate() {
-        val msg = BridgeMessage.Navigate("/feed")
+        val msg = BridgeMessage.Navigate(AppPaths.feed)
         val json = BridgeCodec.encode(msg)
         val decoded = BridgeCodec.decode(json)
         assertEquals(msg, decoded)

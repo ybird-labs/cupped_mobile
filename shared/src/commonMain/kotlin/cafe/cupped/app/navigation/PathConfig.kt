@@ -1,7 +1,6 @@
 package cafe.cupped.app.navigation
 
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 
 /** Named mapping from a path pattern to a route identifier understood by [PathConfigRouter]. */
 @Serializable
@@ -16,27 +15,21 @@ data class PathConfig(val mappings: List<PathMapping>) {
          * Keeping this in common code makes native route resolution deterministic
          * even before any remote or web-owned config has loaded.
          */
-        const val DEFAULT_CONFIG_JSON = """
-        {
-            "mappings": [
-                {"pattern": "/", "route": "feed"},
-                {"pattern": "/feed", "route": "feed"},
-                {"pattern": "/discover", "route": "discover"},
-                {"pattern": "/log", "route": "log"},
-                {"pattern": "/community", "route": "community"},
-                {"pattern": "/profile", "route": "profile"},
-                {"pattern": "/posts/:id", "route": "post"},
-                {"pattern": "/users/:id", "route": "user_profile"},
-                {"pattern": "/cafes/:id", "route": "cafe"},
-                {"pattern": "/login", "route": "login"},
-                {"pattern": "/register", "route": "register"}
-            ]
-        }
-        """
-
-        private val json = Json { ignoreUnknownKeys = true }
-
         /** Parses the built-in route table used by native/web navigation handoff. */
-        fun default(): PathConfig = json.decodeFromString(DEFAULT_CONFIG_JSON)
+        fun default(): PathConfig = PathConfig(
+            mappings = listOf(
+                PathMapping(AppPaths.root, "/mobile/feed"),
+                PathMapping(AppPaths.feed, "/mobile/feed"),
+                PathMapping(AppPaths.discover, "/mobile/discover"),
+                PathMapping(AppPaths.log, "log"),
+                PathMapping(AppPaths.community, "/mobile/community"),
+                PathMapping(AppPaths.profile, "profile"),
+                PathMapping("/posts/:id", "post"),
+                PathMapping("/users/:id", "user_profile"),
+                PathMapping("/cafes/:id", "cafe"),
+                PathMapping(AppPaths.login, "login"),
+                PathMapping(AppPaths.register, "register")
+            )
+        )
     }
 }
