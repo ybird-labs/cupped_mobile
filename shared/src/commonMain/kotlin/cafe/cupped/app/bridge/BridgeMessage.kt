@@ -76,6 +76,36 @@ sealed class BridgeMessage {
     @SerialName("navigate_result")
     data class NavigateResult(val handled: Boolean) : BridgeMessage()
 
+    /** Request the user's current location (one-shot). */
+    @Serializable
+    @SerialName("request_location")
+    data class RequestLocation(
+        val accuracy: LocationAccuracy = LocationAccuracy.BALANCED
+    ) : BridgeMessage()
+
+    /** Location successfully obtained. */
+    @Serializable
+    @SerialName("location_result")
+    data class LocationResult(
+        val latitude: Double,
+        val longitude: Double,
+        val accuracy: Double,
+        val altitude: Double? = null,
+        val timestamp: Long
+    ) : BridgeMessage() {
+        init {
+            require(latitude in -90.0..90.0) { "latitude must be in -90..90, was $latitude" }
+            require(longitude in -180.0..180.0) { "longitude must be in -180..180, was $longitude" }
+            require(accuracy >= 0.0) { "accuracy must be non-negative, was $accuracy" }
+            require(timestamp >= 0) { "timestamp must be non-negative, was $timestamp" }
+        }
+    }
+
+    /** User denied location permission. */
+    @Serializable
+    @SerialName("location_denied")
+    data object LocationDenied : BridgeMessage()
+
     /** Generic error response for request/response pairs that cannot complete successfully. */
     @Serializable
     @SerialName("error")
