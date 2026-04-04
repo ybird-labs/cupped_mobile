@@ -92,7 +92,14 @@ sealed class BridgeMessage {
         val accuracy: Double,
         val altitude: Double? = null,
         val timestamp: Long
-    ) : BridgeMessage()
+    ) : BridgeMessage() {
+        init {
+            require(latitude in -90.0..90.0) { "latitude must be in -90..90, was $latitude" }
+            require(longitude in -180.0..180.0) { "longitude must be in -180..180, was $longitude" }
+            require(accuracy >= 0.0) { "accuracy must be non-negative, was $accuracy" }
+            require(timestamp >= 0) { "timestamp must be non-negative, was $timestamp" }
+        }
+    }
 
     /** User denied location permission. */
     @Serializable

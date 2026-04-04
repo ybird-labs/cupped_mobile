@@ -7,6 +7,7 @@ import kotlin.test.assertIs
 import kotlin.test.assertNull
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import kotlin.test.assertFailsWith
 
 class BridgeCodecTest {
 
@@ -248,6 +249,7 @@ class BridgeCodecTest {
         val decoded = BridgeCodec.decode(json)
         assertEquals(msg, decoded)
         assertTrue(json.contains("\"type\":\"request_location\""))
+        assertTrue(json.contains("\"accuracy\":\"BALANCED\""))
     }
 
     @Test
@@ -288,6 +290,42 @@ class BridgeCodecTest {
     }
 
     @Test
+    fun locationResultRejectsInvalidLatitude() {
+        assertFailsWith<IllegalArgumentException> {
+            BridgeMessage.LocationResult(
+                latitude = 91.0, longitude = 0.0, accuracy = 10.0, timestamp = 1L
+            )
+        }
+    }
+
+    @Test
+    fun locationResultRejectsInvalidLongitude() {
+        assertFailsWith<IllegalArgumentException> {
+            BridgeMessage.LocationResult(
+                latitude = 0.0, longitude = -181.0, accuracy = 10.0, timestamp = 1L
+            )
+        }
+    }
+
+    @Test
+    fun locationResultRejectsNegativeAccuracy() {
+        assertFailsWith<IllegalArgumentException> {
+            BridgeMessage.LocationResult(
+                latitude = 0.0, longitude = 0.0, accuracy = -1.0, timestamp = 1L
+            )
+        }
+    }
+
+    @Test
+    fun locationResultRejectsNegativeTimestamp() {
+        assertFailsWith<IllegalArgumentException> {
+            BridgeMessage.LocationResult(
+                latitude = 0.0, longitude = 0.0, accuracy = 10.0, timestamp = -1L
+            )
+        }
+    }
+
+    @Test
     fun locationDenied() {
         val msg = BridgeMessage.LocationDenied
         val json = BridgeCodec.encode(msg)
@@ -318,6 +356,7 @@ class BridgeCodecTest {
         )
         val responseJson = BridgeCodec.encodeEnvelope(response)
         val decodedResponse = BridgeCodec.decodeEnvelope(responseJson)
+        assertEquals(response, decodedResponse)
         assertEquals("loc-001", decodedResponse.replyTo)
         assertIs<BridgeMessage.LocationResult>(decodedResponse.message)
     }
