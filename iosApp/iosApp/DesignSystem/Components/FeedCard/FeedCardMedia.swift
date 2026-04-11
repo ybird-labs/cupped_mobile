@@ -22,8 +22,9 @@ struct FeedCardMedia: View {
     }
 
     var body: some View {
-        mediaBackground
+        Color.clear
             .aspectRatio(aspectRatio, contentMode: .fit)
+            .background { mediaBackground }
             .clipped()
             .overlay { badgeOverlays }
     }
