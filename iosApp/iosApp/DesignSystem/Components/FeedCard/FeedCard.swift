@@ -95,13 +95,23 @@ private struct StaggeredEntranceModifier: ViewModifier {
     .background(Color.cuppedCanvas)
 }
 
-#Preview("Feed Card - Staggered") {
+#Preview("Feed Card - With Photo") {
+    ScrollView {
+        FeedCard(item: .previewWithPhoto)
+            .padding(.horizontal)
+    }
+    .background(Color.cuppedCanvas)
+}
+
+#Preview("Feed Card - All Variants") {
     ScrollView {
         VStack(spacing: Spacing.base) {
-            FeedCard(item: .preview)
+            FeedCard(item: .previewWithPhoto)
                 .staggeredEntrance(index: 0)
-            FeedCard(item: .previewNoPhoto)
+            FeedCard(item: .preview)
                 .staggeredEntrance(index: 1)
+            FeedCard(item: .previewNoPhoto)
+                .staggeredEntrance(index: 2)
         }
         .padding(.horizontal)
     }

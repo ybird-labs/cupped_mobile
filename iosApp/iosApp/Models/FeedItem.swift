@@ -112,4 +112,33 @@ extension FeedItem {
         isLiked: true,
         isBookmarked: false
     )
+
+    static let previewWithPhoto = FeedItem(
+        id: "3",
+        user: FeedUser(
+            id: "u3",
+            displayName: "Jordan Park",
+            avatarURL: nil
+        ),
+        postedAt: Date().addingTimeInterval(-10800),
+        coffee: CoffeeInfo(
+            name: "Colombia Gesha Village",
+            roaster: "George Howell",
+            barista: nil,
+            farm: "Gesha Village Estate",
+            origin: "Bench Maji, Ethiopia"
+        ),
+        rating: 9.8,
+        brewMethod: .v60,
+        venue: VenueInfo(name: "Intelligentsia", status: .claimed),
+        flavors: [.fruity, .floral, .sweet],
+        notes: "Unreal cup. Tastes like tropical fruit juice with a jasmine finish.",
+        recipe: RecipeInfo(ratio: "1:17", waterTemp: "200\u{00B0}F", grindSize: "38"),
+        photoURL: URL(string: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=800&q=80"),
+        imageGradient: nil,
+        likes: 87,
+        comments: 14,
+        isLiked: false,
+        isBookmarked: false
+    )
 }

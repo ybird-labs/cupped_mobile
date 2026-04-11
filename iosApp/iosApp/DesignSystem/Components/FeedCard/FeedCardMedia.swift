@@ -23,9 +23,9 @@ struct FeedCardMedia: View {
 
     var body: some View {
         ZStack(alignment: .topLeading) {
-            // Background
+            // Background — .fit gives predictable height in unbounded layouts (ScrollView/VStack)
             mediaBackground
-                .aspectRatio(aspectRatio, contentMode: .fill)
+                .aspectRatio(aspectRatio, contentMode: .fit)
                 .clipped()
 
             // Badge overlays
@@ -47,8 +47,7 @@ struct FeedCardMedia: View {
                 case .failure:
                     fallbackGradient
                 default:
-                    SkeletonView(cornerRadius: 0)
-                        .aspectRatio(aspectRatio, contentMode: .fill)
+                    Color.cuppedCanvasBorder
                 }
             }
         } else if let imageGradient, !imageGradient.isEmpty {
