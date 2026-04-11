@@ -10,7 +10,7 @@ struct FeedCardMedia: View {
 
     /// Whether this shows a tall hero (4:3) or compact banner (5:2).
     private var hasHeroMedia: Bool {
-        photoURL != nil || imageGradient != nil
+        photoURL != nil
     }
 
     private var aspectRatio: CGFloat {

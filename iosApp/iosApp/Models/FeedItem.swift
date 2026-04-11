@@ -45,7 +45,7 @@ struct FeedItem: Identifiable, Hashable {
 
     /// Whether the media area should use the tall (4:3) or compact (5:2) aspect ratio.
     var hasHeroMedia: Bool {
-        photoURL != nil || imageGradient != nil
+        photoURL != nil
     }
 }
 
