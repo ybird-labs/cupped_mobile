@@ -22,15 +22,10 @@ struct FeedCardMedia: View {
     }
 
     var body: some View {
-        ZStack(alignment: .topLeading) {
-            // Background — .fit gives predictable height in unbounded layouts (ScrollView/VStack)
-            mediaBackground
-                .aspectRatio(aspectRatio, contentMode: .fit)
-                .clipped()
-
-            // Badge overlays
-            badgeOverlays
-        }
+        mediaBackground
+            .aspectRatio(aspectRatio, contentMode: .fit)
+            .clipped()
+            .overlay { badgeOverlays }
     }
 
     // MARK: - Background
