@@ -1,0 +1,23 @@
+name: Font Awesome Icons
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  validate-fontawesome-icons:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Font Awesome script dependencies
+        run: pip install -r scripts/fontawesome/requirements.txt
+
+      - name: Validate icon mappings
+        run: python3 scripts/fontawesome/validate_icon_mappings.py

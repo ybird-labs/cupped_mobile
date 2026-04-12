@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 enum AppIcon: String, CaseIterable {
     case home
@@ -14,6 +15,18 @@ enum AppIcon: String, CaseIterable {
     case mail
     case forward
     case coffee
+    case coffeeAeropress
+    case coffeeAeropressFilled
+    case coffeeChemex
+    case coffeeChemexFilled
+    case coffeePot
+    case coffeePotFilled
+    case coffeeTogo
+    case coffeeTogoFilled
+    case coffeeBean
+    case coffeeBeanFilled
+    case coffeeBeans
+    case coffeeBeansFilled
     case sparkles
     case location
     case more
@@ -31,6 +44,12 @@ enum AppIcon: String, CaseIterable {
     case info
     case streak
     case badge
+    case store
+    case storeFilled
+    case storePlus
+    case storePlusFilled
+    case coffeeBeanPlus
+    case coffeeBeanPlusFilled
     case logout
 
     var assetName: String {
@@ -48,6 +67,18 @@ enum AppIcon: String, CaseIterable {
         case .mail: "fa_mail"
         case .forward: "fa_forward"
         case .coffee: "fa_coffee"
+        case .coffeeAeropress: "fa_coffee_aeropress"
+        case .coffeeAeropressFilled: "fa_coffee_aeropress_filled"
+        case .coffeeChemex: "fa_coffee_chemex"
+        case .coffeeChemexFilled: "fa_coffee_chemex_filled"
+        case .coffeePot: "fa_coffee_pot"
+        case .coffeePotFilled: "fa_coffee_pot_filled"
+        case .coffeeTogo: "fa_coffee_togo"
+        case .coffeeTogoFilled: "fa_coffee_togo_filled"
+        case .coffeeBean: "fa_coffee_bean"
+        case .coffeeBeanFilled: "fa_coffee_bean_filled"
+        case .coffeeBeans: "fa_coffee_beans"
+        case .coffeeBeansFilled: "fa_coffee_beans_filled"
         case .sparkles: "fa_sparkles"
         case .location: "fa_location"
         case .more: "fa_more"
@@ -65,6 +96,12 @@ enum AppIcon: String, CaseIterable {
         case .info: "fa_info"
         case .streak: "fa_streak"
         case .badge: "fa_badge"
+        case .store: "fa_store"
+        case .storeFilled: "fa_store_filled"
+        case .storePlus: "fa_store_plus"
+        case .storePlusFilled: "fa_store_plus_filled"
+        case .coffeeBeanPlus: "fa_coffee_bean_plus"
+        case .coffeeBeanPlusFilled: "fa_coffee_bean_plus_filled"
         case .logout: "fa_logout"
         }
     }
@@ -79,6 +116,12 @@ enum AppIcon: String, CaseIterable {
         case .mail: "Email"
         case .forward: "Continue"
         case .coffee: "Coffee"
+        case .coffeeAeropress, .coffeeAeropressFilled: "Aeropress"
+        case .coffeeChemex, .coffeeChemexFilled: "Chemex"
+        case .coffeePot, .coffeePotFilled: "Coffee pot"
+        case .coffeeTogo, .coffeeTogoFilled: "Coffee to go"
+        case .coffeeBean, .coffeeBeanFilled: "Coffee bean"
+        case .coffeeBeans, .coffeeBeansFilled: "Coffee beans"
         case .sparkles: "Sparkles"
         case .location: "Location"
         case .more: "More"
@@ -94,6 +137,9 @@ enum AppIcon: String, CaseIterable {
         case .info: "Info"
         case .streak: "Streak"
         case .badge: "Badge"
+        case .store, .storeFilled: "Store"
+        case .storePlus, .storePlusFilled: "Add store"
+        case .coffeeBeanPlus, .coffeeBeanPlusFilled: "Add coffee bean"
         case .logout: "Sign out"
         }
     }
@@ -106,7 +152,14 @@ struct AppIconView: View {
     var decorative: Bool = true
 
     var body: some View {
-        let image = Image(icon.assetName)
+        let assetName = icon.assetName
+        #if DEBUG
+        let _ = {
+            assert(UIImage(named: assetName) != nil, "Missing Font Awesome asset: \(assetName)")
+            return true
+        }()
+        #endif
+        let image = Image(assetName)
             .renderingMode(.template)
             .resizable()
             .scaledToFit()

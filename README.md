@@ -37,3 +37,23 @@ in your IDE’s toolbar or open the [/iosApp](./iosApp) directory in Xcode and r
 ---
 
 Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
+
+### Font Awesome Scripts
+
+Install the Python dependencies for the Font Awesome tooling:
+
+```shell
+python3 -m pip install -r scripts/fontawesome/requirements.txt
+```
+
+Regenerate the checked-in iOS and Android icon assets from `scripts/fontawesome/icons.json`:
+
+```shell
+python3 scripts/fontawesome/import_mobile_icons.py
+```
+
+Validate that the manifest, Swift icon mappings, and Android icon mappings stay in sync:
+
+```shell
+python3 scripts/fontawesome/validate_icon_mappings.py
+```

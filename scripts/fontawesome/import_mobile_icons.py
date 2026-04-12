@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
 import json
-import os
 import shutil
 import sys
-import xml.etree.ElementTree as ET
 from pathlib import Path
 
+import defusedxml.ElementTree as SafeET
+import xml.etree.ElementTree as XmlET
 
 ROOT = Path(__file__).resolve().parents[2]
 KIT_ROOT = ROOT / ".vendor" / "fontawesome" / "kit"
@@ -75,7 +75,7 @@ def android_attr(name: str) -> str:
     return f"{{{ANDROID_VECTOR_NS}}}{name}"
 
 
-def parse_viewbox(svg_root: ET.Element) -> tuple[str, str]:
+def parse_viewbox(svg_root) -> tuple[str, str]:
     view_box = svg_root.attrib.get("viewBox")
     if not view_box:
         raise ValueError("SVG is missing viewBox")
@@ -83,7 +83,7 @@ def parse_viewbox(svg_root: ET.Element) -> tuple[str, str]:
     return width, height
 
 
-def collect_paths(node: ET.Element) -> list[tuple[str, str]]:
+def collect_paths(node) -> list[tuple[str, str]]:
     paths: list[tuple[str, str]] = []
     for element in node.iter():
         if element.tag.endswith("path"):
@@ -104,12 +104,12 @@ def collect_paths(node: ET.Element) -> list[tuple[str, str]]:
 
 
 def write_android_vector(svg_path: Path, drawable_name: str) -> None:
-    svg_root = ET.parse(svg_path).getroot()
+    svg_root = SafeET.parse(svg_path).getroot()
     width, height = parse_viewbox(svg_root)
-    vector = ET.Element(
+    XmlET.register_namespace("android", ANDROID_VECTOR_NS)
+    vector = XmlET.Element(
         "vector",
         {
-            "xmlns:android": ANDROID_VECTOR_NS,
             android_attr("width"): "24dp",
             android_attr("height"): "24dp",
             android_attr("viewportWidth"): width,
@@ -117,7 +117,7 @@ def write_android_vector(svg_path: Path, drawable_name: str) -> None:
         },
     )
     for path_data, fill in collect_paths(svg_root):
-        ET.SubElement(
+        XmlET.SubElement(
             vector,
             "path",
             {
@@ -125,7 +125,7 @@ def write_android_vector(svg_path: Path, drawable_name: str) -> None:
                 android_attr("pathData"): path_data,
             },
         )
-    xml = ET.tostring(vector, encoding="unicode")
+    xml = XmlET.tostring(vector, encoding="unicode")
     out_path = ANDROID_DRAWABLE_ROOT / f"{drawable_name}.xml"
     with out_path.open("w", encoding="utf-8") as handle:
         handle.write('<?xml version="1.0" encoding="utf-8"?>\n')
