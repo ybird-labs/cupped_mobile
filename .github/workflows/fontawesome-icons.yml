@@ -22,11 +22,26 @@ jobs:
       - name: Test Font Awesome generator
         run: python3 -m unittest scripts.fontawesome.test_import_mobile_icons
 
+      - name: Detect checked-in Font Awesome kit
+        id: fontawesome-kit
+        run: |
+          if [ -d .vendor/fontawesome/kit/svgs ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Regenerate Font Awesome assets
+        if: steps.fontawesome-kit.outputs.available == 'true'
         run: python3 scripts/fontawesome/import_mobile_icons.py
 
       - name: Verify generated assets are committed
+        if: steps.fontawesome-kit.outputs.available == 'true'
         run: git diff --exit-code
+
+      - name: Skip asset drift check without kit
+        if: steps.fontawesome-kit.outputs.available != 'true'
+        run: echo "Font Awesome kit assets are not available in CI; skipping regeneration drift check."
 
       - name: Validate icon mappings
         run: python3 scripts/fontawesome/validate_icon_mappings.py
