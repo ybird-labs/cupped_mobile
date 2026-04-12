@@ -14,6 +14,10 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+    buildFeatures {
+        compose = true
     }
     packaging {
         resources {
@@ -40,5 +44,9 @@ kotlin {
 dependencies {
     implementation(project(":composeApp"))
     implementation(libs.androidx.activity.compose)
+    androidTestImplementation(libs.androidx.testExt.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.compose.uiTestJunit4)
     debugImplementation(libs.compose.uiTooling)
+    debugImplementation(libs.compose.uiTestManifest)
 }
