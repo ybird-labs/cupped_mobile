@@ -19,5 +19,14 @@ jobs:
       - name: Install Font Awesome script dependencies
         run: pip install -r scripts/fontawesome/requirements.txt
 
+      - name: Test Font Awesome generator
+        run: python3 -m unittest scripts.fontawesome.test_import_mobile_icons
+
+      - name: Regenerate Font Awesome assets
+        run: python3 scripts/fontawesome/import_mobile_icons.py
+
+      - name: Verify generated assets are committed
+        run: git diff --exit-code
+
       - name: Validate icon mappings
         run: python3 scripts/fontawesome/validate_icon_mappings.py

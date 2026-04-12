@@ -3,6 +3,7 @@
 import json
 import shutil
 import sys
+from xml.dom import minidom
 from pathlib import Path
 
 import defusedxml.ElementTree as SafeET
@@ -14,6 +15,7 @@ MANIFEST = ROOT / "scripts" / "fontawesome" / "icons.json"
 IOS_ASSETS_ROOT = ROOT / "iosApp" / "iosApp" / "Assets.xcassets" / "FontAwesome"
 ANDROID_DRAWABLE_ROOT = ROOT / "composeApp" / "src" / "androidMain" / "res" / "drawable"
 ANDROID_VECTOR_NS = "http://schemas.android.com/apk/res/android"
+ANDROID_ICON_DP = 24.0
 
 
 def load_manifest() -> dict:
@@ -83,6 +85,31 @@ def parse_viewbox(svg_root) -> tuple[str, str]:
     return width, height
 
 
+def format_dp(value: float) -> str:
+    if value.is_integer():
+        return f"{int(value)}dp"
+    return f"{value:.2f}".rstrip("0").rstrip(".") + "dp"
+
+
+def scaled_android_size(width: str, height: str) -> tuple[str, str]:
+    viewport_width = float(width)
+    viewport_height = float(height)
+    if viewport_width <= 0 or viewport_height <= 0:
+        raise ValueError(f"Invalid viewBox dimensions: {width}x{height}")
+
+    # Keep the SVG viewport untouched and scale only the intrinsic drawable size.
+    # This mirrors how native asset pipelines preserve icon geometry while fitting
+    # the longest side into the design system's 24dp icon box.
+    if viewport_width >= viewport_height:
+        scaled_width = ANDROID_ICON_DP
+        scaled_height = ANDROID_ICON_DP * viewport_height / viewport_width
+    else:
+        scaled_width = ANDROID_ICON_DP * viewport_width / viewport_height
+        scaled_height = ANDROID_ICON_DP
+
+    return format_dp(scaled_width), format_dp(scaled_height)
+
+
 def collect_paths(node) -> list[tuple[str, str]]:
     paths: list[tuple[str, str]] = []
     for element in node.iter():
@@ -106,12 +133,13 @@ def collect_paths(node) -> list[tuple[str, str]]:
 def write_android_vector(svg_path: Path, drawable_name: str) -> None:
     svg_root = SafeET.parse(svg_path).getroot()
     width, height = parse_viewbox(svg_root)
+    android_width, android_height = scaled_android_size(width, height)
     XmlET.register_namespace("android", ANDROID_VECTOR_NS)
     vector = XmlET.Element(
         "vector",
         {
-            android_attr("width"): "24dp",
-            android_attr("height"): "24dp",
+            android_attr("width"): android_width,
+            android_attr("height"): android_height,
             android_attr("viewportWidth"): width,
             android_attr("viewportHeight"): height,
         },
@@ -125,12 +153,11 @@ def write_android_vector(svg_path: Path, drawable_name: str) -> None:
                 android_attr("pathData"): path_data,
             },
         )
-    xml = XmlET.tostring(vector, encoding="unicode")
+    rough_xml = XmlET.tostring(vector, encoding="unicode")
+    xml = minidom.parseString(rough_xml).toprettyxml(indent="  ", encoding="utf-8")
     out_path = ANDROID_DRAWABLE_ROOT / f"{drawable_name}.xml"
     with out_path.open("w", encoding="utf-8") as handle:
-        handle.write('<?xml version="1.0" encoding="utf-8"?>\n')
-        handle.write(xml)
-        handle.write("\n")
+        handle.write(xml.decode("utf-8"))
 
 
 def main() -> int:
