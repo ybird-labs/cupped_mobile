@@ -93,9 +93,7 @@ extension CuppedCard {
         
         CuppedCard {
             HStack(spacing: Spacing.base) {
-                Image(systemName: "cup.and.saucer.fill")
-                    .font(.system(size: 40))
-                    .foregroundStyle(Color.cuppedPrimary)
+                AppIconView(icon: .coffee, size: 40, color: Color.cuppedPrimary)
                 
                 VStack(alignment: .leading, spacing: Spacing.xs) {
                     Text("Quick Stats")
@@ -126,9 +124,7 @@ extension CuppedCard {
         // Large rounded card
         CuppedCard {
             VStack(spacing: Spacing.base) {
-                Image(systemName: "star.fill")
-                    .font(.system(size: 50))
-                    .foregroundStyle(Color.cuppedPrimary)
+                AppIconView(icon: .rating, size: 50, color: Color.cuppedPrimary)
                 Text("Premium Coffee")
                     .font(.cuppedTitle2)
                     .foregroundStyle(Color.cuppedInk)
@@ -164,8 +160,7 @@ extension CuppedCard {
             
             CuppedCard {
                 HStack {
-                    Image(systemName: "sparkles")
-                        .font(.system(size: 30))
+                    AppIconView(icon: .sparkles, size: 30)
                     Text("Interactive Glass")
                         .font(.cuppedTitle3)
                 }

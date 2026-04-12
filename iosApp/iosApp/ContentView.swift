@@ -13,9 +13,7 @@ struct ContentView: View {
 
             if showContent {
                 VStack(spacing: Spacing.base) {
-                    Image(systemName: "swift")
-                        .font(.system(size: 200))
-                        .foregroundStyle(Color.cuppedActionPrimary)
+                    AppIconView(icon: .coffee, size: 120, color: Color.cuppedActionPrimary)
                     Text("SwiftUI: \(Greeting().greet())")
                 }
                 .transition(.move(edge: .top).combined(with: .opacity))

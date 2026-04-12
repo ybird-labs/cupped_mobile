@@ -1,0 +1,253 @@
+{
+  "defaultStyle": "solid",
+  "icons": [
+    {
+      "appName": "home",
+      "faStyle": "regular",
+      "faName": "house",
+      "iosAssetName": "fa_home",
+      "androidDrawableName": "fa_home",
+      "accessibilityLabel": "Home"
+    },
+    {
+      "appName": "homeActive",
+      "faStyle": "solid",
+      "faName": "house",
+      "iosAssetName": "fa_home_active",
+      "androidDrawableName": "fa_home_active",
+      "accessibilityLabel": "Home"
+    },
+    {
+      "appName": "discover",
+      "faStyle": "regular",
+      "faName": "compass",
+      "iosAssetName": "fa_discover",
+      "androidDrawableName": "fa_discover",
+      "accessibilityLabel": "Discover"
+    },
+    {
+      "appName": "discoverActive",
+      "faStyle": "solid",
+      "faName": "compass",
+      "iosAssetName": "fa_discover_active",
+      "androidDrawableName": "fa_discover_active",
+      "accessibilityLabel": "Discover"
+    },
+    {
+      "appName": "community",
+      "faStyle": "regular",
+      "faName": "users",
+      "iosAssetName": "fa_community",
+      "androidDrawableName": "fa_community",
+      "accessibilityLabel": "Community"
+    },
+    {
+      "appName": "communityActive",
+      "faStyle": "solid",
+      "faName": "users",
+      "iosAssetName": "fa_community_active",
+      "androidDrawableName": "fa_community_active",
+      "accessibilityLabel": "Community"
+    },
+    {
+      "appName": "profile",
+      "faStyle": "regular",
+      "faName": "circle-user",
+      "iosAssetName": "fa_profile",
+      "androidDrawableName": "fa_profile",
+      "accessibilityLabel": "Profile"
+    },
+    {
+      "appName": "profileActive",
+      "faStyle": "solid",
+      "faName": "circle-user",
+      "iosAssetName": "fa_profile_active",
+      "androidDrawableName": "fa_profile_active",
+      "accessibilityLabel": "Profile"
+    },
+    {
+      "appName": "add",
+      "faStyle": "solid",
+      "faName": "plus",
+      "iosAssetName": "fa_add",
+      "androidDrawableName": "fa_add",
+      "accessibilityLabel": "Add"
+    },
+    {
+      "appName": "addFilled",
+      "faStyle": "solid",
+      "faName": "circle-plus",
+      "iosAssetName": "fa_add_filled",
+      "androidDrawableName": "fa_add_filled",
+      "accessibilityLabel": "Add"
+    },
+    {
+      "appName": "mail",
+      "faStyle": "regular",
+      "faName": "envelope",
+      "iosAssetName": "fa_mail",
+      "androidDrawableName": "fa_mail",
+      "accessibilityLabel": "Email"
+    },
+    {
+      "appName": "forward",
+      "faStyle": "solid",
+      "faName": "arrow-right",
+      "iosAssetName": "fa_forward",
+      "androidDrawableName": "fa_forward",
+      "accessibilityLabel": "Continue"
+    },
+    {
+      "appName": "coffee",
+      "faStyle": "solid",
+      "faName": "mug-saucer",
+      "iosAssetName": "fa_coffee",
+      "androidDrawableName": "fa_coffee",
+      "accessibilityLabel": "Coffee"
+    },
+    {
+      "appName": "sparkles",
+      "faStyle": "solid",
+      "faName": "sparkles",
+      "iosAssetName": "fa_sparkles",
+      "androidDrawableName": "fa_sparkles",
+      "accessibilityLabel": "Sparkles"
+    },
+    {
+      "appName": "location",
+      "faStyle": "solid",
+      "faName": "location-dot",
+      "iosAssetName": "fa_location",
+      "androidDrawableName": "fa_location",
+      "accessibilityLabel": "Location"
+    },
+    {
+      "appName": "more",
+      "faStyle": "solid",
+      "faName": "ellipsis",
+      "iosAssetName": "fa_more",
+      "androidDrawableName": "fa_more",
+      "accessibilityLabel": "More"
+    },
+    {
+      "appName": "favorite",
+      "faStyle": "regular",
+      "faName": "heart",
+      "iosAssetName": "fa_favorite",
+      "androidDrawableName": "fa_favorite",
+      "accessibilityLabel": "Favorite"
+    },
+    {
+      "appName": "favoriteActive",
+      "faStyle": "solid",
+      "faName": "heart",
+      "iosAssetName": "fa_favorite_active",
+      "androidDrawableName": "fa_favorite_active",
+      "accessibilityLabel": "Favorite"
+    },
+    {
+      "appName": "comment",
+      "faStyle": "regular",
+      "faName": "comment",
+      "iosAssetName": "fa_comment",
+      "androidDrawableName": "fa_comment",
+      "accessibilityLabel": "Comment"
+    },
+    {
+      "appName": "bookmark",
+      "faStyle": "regular",
+      "faName": "bookmark",
+      "iosAssetName": "fa_bookmark",
+      "androidDrawableName": "fa_bookmark",
+      "accessibilityLabel": "Bookmark"
+    },
+    {
+      "appName": "bookmarkActive",
+      "faStyle": "solid",
+      "faName": "bookmark",
+      "iosAssetName": "fa_bookmark_active",
+      "androidDrawableName": "fa_bookmark_active",
+      "accessibilityLabel": "Bookmark"
+    },
+    {
+      "appName": "box",
+      "faStyle": "solid",
+      "faName": "box",
+      "iosAssetName": "fa_box",
+      "androidDrawableName": "fa_box",
+      "accessibilityLabel": "Box"
+    },
+    {
+      "appName": "user",
+      "faStyle": "solid",
+      "faName": "user",
+      "iosAssetName": "fa_user",
+      "androidDrawableName": "fa_user",
+      "accessibilityLabel": "User"
+    },
+    {
+      "appName": "rating",
+      "faStyle": "solid",
+      "faName": "star",
+      "iosAssetName": "fa_rating",
+      "androidDrawableName": "fa_rating",
+      "accessibilityLabel": "Rating"
+    },
+    {
+      "appName": "success",
+      "faStyle": "solid",
+      "faName": "circle-check",
+      "iosAssetName": "fa_success",
+      "androidDrawableName": "fa_success",
+      "accessibilityLabel": "Success"
+    },
+    {
+      "appName": "error",
+      "faStyle": "solid",
+      "faName": "circle-xmark",
+      "iosAssetName": "fa_error",
+      "androidDrawableName": "fa_error",
+      "accessibilityLabel": "Error"
+    },
+    {
+      "appName": "warning",
+      "faStyle": "solid",
+      "faName": "triangle-exclamation",
+      "iosAssetName": "fa_warning",
+      "androidDrawableName": "fa_warning",
+      "accessibilityLabel": "Warning"
+    },
+    {
+      "appName": "info",
+      "faStyle": "solid",
+      "faName": "circle-info",
+      "iosAssetName": "fa_info",
+      "androidDrawableName": "fa_info",
+      "accessibilityLabel": "Info"
+    },
+    {
+      "appName": "streak",
+      "faStyle": "solid",
+      "faName": "fire",
+      "iosAssetName": "fa_streak",
+      "androidDrawableName": "fa_streak",
+      "accessibilityLabel": "Streak"
+    },
+    {
+      "appName": "badge",
+      "faStyle": "solid",
+      "faName": "medal",
+      "iosAssetName": "fa_badge",
+      "androidDrawableName": "fa_badge",
+      "accessibilityLabel": "Badge"
+    },
+    {
+      "appName": "logout",
+      "faStyle": "solid",
+      "faName": "right-from-bracket",
+      "iosAssetName": "fa_logout",
+      "androidDrawableName": "fa_logout",
+      "accessibilityLabel": "Sign out"
+    }
+  ]
+}

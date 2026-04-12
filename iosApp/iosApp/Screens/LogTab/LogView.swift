@@ -4,10 +4,7 @@ struct LogView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: Spacing.lg) {
-                Image(systemName: "plus.circle.fill")
-                    .font(.system(size: 48))
-                    .foregroundStyle(Color.cuppedPrimary)
-                    .accessibilityHidden(true)
+                AppIconView(icon: .addFilled, size: 48, color: Color.cuppedPrimary)
 
                 Text("Log a Brew")
                     .font(.cuppedLargeTitle)

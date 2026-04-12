@@ -4,10 +4,7 @@ struct DiscoverView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: Spacing.lg) {
-                Image(systemName: "safari.fill")
-                    .font(.system(size: 48))
-                    .foregroundStyle(Color.cuppedPrimary)
-                    .accessibilityHidden(true)
+                AppIconView(icon: .discoverActive, size: 48, color: Color.cuppedPrimary)
 
                 Text("Discover")
                     .font(.cuppedLargeTitle)

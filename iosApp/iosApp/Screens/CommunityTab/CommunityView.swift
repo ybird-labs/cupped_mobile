@@ -4,10 +4,7 @@ struct CommunityView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: Spacing.lg) {
-                Image(systemName: "person.2.fill")
-                    .font(.system(size: 48))
-                    .foregroundStyle(Color.cuppedPrimary)
-                    .accessibilityHidden(true)
+                AppIconView(icon: .communityActive, size: 48, color: Color.cuppedPrimary)
 
                 Text("Community")
                     .font(.cuppedLargeTitle)

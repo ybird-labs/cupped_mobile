@@ -10,7 +10,7 @@ enum CuppedButtonStyle {
 struct CuppedButton: View {
     let title: String
     let style: CuppedButtonStyle
-    var icon: String? = nil
+    var icon: AppIcon? = nil
     var isLoading: Bool = false
     var isDisabled: Bool = false
     let action: () -> Void
@@ -37,8 +37,7 @@ struct CuppedButton: View {
                 Text(title)
                     .font(.cuppedText(size: 18, weight: .bold))
                 if let icon, !isLoading {
-                    Image(systemName: icon)
-                        .font(.system(size: 15, weight: .bold))
+                    AppIconView(icon: icon, size: 15, color: resolvedForeground)
                 }
             }
             .frame(maxWidth: .infinity)
@@ -125,12 +124,12 @@ struct TapScaleButtonStyle: ButtonStyle {
 
 #Preview("Button Styles") {
     VStack(spacing: Spacing.base) {
-        CuppedButton(title: "Sign in", style: .primary, icon: "arrow.right") {}
+        CuppedButton(title: "Sign in", style: .primary, icon: .forward) {}
         CuppedButton(title: "Secondary", style: .secondary) {}
         CuppedButton(title: "Tertiary", style: .tertiary) {}
         CuppedButton(title: "Text Button", style: .text) {}
         CuppedButton(title: "Loading", style: .primary, isLoading: true) {}
-        CuppedButton(title: "Disabled", style: .primary, icon: "arrow.right", isDisabled: true) {}
+        CuppedButton(title: "Disabled", style: .primary, icon: .forward, isDisabled: true) {}
     }
     .padding()
 }
