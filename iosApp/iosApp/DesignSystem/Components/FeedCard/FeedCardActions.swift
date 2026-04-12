@@ -19,7 +19,7 @@ struct FeedCardActions: View {
                     onLike?()
                 } label: {
                     HStack(spacing: 6) {
-                        Image(systemName: isLiked ? "heart.fill" : "heart")
+                        Image(systemName: isLiked ? "cup.and.saucer.fill" : "cup.and.saucer")
                             .font(.system(size: 18))
                         Text("\(likes)")
                             .font(.cuppedSubheadline)

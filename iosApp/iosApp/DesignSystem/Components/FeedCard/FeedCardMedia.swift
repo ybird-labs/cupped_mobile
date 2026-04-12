@@ -89,25 +89,25 @@ struct FeedCardMedia: View {
         ZStack {
             // Top-left: Brew method
             if let brewMethod {
-                brewMethodBadge(brewMethod)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                    .padding(badgePadding)
+                positioned(brewMethodBadge(brewMethod), alignment: .topLeading)
             }
 
             // Top-right: Venue
             if let venue {
-                venueBadge(venue)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                    .padding(badgePadding)
+                positioned(venueBadge(venue), alignment: .topTrailing)
             }
 
             // Bottom-right: Rating
             if let rating, isValidRating(rating) {
-                ratingBadge(rating)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
-                    .padding(badgePadding)
+                positioned(ratingBadge(rating), alignment: .bottomTrailing)
             }
         }
+    }
+
+    private func positioned<C: View>(_ content: C, alignment: Alignment) -> some View {
+        content
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: alignment)
+            .padding(badgePadding)
     }
 
     private func brewMethodBadge(_ method: BrewMethod) -> some View {
