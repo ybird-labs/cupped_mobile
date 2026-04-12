@@ -102,7 +102,7 @@ struct FeedCardMedia: View {
             }
 
             // Bottom-right: Rating
-            if let rating {
+            if let rating, isValidRating(rating) {
                 ratingBadge(rating)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
                     .padding(badgePadding)
@@ -163,6 +163,10 @@ struct FeedCardMedia: View {
                 .strokeBorder(Color.cuppedCanvasBorder.opacity(0.5), lineWidth: 1)
         )
         .clipShape(Capsule())
+    }
+
+    private func isValidRating(_ rating: Double) -> Bool {
+        rating.isFinite && rating >= 0 && rating <= 5
     }
 }
 

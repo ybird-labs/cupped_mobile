@@ -15,7 +15,11 @@ struct MentionText: View {
                     return .systemAction
                 }
 
-                onMentionTapped?(username)
+                guard let onMentionTapped else {
+                    return .systemAction
+                }
+
+                onMentionTapped(username)
                 return .handled
             })
     }
@@ -36,12 +40,15 @@ struct MentionText: View {
         for match in matches {
             guard let swiftRange = Range(match.range, in: text),
                   let attrRange = Range(swiftRange, in: result),
-                  let usernameRange = Range(match.range(at: 1), in: text),
-                  let mentionURL = mentionURL(for: String(text[usernameRange])) else { continue }
+                  let usernameRange = Range(match.range(at: 1), in: text) else { continue }
 
             result[attrRange].foregroundColor = .cuppedInfo
             result[attrRange].font = .cuppedText(size: 14, weight: .semibold)
-            result[attrRange].link = mentionURL
+
+            if onMentionTapped != nil,
+               let mentionURL = mentionURL(for: String(text[usernameRange])) {
+                result[attrRange].link = mentionURL
+            }
         }
 
         return result
