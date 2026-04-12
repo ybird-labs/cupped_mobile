@@ -37,7 +37,12 @@ jobs:
 
       - name: Verify generated assets are committed
         if: steps.fontawesome-kit.outputs.available == 'true'
-        run: git diff --exit-code
+        run: |
+          status="$(git status --porcelain --untracked-files=all)"
+          if [ -n "$status" ]; then
+            echo "$status"
+            exit 1
+          fi
 
       - name: Skip asset drift check without kit
         if: steps.fontawesome-kit.outputs.available != 'true'
