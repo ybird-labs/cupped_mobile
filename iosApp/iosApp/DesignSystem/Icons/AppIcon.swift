@@ -15,6 +15,7 @@ enum AppIcon: String, CaseIterable {
     case mail
     case forward
     case coffee
+    case coffeePlus
     case coffeeAeropress
     case coffeeAeropressFilled
     case coffeeChemex
@@ -29,6 +30,8 @@ enum AppIcon: String, CaseIterable {
     case coffeeBeansFilled
     case sparkles
     case location
+    case ratio
+    case temperature
     case more
     case favorite
     case favoriteActive
@@ -67,6 +70,7 @@ enum AppIcon: String, CaseIterable {
         case .mail: "fa_mail"
         case .forward: "fa_forward"
         case .coffee: "fa_coffee"
+        case .coffeePlus: "fa_coffee_plus"
         case .coffeeAeropress: "fa_coffee_aeropress"
         case .coffeeAeropressFilled: "fa_coffee_aeropress_filled"
         case .coffeeChemex: "fa_coffee_chemex"
@@ -81,6 +85,8 @@ enum AppIcon: String, CaseIterable {
         case .coffeeBeansFilled: "fa_coffee_beans_filled"
         case .sparkles: "fa_sparkles"
         case .location: "fa_location"
+        case .ratio: "fa_ratio"
+        case .temperature: "fa_temperature"
         case .more: "fa_more"
         case .favorite: "fa_favorite"
         case .favoriteActive: "fa_favorite_active"
@@ -116,6 +122,7 @@ enum AppIcon: String, CaseIterable {
         case .mail: "Email"
         case .forward: "Continue"
         case .coffee: "Coffee"
+        case .coffeePlus: "Add coffee"
         case .coffeeAeropress, .coffeeAeropressFilled: "Aeropress"
         case .coffeeChemex, .coffeeChemexFilled: "Chemex"
         case .coffeePot, .coffeePotFilled: "Coffee pot"
@@ -124,6 +131,8 @@ enum AppIcon: String, CaseIterable {
         case .coffeeBeans, .coffeeBeansFilled: "Coffee beans"
         case .sparkles: "Sparkles"
         case .location: "Location"
+        case .ratio: "Ratio"
+        case .temperature: "Temperature"
         case .more: "More"
         case .favorite, .favoriteActive: "Favorite"
         case .comment: "Comment"
@@ -155,7 +164,9 @@ struct AppIconView: View {
         let assetName = icon.assetName
         #if DEBUG
         let _ = {
-            assert(UIImage(named: assetName) != nil, "Missing Font Awesome asset: \(assetName)")
+            if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] != "1" {
+                assert(UIImage(named: assetName) != nil, "Missing Font Awesome asset: \(assetName)")
+            }
             return true
         }()
         #endif

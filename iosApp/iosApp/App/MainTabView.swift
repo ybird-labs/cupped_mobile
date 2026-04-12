@@ -132,26 +132,34 @@ private struct NavButton: View {
      let namespace: Namespace.ID
      let onTap: () -> Void
 
+     private let pillWidth: CGFloat = 24
+     private let pillHeight: CGFloat = 3
+     private let pillToIconSpacing = Spacing.xs
+     private let iconToLabelSpacing: CGFloat = 2
+
      var body: some View {
          Button(action: onTap) {
-             VStack(spacing: 2) {
+             VStack(spacing: 0) {
                  // --- Pill indicator ---
                  // This is the small bar above the active icon.
                  // Only the active tab renders it. matchedGeometryEffect
                  // makes it animate its position from one tab to another
                  // because they all share the same id "activePill".
-                 if isActive {
-                     Capsule()
-                         .fill(Color.cuppedPrimary)
-                         .frame(width: 24, height: 3)
-                         .matchedGeometryEffect(id: "activePill", in: namespace)
-                 } else {
-                     // Invisible placeholder so the layout doesn't jump
-                     // when a tab becomes active. Same frame, just hidden.
-                     Capsule()
-                         .fill(Color.clear)
-                         .frame(width: 24, height: 3)
+                 Group {
+                     if isActive {
+                         Capsule()
+                             .fill(Color.cuppedPrimary)
+                             .frame(width: pillWidth, height: pillHeight)
+                             .matchedGeometryEffect(id: "activePill", in: namespace)
+                     } else {
+                         // Invisible placeholder so the layout doesn't jump
+                         // when a tab becomes active. Same frame, just hidden.
+                         Capsule()
+                             .fill(Color.clear)
+                             .frame(width: pillWidth, height: pillHeight)
+                     }
                  }
+                 .padding(.bottom, pillToIconSpacing)
 
                  // --- Icon ---
                  AppIconView(
@@ -161,6 +169,7 @@ private struct NavButton: View {
                  )
                      .scaleEffect(isActive ? 1.0 : 0.85)
                      .offset(y: isActive ? -2 : 0)
+                     .padding(.bottom, iconToLabelSpacing)
 
                  // --- Label ---
                  Text(tab.title)
@@ -195,7 +204,7 @@ private struct CheckInButton: View {
                       .frame(width: 56, height: 56)
 
                   // Plus icon
-                  AppIconView(icon: .add, size: 28, color: Color.cuppedInkInverse)
+                  AppIconView(icon: .coffee, size: 28, color: Color.cuppedInkInverse)
               }
           }
           .buttonStyle(CheckInButtonStyle())

@@ -31,7 +31,7 @@ struct FeedItem: Identifiable, Hashable {
     let postedAt: Date
     let coffee: CoffeeInfo
     let rating: Double?
-    let brewMethod: BrewMethod?
+    let brewMethod: BrewStyle?
     let venue: VenueInfo?
     let flavors: [FlavorNote]
     let notes: String?
@@ -76,7 +76,7 @@ extension FeedItem {
             origin: "Yirgacheffe, Ethiopia"
         ),
         rating: 9.2,
-        brewMethod: .pourOver,
+        brewMethod: .immersion,
         venue: VenueInfo(name: "Blue Bottle, Hayes Valley", status: .curated),
         flavors: [.floral, .citrus],
         notes: "Absolutely stunning cup. The floral aromatics hit you immediately, followed by that classic tea-like body. @mike_barista nailed the extraction perfectly. Best I've had this year.",
@@ -108,7 +108,7 @@ extension FeedItem {
             origin: "Huehuetenango, Guatemala"
         ),
         rating: 8.5,
-        brewMethod: .chemex,
+        brewMethod: .drip,
         venue: VenueInfo(name: "Local Coffee", status: .claimed),
         flavors: [.chocolate, .nutty, .sweet],
         notes: "Rich and chocolatey with a smooth finish.",
@@ -137,7 +137,7 @@ extension FeedItem {
             origin: "Bench Maji, Ethiopia"
         ),
         rating: 9.8,
-        brewMethod: .v60,
+        brewMethod: .latte,
         venue: VenueInfo(name: "Intelligentsia", status: .claimed),
         flavors: [.fruity, .floral, .sweet],
         notes: "Unreal cup. Tastes like tropical fruit juice with a jasmine finish.",

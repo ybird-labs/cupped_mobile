@@ -106,6 +106,14 @@
       "accessibilityLabel": "Coffee"
     },
     {
+      "appName": "coffeePlus",
+      "faStyle": "custom-icons",
+      "faName": "solid-mug-circle-plus",
+      "iosAssetName": "fa_coffee_plus",
+      "androidDrawableName": "fa_coffee_plus",
+      "accessibilityLabel": "Add coffee"
+    },
+    {
       "appName": "coffeeAeropress",
       "faStyle": "regular",
       "faName": "aeropress",
@@ -216,6 +224,22 @@
       "iosAssetName": "fa_location",
       "androidDrawableName": "fa_location",
       "accessibilityLabel": "Location"
+    },
+    {
+      "appName": "ratio",
+      "faStyle": "jelly-regular",
+      "faName": "droplet",
+      "iosAssetName": "fa_ratio",
+      "androidDrawableName": "fa_ratio",
+      "accessibilityLabel": "Ratio"
+    },
+    {
+      "appName": "temperature",
+      "faStyle": "solid",
+      "faName": "thermometer-half",
+      "iosAssetName": "fa_temperature",
+      "androidDrawableName": "fa_temperature",
+      "accessibilityLabel": "Temperature"
     },
     {
       "appName": "more",

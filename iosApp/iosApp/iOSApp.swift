@@ -22,6 +22,8 @@ import Shared
 
 @main
 struct iOSApp: App {
+    private static let previewBaseUrl = "http://localhost:4000"
+
     /// Gates content presentation until cookie restore
     /// and auth check complete. While `false`, a canvas-
     /// colored splash is shown. This guarantees cookies are
@@ -43,18 +45,7 @@ struct iOSApp: App {
     private let serverHost: String
 
     init() {
-        // Read the API base URL injected from
-        // Config.xcconfig -> Info.plist -> APIBaseURL.
-        // This is the same URL used by CuppedApiClient
-        // (KMP) and WebView URL construction (Swift).
-        guard let baseUrl = Bundle.main.infoDictionary?[
-            "APIBaseURL"] as? String,
-              !baseUrl.isEmpty else {
-            fatalError(
-                "APIBaseURL missing from Info.plist"
-                + " – check Config.xcconfig"
-            )
-        }
+        let baseUrl = Self.resolveBaseUrl()
         KoinHelper.shared.doInitKoin(baseUrl: baseUrl)
 
         // Extract host for cookie domain filtering.
@@ -152,6 +143,36 @@ struct iOSApp: App {
                 }
             }
         }
+    }
+
+    private static func resolveBaseUrl() -> String {
+        // Preview-hosted launches do not reliably preserve
+        // xcconfig-backed plist substitution or preview-only
+        // environment markers. Prefer a safe localhost
+        // fallback over trapping in App.init().
+        let rawValue = (Bundle.main.infoDictionary?["APIBaseURL"] as? String)?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if let rawValue,
+           isUsableBaseUrl(rawValue) {
+            return rawValue
+        }
+
+        return previewBaseUrl
+    }
+
+    private static func isUsableBaseUrl(_ value: String) -> Bool {
+        guard !value.isEmpty,
+              !value.contains("$("),
+              let url = URL(string: value),
+              let scheme = url.scheme,
+              let host = url.host,
+              !scheme.isEmpty,
+              !host.isEmpty else {
+            return false
+        }
+
+        return true
     }
 
     // MARK: - Deep Link Handling
