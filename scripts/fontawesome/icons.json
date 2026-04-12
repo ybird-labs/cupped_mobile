@@ -338,6 +338,54 @@
       "accessibilityLabel": "Badge"
     },
     {
+      "appName": "store",
+      "faStyle": "regular",
+      "faName": "store",
+      "iosAssetName": "fa_store",
+      "androidDrawableName": "fa_store",
+      "accessibilityLabel": "Store"
+    },
+    {
+      "appName": "storeFilled",
+      "faStyle": "solid",
+      "faName": "store",
+      "iosAssetName": "fa_store_filled",
+      "androidDrawableName": "fa_store_filled",
+      "accessibilityLabel": "Store"
+    },
+    {
+      "appName": "storePlus",
+      "faStyle": "custom-icons",
+      "faName": "regular-store-circle-plus",
+      "iosAssetName": "fa_store_plus",
+      "androidDrawableName": "fa_store_plus",
+      "accessibilityLabel": "Add store"
+    },
+    {
+      "appName": "storePlusFilled",
+      "faStyle": "custom-icons",
+      "faName": "solid-store-circle-plus",
+      "iosAssetName": "fa_store_plus_filled",
+      "androidDrawableName": "fa_store_plus_filled",
+      "accessibilityLabel": "Add store"
+    },
+    {
+      "appName": "coffeeBeanPlus",
+      "faStyle": "custom-icons",
+      "faName": "regular-coffee-bean-circle-plus",
+      "iosAssetName": "fa_coffee_bean_plus",
+      "androidDrawableName": "fa_coffee_bean_plus",
+      "accessibilityLabel": "Add coffee bean"
+    },
+    {
+      "appName": "coffeeBeanPlusFilled",
+      "faStyle": "custom-icons",
+      "faName": "solid-coffee-bean-circle-plus",
+      "iosAssetName": "fa_coffee_bean_plus_filled",
+      "androidDrawableName": "fa_coffee_bean_plus_filled",
+      "accessibilityLabel": "Add coffee bean"
+    },
+    {
       "appName": "logout",
       "faStyle": "solid",
       "faName": "right-from-bracket",
