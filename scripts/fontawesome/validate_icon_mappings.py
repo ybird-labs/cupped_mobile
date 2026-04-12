@@ -73,7 +73,6 @@ def find_manifest_duplicates(manifest: list[dict]) -> list[str]:
         ("appName", "Duplicate appName"),
         ("iosAssetName", "Duplicate iosAssetName"),
         ("androidDrawableName", "Duplicate androidDrawableName"),
-        ("accessibilityLabel", "Duplicate accessibilityLabel"),
     )
 
     for field_name, error_prefix in collision_fields:
