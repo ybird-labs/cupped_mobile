@@ -106,6 +106,102 @@
       "accessibilityLabel": "Coffee"
     },
     {
+      "appName": "coffeeAeropress",
+      "faStyle": "regular",
+      "faName": "aeropress",
+      "iosAssetName": "fa_coffee_aeropress",
+      "androidDrawableName": "fa_coffee_aeropress",
+      "accessibilityLabel": "Aeropress"
+    },
+    {
+      "appName": "coffeeAeropressFilled",
+      "faStyle": "solid",
+      "faName": "aeropress",
+      "iosAssetName": "fa_coffee_aeropress_filled",
+      "androidDrawableName": "fa_coffee_aeropress_filled",
+      "accessibilityLabel": "Aeropress"
+    },
+    {
+      "appName": "coffeeChemex",
+      "faStyle": "regular",
+      "faName": "chemex",
+      "iosAssetName": "fa_coffee_chemex",
+      "androidDrawableName": "fa_coffee_chemex",
+      "accessibilityLabel": "Chemex"
+    },
+    {
+      "appName": "coffeeChemexFilled",
+      "faStyle": "solid",
+      "faName": "chemex",
+      "iosAssetName": "fa_coffee_chemex_filled",
+      "androidDrawableName": "fa_coffee_chemex_filled",
+      "accessibilityLabel": "Chemex"
+    },
+    {
+      "appName": "coffeePot",
+      "faStyle": "regular",
+      "faName": "coffee-pot",
+      "iosAssetName": "fa_coffee_pot",
+      "androidDrawableName": "fa_coffee_pot",
+      "accessibilityLabel": "Coffee pot"
+    },
+    {
+      "appName": "coffeePotFilled",
+      "faStyle": "solid",
+      "faName": "coffee-pot",
+      "iosAssetName": "fa_coffee_pot_filled",
+      "androidDrawableName": "fa_coffee_pot_filled",
+      "accessibilityLabel": "Coffee pot"
+    },
+    {
+      "appName": "coffeeTogo",
+      "faStyle": "regular",
+      "faName": "coffee-togo",
+      "iosAssetName": "fa_coffee_togo",
+      "androidDrawableName": "fa_coffee_togo",
+      "accessibilityLabel": "Coffee to go"
+    },
+    {
+      "appName": "coffeeTogoFilled",
+      "faStyle": "solid",
+      "faName": "coffee-togo",
+      "iosAssetName": "fa_coffee_togo_filled",
+      "androidDrawableName": "fa_coffee_togo_filled",
+      "accessibilityLabel": "Coffee to go"
+    },
+    {
+      "appName": "coffeeBean",
+      "faStyle": "regular",
+      "faName": "coffee-bean",
+      "iosAssetName": "fa_coffee_bean",
+      "androidDrawableName": "fa_coffee_bean",
+      "accessibilityLabel": "Coffee bean"
+    },
+    {
+      "appName": "coffeeBeanFilled",
+      "faStyle": "solid",
+      "faName": "coffee-bean",
+      "iosAssetName": "fa_coffee_bean_filled",
+      "androidDrawableName": "fa_coffee_bean_filled",
+      "accessibilityLabel": "Coffee bean"
+    },
+    {
+      "appName": "coffeeBeans",
+      "faStyle": "regular",
+      "faName": "coffee-beans",
+      "iosAssetName": "fa_coffee_beans",
+      "androidDrawableName": "fa_coffee_beans",
+      "accessibilityLabel": "Coffee beans"
+    },
+    {
+      "appName": "coffeeBeansFilled",
+      "faStyle": "solid",
+      "faName": "coffee-beans",
+      "iosAssetName": "fa_coffee_beans_filled",
+      "androidDrawableName": "fa_coffee_beans_filled",
+      "accessibilityLabel": "Coffee beans"
+    },
+    {
       "appName": "sparkles",
       "faStyle": "jelly-regular",
       "faName": "sparkles",
