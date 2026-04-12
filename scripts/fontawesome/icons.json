@@ -1,9 +1,9 @@
 {
-  "defaultStyle": "solid",
+  "defaultStyle": "jelly-regular",
   "icons": [
     {
       "appName": "home",
-      "faStyle": "regular",
+      "faStyle": "jelly-regular",
       "faName": "house",
       "iosAssetName": "fa_home",
       "androidDrawableName": "fa_home",
@@ -11,7 +11,7 @@
     },
     {
       "appName": "homeActive",
-      "faStyle": "solid",
+      "faStyle": "jelly-fill-regular",
       "faName": "house",
       "iosAssetName": "fa_home_active",
       "androidDrawableName": "fa_home_active",
@@ -19,7 +19,7 @@
     },
     {
       "appName": "discover",
-      "faStyle": "regular",
+      "faStyle": "jelly-regular",
       "faName": "compass",
       "iosAssetName": "fa_discover",
       "androidDrawableName": "fa_discover",
@@ -27,7 +27,7 @@
     },
     {
       "appName": "discoverActive",
-      "faStyle": "solid",
+      "faStyle": "jelly-fill-regular",
       "faName": "compass",
       "iosAssetName": "fa_discover_active",
       "androidDrawableName": "fa_discover_active",
@@ -35,7 +35,7 @@
     },
     {
       "appName": "community",
-      "faStyle": "regular",
+      "faStyle": "jelly-regular",
       "faName": "users",
       "iosAssetName": "fa_community",
       "androidDrawableName": "fa_community",
@@ -43,7 +43,7 @@
     },
     {
       "appName": "communityActive",
-      "faStyle": "solid",
+      "faStyle": "jelly-fill-regular",
       "faName": "users",
       "iosAssetName": "fa_community_active",
       "androidDrawableName": "fa_community_active",
@@ -51,7 +51,7 @@
     },
     {
       "appName": "profile",
-      "faStyle": "regular",
+      "faStyle": "jelly-regular",
       "faName": "circle-user",
       "iosAssetName": "fa_profile",
       "androidDrawableName": "fa_profile",
@@ -59,7 +59,7 @@
     },
     {
       "appName": "profileActive",
-      "faStyle": "solid",
+      "faStyle": "jelly-fill-regular",
       "faName": "circle-user",
       "iosAssetName": "fa_profile_active",
       "androidDrawableName": "fa_profile_active",
@@ -67,7 +67,7 @@
     },
     {
       "appName": "add",
-      "faStyle": "solid",
+      "faStyle": "jelly-regular",
       "faName": "plus",
       "iosAssetName": "fa_add",
       "androidDrawableName": "fa_add",
@@ -75,7 +75,7 @@
     },
     {
       "appName": "addFilled",
-      "faStyle": "solid",
+      "faStyle": "jelly-fill-regular",
       "faName": "circle-plus",
       "iosAssetName": "fa_add_filled",
       "androidDrawableName": "fa_add_filled",
@@ -83,7 +83,7 @@
     },
     {
       "appName": "mail",
-      "faStyle": "regular",
+      "faStyle": "jelly-regular",
       "faName": "envelope",
       "iosAssetName": "fa_mail",
       "androidDrawableName": "fa_mail",
@@ -91,7 +91,7 @@
     },
     {
       "appName": "forward",
-      "faStyle": "solid",
+      "faStyle": "jelly-regular",
       "faName": "arrow-right",
       "iosAssetName": "fa_forward",
       "androidDrawableName": "fa_forward",
@@ -107,7 +107,7 @@
     },
     {
       "appName": "sparkles",
-      "faStyle": "solid",
+      "faStyle": "jelly-regular",
       "faName": "sparkles",
       "iosAssetName": "fa_sparkles",
       "androidDrawableName": "fa_sparkles",
@@ -115,7 +115,7 @@
     },
     {
       "appName": "location",
-      "faStyle": "solid",
+      "faStyle": "jelly-regular",
       "faName": "location-dot",
       "iosAssetName": "fa_location",
       "androidDrawableName": "fa_location",
@@ -123,7 +123,7 @@
     },
     {
       "appName": "more",
-      "faStyle": "solid",
+      "faStyle": "jelly-regular",
       "faName": "ellipsis",
       "iosAssetName": "fa_more",
       "androidDrawableName": "fa_more",
@@ -131,7 +131,7 @@
     },
     {
       "appName": "favorite",
-      "faStyle": "regular",
+      "faStyle": "jelly-regular",
       "faName": "heart",
       "iosAssetName": "fa_favorite",
       "androidDrawableName": "fa_favorite",
@@ -139,7 +139,7 @@
     },
     {
       "appName": "favoriteActive",
-      "faStyle": "solid",
+      "faStyle": "jelly-fill-regular",
       "faName": "heart",
       "iosAssetName": "fa_favorite_active",
       "androidDrawableName": "fa_favorite_active",
@@ -147,7 +147,7 @@
     },
     {
       "appName": "comment",
-      "faStyle": "regular",
+      "faStyle": "jelly-regular",
       "faName": "comment",
       "iosAssetName": "fa_comment",
       "androidDrawableName": "fa_comment",
@@ -155,7 +155,7 @@
     },
     {
       "appName": "bookmark",
-      "faStyle": "regular",
+      "faStyle": "jelly-regular",
       "faName": "bookmark",
       "iosAssetName": "fa_bookmark",
       "androidDrawableName": "fa_bookmark",
@@ -163,7 +163,7 @@
     },
     {
       "appName": "bookmarkActive",
-      "faStyle": "solid",
+      "faStyle": "jelly-fill-regular",
       "faName": "bookmark",
       "iosAssetName": "fa_bookmark_active",
       "androidDrawableName": "fa_bookmark_active",
@@ -171,7 +171,7 @@
     },
     {
       "appName": "box",
-      "faStyle": "solid",
+      "faStyle": "jelly-regular",
       "faName": "box",
       "iosAssetName": "fa_box",
       "androidDrawableName": "fa_box",
@@ -179,7 +179,7 @@
     },
     {
       "appName": "user",
-      "faStyle": "solid",
+      "faStyle": "jelly-regular",
       "faName": "user",
       "iosAssetName": "fa_user",
       "androidDrawableName": "fa_user",
@@ -187,7 +187,7 @@
     },
     {
       "appName": "rating",
-      "faStyle": "solid",
+      "faStyle": "jelly-regular",
       "faName": "star",
       "iosAssetName": "fa_rating",
       "androidDrawableName": "fa_rating",
@@ -195,7 +195,7 @@
     },
     {
       "appName": "success",
-      "faStyle": "solid",
+      "faStyle": "jelly-regular",
       "faName": "circle-check",
       "iosAssetName": "fa_success",
       "androidDrawableName": "fa_success",
@@ -203,7 +203,7 @@
     },
     {
       "appName": "error",
-      "faStyle": "solid",
+      "faStyle": "jelly-regular",
       "faName": "circle-xmark",
       "iosAssetName": "fa_error",
       "androidDrawableName": "fa_error",
@@ -211,7 +211,7 @@
     },
     {
       "appName": "warning",
-      "faStyle": "solid",
+      "faStyle": "jelly-regular",
       "faName": "triangle-exclamation",
       "iosAssetName": "fa_warning",
       "androidDrawableName": "fa_warning",
@@ -219,7 +219,7 @@
     },
     {
       "appName": "info",
-      "faStyle": "solid",
+      "faStyle": "jelly-regular",
       "faName": "circle-info",
       "iosAssetName": "fa_info",
       "androidDrawableName": "fa_info",
@@ -227,7 +227,7 @@
     },
     {
       "appName": "streak",
-      "faStyle": "solid",
+      "faStyle": "jelly-regular",
       "faName": "fire",
       "iosAssetName": "fa_streak",
       "androidDrawableName": "fa_streak",
