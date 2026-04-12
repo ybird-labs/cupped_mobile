@@ -166,7 +166,7 @@ struct FeedCardMedia: View {
     }
 
     private func isValidRating(_ rating: Double) -> Bool {
-        rating.isFinite && rating >= 0 && rating <= 5
+        rating.isFinite && rating >= 0 && rating <= 10
     }
 }
 
