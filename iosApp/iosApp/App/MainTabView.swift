@@ -199,6 +199,7 @@ private struct CheckInButton: View {
               }
           }
           .buttonStyle(CheckInButtonStyle())
+          .accessibilityLabel(Text("Check In"))
           .modifier(Shadow.glowCoral)  // The coral glow from your shadow tokens
           // Shift it up so it "floats" above the bar edge
           .offset(y: -Spacing.lg)
