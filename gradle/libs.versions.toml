@@ -48,9 +48,12 @@ androidx-lifecycle-runtimeCompose = { module = "org.jetbrains.androidx.lifecycle
 compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "composeMultiplatform" }
 compose-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "composeMultiplatform" }
 compose-material3 = { module = "org.jetbrains.compose.material3:material3", version = "1.9.0" }
+compose-materialIconsCore = { module = "androidx.compose.material:material-icons-core", version = "1.7.8" }
 compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "composeMultiplatform" }
 compose-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "composeMultiplatform" }
 compose-uiToolingPreview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "composeMultiplatform" }
+compose-uiTestJunit4 = { module = "androidx.compose.ui:ui-test-junit4", version = "1.9.3" }
+compose-uiTestManifest = { module = "androidx.compose.ui:ui-test-manifest", version = "1.9.3" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
