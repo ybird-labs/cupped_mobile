@@ -1,0 +1,397 @@
+{
+  "defaultStyle": "jelly-regular",
+  "icons": [
+    {
+      "appName": "home",
+      "faStyle": "jelly-regular",
+      "faName": "house",
+      "iosAssetName": "fa_home",
+      "androidDrawableName": "fa_home",
+      "accessibilityLabel": "Home"
+    },
+    {
+      "appName": "homeActive",
+      "faStyle": "jelly-fill-regular",
+      "faName": "house",
+      "iosAssetName": "fa_home_active",
+      "androidDrawableName": "fa_home_active",
+      "accessibilityLabel": "Home"
+    },
+    {
+      "appName": "discover",
+      "faStyle": "jelly-regular",
+      "faName": "compass",
+      "iosAssetName": "fa_discover",
+      "androidDrawableName": "fa_discover",
+      "accessibilityLabel": "Discover"
+    },
+    {
+      "appName": "discoverActive",
+      "faStyle": "jelly-fill-regular",
+      "faName": "compass",
+      "iosAssetName": "fa_discover_active",
+      "androidDrawableName": "fa_discover_active",
+      "accessibilityLabel": "Discover"
+    },
+    {
+      "appName": "community",
+      "faStyle": "jelly-regular",
+      "faName": "users",
+      "iosAssetName": "fa_community",
+      "androidDrawableName": "fa_community",
+      "accessibilityLabel": "Community"
+    },
+    {
+      "appName": "communityActive",
+      "faStyle": "jelly-fill-regular",
+      "faName": "users",
+      "iosAssetName": "fa_community_active",
+      "androidDrawableName": "fa_community_active",
+      "accessibilityLabel": "Community"
+    },
+    {
+      "appName": "profile",
+      "faStyle": "jelly-regular",
+      "faName": "circle-user",
+      "iosAssetName": "fa_profile",
+      "androidDrawableName": "fa_profile",
+      "accessibilityLabel": "Profile"
+    },
+    {
+      "appName": "profileActive",
+      "faStyle": "jelly-fill-regular",
+      "faName": "circle-user",
+      "iosAssetName": "fa_profile_active",
+      "androidDrawableName": "fa_profile_active",
+      "accessibilityLabel": "Profile"
+    },
+    {
+      "appName": "add",
+      "faStyle": "jelly-regular",
+      "faName": "plus",
+      "iosAssetName": "fa_add",
+      "androidDrawableName": "fa_add",
+      "accessibilityLabel": "Add"
+    },
+    {
+      "appName": "addFilled",
+      "faStyle": "jelly-fill-regular",
+      "faName": "circle-plus",
+      "iosAssetName": "fa_add_filled",
+      "androidDrawableName": "fa_add_filled",
+      "accessibilityLabel": "Add"
+    },
+    {
+      "appName": "mail",
+      "faStyle": "jelly-regular",
+      "faName": "envelope",
+      "iosAssetName": "fa_mail",
+      "androidDrawableName": "fa_mail",
+      "accessibilityLabel": "Email"
+    },
+    {
+      "appName": "forward",
+      "faStyle": "jelly-regular",
+      "faName": "arrow-right",
+      "iosAssetName": "fa_forward",
+      "androidDrawableName": "fa_forward",
+      "accessibilityLabel": "Continue"
+    },
+    {
+      "appName": "coffee",
+      "faStyle": "solid",
+      "faName": "mug-saucer",
+      "iosAssetName": "fa_coffee",
+      "androidDrawableName": "fa_coffee",
+      "accessibilityLabel": "Coffee"
+    },
+    {
+      "appName": "coffeeAeropress",
+      "faStyle": "regular",
+      "faName": "aeropress",
+      "iosAssetName": "fa_coffee_aeropress",
+      "androidDrawableName": "fa_coffee_aeropress",
+      "accessibilityLabel": "Aeropress"
+    },
+    {
+      "appName": "coffeeAeropressFilled",
+      "faStyle": "solid",
+      "faName": "aeropress",
+      "iosAssetName": "fa_coffee_aeropress_filled",
+      "androidDrawableName": "fa_coffee_aeropress_filled",
+      "accessibilityLabel": "Aeropress"
+    },
+    {
+      "appName": "coffeeChemex",
+      "faStyle": "regular",
+      "faName": "chemex",
+      "iosAssetName": "fa_coffee_chemex",
+      "androidDrawableName": "fa_coffee_chemex",
+      "accessibilityLabel": "Chemex"
+    },
+    {
+      "appName": "coffeeChemexFilled",
+      "faStyle": "solid",
+      "faName": "chemex",
+      "iosAssetName": "fa_coffee_chemex_filled",
+      "androidDrawableName": "fa_coffee_chemex_filled",
+      "accessibilityLabel": "Chemex"
+    },
+    {
+      "appName": "coffeePot",
+      "faStyle": "regular",
+      "faName": "coffee-pot",
+      "iosAssetName": "fa_coffee_pot",
+      "androidDrawableName": "fa_coffee_pot",
+      "accessibilityLabel": "Coffee pot"
+    },
+    {
+      "appName": "coffeePotFilled",
+      "faStyle": "solid",
+      "faName": "coffee-pot",
+      "iosAssetName": "fa_coffee_pot_filled",
+      "androidDrawableName": "fa_coffee_pot_filled",
+      "accessibilityLabel": "Coffee pot"
+    },
+    {
+      "appName": "coffeeTogo",
+      "faStyle": "regular",
+      "faName": "coffee-togo",
+      "iosAssetName": "fa_coffee_togo",
+      "androidDrawableName": "fa_coffee_togo",
+      "accessibilityLabel": "Coffee to go"
+    },
+    {
+      "appName": "coffeeTogoFilled",
+      "faStyle": "solid",
+      "faName": "coffee-togo",
+      "iosAssetName": "fa_coffee_togo_filled",
+      "androidDrawableName": "fa_coffee_togo_filled",
+      "accessibilityLabel": "Coffee to go"
+    },
+    {
+      "appName": "coffeeBean",
+      "faStyle": "regular",
+      "faName": "coffee-bean",
+      "iosAssetName": "fa_coffee_bean",
+      "androidDrawableName": "fa_coffee_bean",
+      "accessibilityLabel": "Coffee bean"
+    },
+    {
+      "appName": "coffeeBeanFilled",
+      "faStyle": "solid",
+      "faName": "coffee-bean",
+      "iosAssetName": "fa_coffee_bean_filled",
+      "androidDrawableName": "fa_coffee_bean_filled",
+      "accessibilityLabel": "Coffee bean"
+    },
+    {
+      "appName": "coffeeBeans",
+      "faStyle": "regular",
+      "faName": "coffee-beans",
+      "iosAssetName": "fa_coffee_beans",
+      "androidDrawableName": "fa_coffee_beans",
+      "accessibilityLabel": "Coffee beans"
+    },
+    {
+      "appName": "coffeeBeansFilled",
+      "faStyle": "solid",
+      "faName": "coffee-beans",
+      "iosAssetName": "fa_coffee_beans_filled",
+      "androidDrawableName": "fa_coffee_beans_filled",
+      "accessibilityLabel": "Coffee beans"
+    },
+    {
+      "appName": "sparkles",
+      "faStyle": "jelly-regular",
+      "faName": "sparkles",
+      "iosAssetName": "fa_sparkles",
+      "androidDrawableName": "fa_sparkles",
+      "accessibilityLabel": "Sparkles"
+    },
+    {
+      "appName": "location",
+      "faStyle": "jelly-regular",
+      "faName": "location-dot",
+      "iosAssetName": "fa_location",
+      "androidDrawableName": "fa_location",
+      "accessibilityLabel": "Location"
+    },
+    {
+      "appName": "more",
+      "faStyle": "jelly-regular",
+      "faName": "ellipsis",
+      "iosAssetName": "fa_more",
+      "androidDrawableName": "fa_more",
+      "accessibilityLabel": "More"
+    },
+    {
+      "appName": "favorite",
+      "faStyle": "jelly-regular",
+      "faName": "heart",
+      "iosAssetName": "fa_favorite",
+      "androidDrawableName": "fa_favorite",
+      "accessibilityLabel": "Favorite"
+    },
+    {
+      "appName": "favoriteActive",
+      "faStyle": "jelly-fill-regular",
+      "faName": "heart",
+      "iosAssetName": "fa_favorite_active",
+      "androidDrawableName": "fa_favorite_active",
+      "accessibilityLabel": "Favorite"
+    },
+    {
+      "appName": "comment",
+      "faStyle": "jelly-regular",
+      "faName": "comment",
+      "iosAssetName": "fa_comment",
+      "androidDrawableName": "fa_comment",
+      "accessibilityLabel": "Comment"
+    },
+    {
+      "appName": "bookmark",
+      "faStyle": "jelly-regular",
+      "faName": "bookmark",
+      "iosAssetName": "fa_bookmark",
+      "androidDrawableName": "fa_bookmark",
+      "accessibilityLabel": "Bookmark"
+    },
+    {
+      "appName": "bookmarkActive",
+      "faStyle": "jelly-fill-regular",
+      "faName": "bookmark",
+      "iosAssetName": "fa_bookmark_active",
+      "androidDrawableName": "fa_bookmark_active",
+      "accessibilityLabel": "Bookmark"
+    },
+    {
+      "appName": "box",
+      "faStyle": "jelly-regular",
+      "faName": "box",
+      "iosAssetName": "fa_box",
+      "androidDrawableName": "fa_box",
+      "accessibilityLabel": "Box"
+    },
+    {
+      "appName": "user",
+      "faStyle": "jelly-regular",
+      "faName": "user",
+      "iosAssetName": "fa_user",
+      "androidDrawableName": "fa_user",
+      "accessibilityLabel": "User"
+    },
+    {
+      "appName": "rating",
+      "faStyle": "jelly-regular",
+      "faName": "star",
+      "iosAssetName": "fa_rating",
+      "androidDrawableName": "fa_rating",
+      "accessibilityLabel": "Rating"
+    },
+    {
+      "appName": "success",
+      "faStyle": "jelly-regular",
+      "faName": "circle-check",
+      "iosAssetName": "fa_success",
+      "androidDrawableName": "fa_success",
+      "accessibilityLabel": "Success"
+    },
+    {
+      "appName": "error",
+      "faStyle": "jelly-regular",
+      "faName": "circle-xmark",
+      "iosAssetName": "fa_error",
+      "androidDrawableName": "fa_error",
+      "accessibilityLabel": "Error"
+    },
+    {
+      "appName": "warning",
+      "faStyle": "jelly-regular",
+      "faName": "triangle-exclamation",
+      "iosAssetName": "fa_warning",
+      "androidDrawableName": "fa_warning",
+      "accessibilityLabel": "Warning"
+    },
+    {
+      "appName": "info",
+      "faStyle": "jelly-regular",
+      "faName": "circle-info",
+      "iosAssetName": "fa_info",
+      "androidDrawableName": "fa_info",
+      "accessibilityLabel": "Info"
+    },
+    {
+      "appName": "streak",
+      "faStyle": "jelly-regular",
+      "faName": "fire",
+      "iosAssetName": "fa_streak",
+      "androidDrawableName": "fa_streak",
+      "accessibilityLabel": "Streak"
+    },
+    {
+      "appName": "badge",
+      "faStyle": "solid",
+      "faName": "medal",
+      "iosAssetName": "fa_badge",
+      "androidDrawableName": "fa_badge",
+      "accessibilityLabel": "Badge"
+    },
+    {
+      "appName": "store",
+      "faStyle": "regular",
+      "faName": "store",
+      "iosAssetName": "fa_store",
+      "androidDrawableName": "fa_store",
+      "accessibilityLabel": "Store"
+    },
+    {
+      "appName": "storeFilled",
+      "faStyle": "solid",
+      "faName": "store",
+      "iosAssetName": "fa_store_filled",
+      "androidDrawableName": "fa_store_filled",
+      "accessibilityLabel": "Store"
+    },
+    {
+      "appName": "storePlus",
+      "faStyle": "custom-icons",
+      "faName": "regular-store-circle-plus",
+      "iosAssetName": "fa_store_plus",
+      "androidDrawableName": "fa_store_plus",
+      "accessibilityLabel": "Add store"
+    },
+    {
+      "appName": "storePlusFilled",
+      "faStyle": "custom-icons",
+      "faName": "solid-store-circle-plus",
+      "iosAssetName": "fa_store_plus_filled",
+      "androidDrawableName": "fa_store_plus_filled",
+      "accessibilityLabel": "Add store"
+    },
+    {
+      "appName": "coffeeBeanPlus",
+      "faStyle": "custom-icons",
+      "faName": "regular-coffee-bean-circle-plus",
+      "iosAssetName": "fa_coffee_bean_plus",
+      "androidDrawableName": "fa_coffee_bean_plus",
+      "accessibilityLabel": "Add coffee bean"
+    },
+    {
+      "appName": "coffeeBeanPlusFilled",
+      "faStyle": "custom-icons",
+      "faName": "solid-coffee-bean-circle-plus",
+      "iosAssetName": "fa_coffee_bean_plus_filled",
+      "androidDrawableName": "fa_coffee_bean_plus_filled",
+      "accessibilityLabel": "Add coffee bean"
+    },
+    {
+      "appName": "logout",
+      "faStyle": "solid",
+      "faName": "right-from-bracket",
+      "iosAssetName": "fa_logout",
+      "androidDrawableName": "fa_logout",
+      "accessibilityLabel": "Sign out"
+    }
+  ]
+}

@@ -5,11 +5,11 @@ enum GamificationType {
     case streak(Int)
     case badge(String)
 
-    var icon: String {
+    var icon: AppIcon {
         switch self {
-        case .xp: "star.fill"
-        case .streak: "flame.fill"
-        case .badge: "medal.fill"
+        case .xp: .rating
+        case .streak: .streak
+        case .badge: .badge
         }
     }
 
@@ -39,9 +39,7 @@ struct GamificationBadge: View {
 
     var body: some View {
         HStack(spacing: Spacing.xs) {
-            Image(systemName: type.icon)
-                .font(.caption)
-                .accessibilityHidden(true)
+            AppIconView(icon: type.icon, size: 12, color: type.color)
             Text(type.label)
                 .font(.cuppedCaption)
                 .fontWeight(.semibold)

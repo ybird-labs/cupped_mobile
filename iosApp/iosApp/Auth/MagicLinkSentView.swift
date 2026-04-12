@@ -86,9 +86,7 @@ struct MagicLinkSentView: View {
                     )
             }
             .overlay {
-                Image(systemName: "envelope")
-                    .font(.system(size: 32))
-                    .foregroundStyle(Color.cuppedPrimary)
+                AppIconView(icon: .mail, size: 32, color: Color.cuppedPrimary)
             }
             .scaleEffect(iconAppeared ? 1 : 0)
             .offset(y: iconAppeared ? 0 : 10)
@@ -192,9 +190,7 @@ struct MagicLinkSentView: View {
     /// React: Users icon + "Trusted by coffee lovers worldwide"
     private var communityLine: some View {
         HStack(spacing: Spacing.sm) {
-            Image(systemName: "person.2")
-                .font(.system(size: 14))
-                .foregroundStyle(Color.cuppedMuted)
+            AppIconView(icon: .community, size: 14, color: Color.cuppedMuted)
 
             Text("Trusted by coffee lovers worldwide")
                 .font(.cuppedSubheadline)

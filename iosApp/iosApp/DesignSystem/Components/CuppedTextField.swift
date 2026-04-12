@@ -13,7 +13,7 @@ import SwiftUI
 ///     label: "EMAIL ADDRESS",
 ///     placeholder: "your@email.com",
 ///     text: $email,
-///     icon: "envelope",
+///     icon: .mail,
 ///     error: errorMessage,
 ///     isLoading: isLoading,
 ///     keyboardType: .emailAddress,
@@ -31,7 +31,7 @@ struct CuppedTextField: View {
     // MARK: - Optional
 
     var label: String? = nil
-    var icon: String? = nil
+    var icon: AppIcon? = nil
     var error: String? = nil
     var isLoading: Bool = false
     var keyboardType: UIKeyboardType = .default
@@ -120,9 +120,7 @@ struct CuppedTextField: View {
     @ViewBuilder
     private var iconView: some View {
         if let icon {
-            Image(systemName: icon)
-                .foregroundStyle(Color.cuppedInputCursor)
-                .font(.system(size: 16))
+            AppIconView(icon: icon, size: 16, color: Color.cuppedInputCursor)
         }
     }
 
@@ -176,21 +174,21 @@ struct CuppedTextField: View {
             placeholder: "your@email.com",
             text: .constant(""),
             label: "EMAIL ADDRESS",
-            icon: "envelope"
+            icon: .mail
         )
 
         CuppedTextField(
             placeholder: "your@email.com",
             text: .constant("jean@cupped.cafe"),
             label: "EMAIL ADDRESS",
-            icon: "envelope"
+            icon: .mail
         )
 
         CuppedTextField(
             placeholder: "your@email.com",
             text: .constant("bad-email"),
             label: "EMAIL ADDRESS",
-            icon: "envelope",
+            icon: .mail,
             error: "Please enter a valid email address"
         )
 
@@ -198,7 +196,7 @@ struct CuppedTextField: View {
             placeholder: "your@email.com",
             text: .constant(""),
             label: "EMAIL ADDRESS",
-            icon: "envelope",
+            icon: .mail,
             isLoading: true
         )
     }

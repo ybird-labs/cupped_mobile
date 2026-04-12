@@ -37,3 +37,35 @@ in your IDE’s toolbar or open the [/iosApp](./iosApp) directory in Xcode and r
 ---
 
 Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
+
+### Font Awesome Scripts
+
+Install the Python dependencies for the Font Awesome tooling:
+
+```shell
+python3 -m pip install -r scripts/fontawesome/requirements.txt
+```
+
+The thin-script contract is:
+- Font Awesome kit SVGs are the source of truth.
+- `scripts/fontawesome/icons.json` only controls app naming and accessibility labels.
+- iOS copies SVGs into `xcassets` without rewriting geometry.
+- Android preserves the SVG viewport and scales only the intrinsic `dp` size to fit a 24dp max side.
+
+Regenerate the checked-in iOS and Android icon assets from `scripts/fontawesome/icons.json`:
+
+```shell
+python3 scripts/fontawesome/import_mobile_icons.py
+```
+
+Run the font tooling tests:
+
+```shell
+python3 -m unittest scripts.fontawesome.test_import_mobile_icons
+```
+
+Validate that the manifest, Swift icon mappings, and Android icon mappings stay in sync:
+
+```shell
+python3 scripts/fontawesome/validate_icon_mappings.py
+```

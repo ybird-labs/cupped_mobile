@@ -208,9 +208,7 @@ struct LoginView: View {
             .fill(Color.cuppedPrimary)
             .frame(width: 64, height: 64)
             .overlay {
-                Image(systemName: "cup.and.saucer.fill")
-                    .font(.system(size: 32))
-                    .foregroundStyle(.white)
+                AppIconView(icon: .coffee, size: 32, color: .white)
             }
             // React: shadow-lg shadow-primary/30
             .shadow(
@@ -255,7 +253,7 @@ struct LoginView: View {
             placeholder: "your@email.com",
             text: $email,
             label: "EMAIL ADDRESS",
-            icon: "envelope",
+            icon: .mail,
             error: errorMessage,
             isLoading: isLoading,
             keyboardType: .emailAddress,
@@ -273,7 +271,7 @@ struct LoginView: View {
                 ? "Sending magic link..."
                 : (isRegisterMode ? "Create account" : "Sign in"),
             style: .primary,
-            icon: isLoading ? nil : "arrow.right",
+            icon: isLoading ? nil : .forward,
             isLoading: isLoading,
             isDisabled: !isEmailValid || isProcessingMagicLink
         ) {
@@ -336,12 +334,12 @@ struct LoginView: View {
 
             HStack(spacing: Spacing.base) {
                 FeatureItem(
-                    icon: "cup.and.saucer",
+                    icon: .coffee,
                     label: "Track brews"
                 )
-                FeatureItem(icon: "sparkles", label: "Earn XP")
+                FeatureItem(icon: .sparkles, label: "Earn XP")
                 FeatureItem(
-                    icon: "safari",
+                    icon: .discoverActive,
                     label: "Discover beans"
                 )
             }
@@ -368,7 +366,7 @@ struct LoginView: View {
 
 /// A single feature icon + label for the register features grid.
 private struct FeatureItem: View {
-    let icon: String
+    let icon: AppIcon
     let label: String
 
     var body: some View {
@@ -377,9 +375,7 @@ private struct FeatureItem: View {
                 .fill(Color.cuppedPrimaryLight)
                 .frame(width: 40, height: 40)
                 .overlay {
-                    Image(systemName: icon)
-                        .font(.system(size: 18))
-                        .foregroundStyle(Color.cuppedPrimary)
+                    AppIconView(icon: icon, size: 18, color: Color.cuppedPrimary)
                 }
 
             Text(label)

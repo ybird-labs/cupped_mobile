@@ -15,12 +15,12 @@ enum AlertVariant {
         }
     }
 
-    var icon: String {
+    var icon: AppIcon {
         switch self {
-        case .success: "checkmark.circle.fill"
-        case .error: "xmark.circle.fill"
-        case .warning: "exclamationmark.triangle.fill"
-        case .info: "info.circle.fill"
+        case .success: .success
+        case .error: .error
+        case .warning: .warning
+        case .info: .info
         }
     }
 }
@@ -32,9 +32,7 @@ struct CuppedAlert: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: Spacing.md) {
-            Image(systemName: variant.icon)
-                .foregroundStyle(variant.color)
-                .font(.title3)
+            AppIconView(icon: variant.icon, size: 20, color: variant.color)
 
             VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text(title)

@@ -1,0 +1,52 @@
+name: Font Awesome Icons
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  validate-fontawesome-icons:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.12"
+
+      - name: Install Font Awesome script dependencies
+        run: pip install -r scripts/fontawesome/requirements.txt
+
+      - name: Test Font Awesome generator
+        run: python3 -m unittest scripts.fontawesome.test_import_mobile_icons
+
+      - name: Detect checked-in Font Awesome kit
+        id: fontawesome-kit
+        run: |
+          if [ -d .vendor/fontawesome/kit/svgs ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Regenerate Font Awesome assets
+        if: steps.fontawesome-kit.outputs.available == 'true'
+        run: python3 scripts/fontawesome/import_mobile_icons.py
+
+      - name: Verify generated assets are committed
+        if: steps.fontawesome-kit.outputs.available == 'true'
+        run: |
+          status="$(git status --porcelain --untracked-files=all)"
+          if [ -n "$status" ]; then
+            echo "$status"
+            exit 1
+          fi
+
+      - name: Skip asset drift check without kit
+        if: steps.fontawesome-kit.outputs.available != 'true'
+        run: echo "Font Awesome kit assets are not available in CI; skipping regeneration drift check."
+
+      - name: Validate icon mappings
+        run: python3 scripts/fontawesome/validate_icon_mappings.py

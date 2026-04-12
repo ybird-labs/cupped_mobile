@@ -14,21 +14,21 @@ enum Tab: String, CaseIterable {
         rawValue.capitalized
     }
 
-    var icon: String {
+    var icon: AppIcon {
         switch self {
-        case .feed: "house"
-        case .discover: "safari"
-        case .community: "person.2"
-        case .profile: "person.crop.circle"
+        case .feed: .home
+        case .discover: .discover
+        case .community: .community
+        case .profile: .profile
         }
     }
 
-    var filledIcon: String {
+    var filledIcon: AppIcon {
         switch self {
-        case .feed: "house.fill"
-        case .discover: "safari.fill"
-        case .community: "person.2.fill"
-        case .profile: "person.crop.circle.fill"
+        case .feed: .homeActive
+        case .discover: .discoverActive
+        case .community: .communityActive
+        case .profile: .profileActive
         }
     }
 }
@@ -154,9 +154,11 @@ private struct NavButton: View {
                  }
 
                  // --- Icon ---
-                 Image(systemName: isActive ? tab.filledIcon : tab.icon)
-                     .font(.system(size: 22))
-                     .foregroundStyle(isActive ? Color.cuppedPrimary : Color.cuppedMuted)
+                 AppIconView(
+                     icon: isActive ? tab.filledIcon : tab.icon,
+                     size: 22,
+                     color: isActive ? Color.cuppedPrimary : Color.cuppedMuted
+                 )
                      .scaleEffect(isActive ? 1.0 : 0.85)
                      .offset(y: isActive ? -2 : 0)
 
@@ -193,12 +195,11 @@ private struct CheckInButton: View {
                       .frame(width: 56, height: 56)
 
                   // Plus icon
-                  Image(systemName: "plus")
-                      .font(.system(size: 28, weight: .semibold))
-                      .foregroundStyle(Color.cuppedInkInverse)
+                  AppIconView(icon: .add, size: 28, color: Color.cuppedInkInverse)
               }
           }
           .buttonStyle(CheckInButtonStyle())
+          .accessibilityLabel(Text("Check In"))
           .modifier(Shadow.glowCoral)  // The coral glow from your shadow tokens
           // Shift it up so it "floats" above the bar edge
           .offset(y: -Spacing.lg)

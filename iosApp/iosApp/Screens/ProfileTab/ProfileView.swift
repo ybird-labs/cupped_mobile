@@ -66,12 +66,7 @@ struct ProfileView: View {
                     .fill(Color.cuppedPrimary.opacity(0.1))
                     .frame(width: 80, height: 80)
                     .overlay {
-                        Image(
-                            systemName:
-                                "person.crop.circle.fill"
-                        )
-                        .font(.system(size: 40))
-                        .foregroundStyle(Color.cuppedPrimary)
+                        AppIconView(icon: .profileActive, size: 40, color: Color.cuppedPrimary)
                     }
 
                 Text("Your Profile")
@@ -103,13 +98,8 @@ struct ProfileView: View {
             showLogoutAlert = true
         } label: {
             HStack(spacing: Spacing.md) {
-                Image(
-                    systemName:
-                        "rectangle.portrait.and.arrow.right"
-                )
-                .font(.system(size: 18))
-                .foregroundStyle(Color.cuppedError)
-                .frame(width: 24, alignment: .center)
+                AppIconView(icon: .logout, size: 18, color: Color.cuppedError)
+                    .frame(width: 24, alignment: .center)
 
                 Text("Sign Out")
                     .font(.cuppedBody)
