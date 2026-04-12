@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from collections import Counter
 import json
 import re
 import sys
@@ -66,12 +67,37 @@ def parse_android_entries(source: str) -> dict[str, tuple[str, str]]:
     return entries
 
 
+def find_manifest_duplicates(manifest: list[dict]) -> list[str]:
+    errors: list[str] = []
+    collision_fields = (
+        ("appName", "Duplicate appName"),
+        ("iosAssetName", "Duplicate iosAssetName"),
+        ("androidDrawableName", "Duplicate androidDrawableName"),
+        ("accessibilityLabel", "Duplicate accessibilityLabel"),
+    )
+
+    for field_name, error_prefix in collision_fields:
+        counts = Counter(icon[field_name] for icon in manifest)
+        for value, count in counts.items():
+            if count > 1:
+                errors.append(f"{error_prefix}: {value}")
+
+    return errors
+
+
 def main() -> int:
     manifest = parse_manifest()
+    errors: list[str] = []
+    errors.extend(find_manifest_duplicates(manifest))
+
+    if errors:
+        print("Font Awesome icon mapping validation failed:", file=sys.stderr)
+        for error in errors:
+            print(f"- {error}", file=sys.stderr)
+        return 1
+
     swift_source = SWIFT_FILE.read_text(encoding="utf-8")
     android_source = ANDROID_FILE.read_text(encoding="utf-8")
-
-    errors: list[str] = []
 
     manifest_names = [icon["appName"] for icon in manifest]
     expected_swift_cases = manifest_names
