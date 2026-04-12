@@ -76,18 +76,26 @@ struct FeedCardContent: View {
                         .font(.system(size: 10))
                         .foregroundStyle(Color.cuppedMuted)
 
-                    Button {
-                        onBaristaTapped?(barista)
-                    } label: {
-                        Text("@\(barista)")
-                            .font(.cuppedSubheadline)
-                            .fontWeight(.medium)
-                            .foregroundStyle(Color.cuppedInfo)
+                    if let onBaristaTapped {
+                        Button {
+                            onBaristaTapped(barista)
+                        } label: {
+                            baristaText(barista)
+                        }
+                        .buttonStyle(TapScaleButtonStyle())
+                    } else {
+                        baristaText(barista)
                     }
-                    .buttonStyle(TapScaleButtonStyle())
                 }
             }
         }
+    }
+
+    private func baristaText(_ barista: String) -> some View {
+        Text("@\(barista)")
+            .font(.cuppedSubheadline)
+            .fontWeight(.medium)
+            .foregroundStyle(Color.cuppedInfo)
     }
 
     // MARK: - Farm + Origin

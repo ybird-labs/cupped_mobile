@@ -44,10 +44,12 @@ struct FeedCardHeader: View {
                     Image(systemName: "ellipsis")
                         .font(.system(size: 16, weight: .medium))
                         .foregroundStyle(Color.cuppedMuted)
-                        .frame(width: 32, height: 32)
+                        .frame(minWidth: 44, minHeight: 44)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(TapScaleButtonStyle())
+                .accessibilityLabel("More options")
+                .accessibilityAddTraits(.isButton)
             }
         }
     }

@@ -9,6 +9,15 @@ struct MentionText: View {
         Text(attributedText)
             .font(.cuppedSubheadline)
             .foregroundStyle(Color.cuppedInk)
+            .environment(\.openURL, OpenURLAction { url in
+                guard url.scheme == "mention",
+                      let username = mentionName(from: url) else {
+                    return .systemAction
+                }
+
+                onMentionTapped?(username)
+                return .handled
+            })
     }
 
     private var attributedText: AttributedString {
@@ -26,13 +35,33 @@ struct MentionText: View {
 
         for match in matches {
             guard let swiftRange = Range(match.range, in: text),
-                  let attrRange = Range(swiftRange, in: result) else { continue }
+                  let attrRange = Range(swiftRange, in: result),
+                  let usernameRange = Range(match.range(at: 1), in: text),
+                  let mentionURL = mentionURL(for: String(text[usernameRange])) else { continue }
 
             result[attrRange].foregroundColor = .cuppedInfo
             result[attrRange].font = .cuppedText(size: 14, weight: .semibold)
+            result[attrRange].link = mentionURL
         }
 
         return result
+    }
+
+    private func mentionURL(for username: String) -> URL? {
+        var components = URLComponents()
+        components.scheme = "mention"
+        components.host = username
+        return components.url
+    }
+
+    private func mentionName(from url: URL) -> String? {
+        if let host = url.host, !host.isEmpty {
+            return host
+        }
+
+        let prefix = "mention://"
+        guard url.absoluteString.hasPrefix(prefix) else { return nil }
+        return String(url.absoluteString.dropFirst(prefix.count))
     }
 }
 

@@ -28,6 +28,8 @@ struct FeedCardActions: View {
                     .foregroundStyle(isLiked ? Color.cuppedPrimary : Color.cuppedMuted)
                 }
                 .buttonStyle(TapScaleButtonStyle())
+                .disabled(onLike == nil)
+                .opacity(onLike == nil ? 0.5 : 1)
 
                 // Comment
                 Button {
@@ -43,6 +45,8 @@ struct FeedCardActions: View {
                     .foregroundStyle(Color.cuppedMuted)
                 }
                 .buttonStyle(TapScaleButtonStyle())
+                .disabled(onComment == nil)
+                .opacity(onComment == nil ? 0.5 : 1)
 
                 Spacer()
 
@@ -55,6 +59,8 @@ struct FeedCardActions: View {
                         .foregroundStyle(isBookmarked ? Color.cuppedXP : Color.cuppedMuted)
                 }
                 .buttonStyle(TapScaleButtonStyle())
+                .disabled(onBookmark == nil)
+                .opacity(onBookmark == nil ? 0.5 : 1)
             }
             .padding(.top, Spacing.sm)
         }

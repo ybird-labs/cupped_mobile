@@ -2,7 +2,7 @@ import SwiftUI
 
 struct FeedCardMedia: View {
     let photoURL: URL?
-    let imageGradient: [Color]?
+    let imageGradient: [Color]
     let flavors: [FlavorNote]
     let brewMethod: BrewMethod?
     let venue: VenueInfo?
@@ -10,7 +10,7 @@ struct FeedCardMedia: View {
 
     /// Whether this shows a tall hero (4:3) or compact banner (5:2).
     private var hasHeroMedia: Bool {
-        photoURL != nil
+        photoURL != nil || !imageGradient.isEmpty
     }
 
     private var aspectRatio: CGFloat {
@@ -46,7 +46,7 @@ struct FeedCardMedia: View {
                     Color.cuppedCanvasBorder
                 }
             }
-        } else if let imageGradient, !imageGradient.isEmpty {
+        } else if !imageGradient.isEmpty {
             LinearGradient(
                 colors: imageGradient,
                 startPoint: .topLeading,
@@ -182,7 +182,7 @@ struct FeedCardMedia: View {
 #Preview("Media - Compact (No Photo)") {
     FeedCardMedia(
         photoURL: nil,
-        imageGradient: nil,
+        imageGradient: [],
         flavors: [.chocolate, .nutty],
         brewMethod: .chemex,
         venue: VenueInfo(name: "Local Coffee", status: .claimed),

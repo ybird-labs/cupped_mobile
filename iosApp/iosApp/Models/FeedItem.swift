@@ -37,7 +37,7 @@ struct FeedItem: Identifiable, Hashable {
     let notes: String?
     let recipe: RecipeInfo?
     let photoURL: URL?
-    let imageGradient: [Color]?
+    let imageGradient: [Color]
     let likes: Int
     let comments: Int
     var isLiked: Bool
@@ -45,7 +45,15 @@ struct FeedItem: Identifiable, Hashable {
 
     /// Whether the media area should use the tall (4:3) or compact (5:2) aspect ratio.
     var hasHeroMedia: Bool {
-        photoURL != nil
+        photoURL != nil || !imageGradient.isEmpty
+    }
+
+    static func == (lhs: FeedItem, rhs: FeedItem) -> Bool {
+        lhs.id == rhs.id
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
     }
 }
 
@@ -106,7 +114,7 @@ extension FeedItem {
         notes: "Rich and chocolatey with a smooth finish.",
         recipe: RecipeInfo(ratio: "1:15", waterTemp: "200\u{00B0}F", grindSize: "55"),
         photoURL: nil,
-        imageGradient: nil,
+        imageGradient: [],
         likes: 12,
         comments: 3,
         isLiked: true,
@@ -135,7 +143,7 @@ extension FeedItem {
         notes: "Unreal cup. Tastes like tropical fruit juice with a jasmine finish.",
         recipe: RecipeInfo(ratio: "1:17", waterTemp: "200\u{00B0}F", grindSize: "38"),
         photoURL: URL(string: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=800&q=80"),
-        imageGradient: nil,
+        imageGradient: [],
         likes: 87,
         comments: 14,
         isLiked: false,

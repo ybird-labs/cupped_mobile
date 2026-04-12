@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 enum BrewMethod: String, CaseIterable, Hashable {
     case v60, chemex, aeropress, frenchPress, espresso
@@ -6,20 +7,7 @@ enum BrewMethod: String, CaseIterable, Hashable {
     case coldBrew, drip, pourOver
 
     var icon: String {
-        switch self {
-        case .v60:         "line.3.crossed.swirl.circle"
-        case .chemex:      "flask"
-        case .aeropress:   "arrow.down.to.line"
-        case .frenchPress: "cup.and.saucer"
-        case .espresso:    "cup.and.saucer.fill"
-        case .flatWhite:   "mug.fill"
-        case .latte:       "mug"
-        case .cappuccino:  "cup.and.heat.waves.fill"
-        case .americano:   "drop.fill"
-        case .coldBrew:    "snowflake"
-        case .drip:        "drop.degreesign"
-        case .pourOver:    "arrow.down.circle"
-        }
+        Self.supportedSymbolName(from: iconCandidates)
     }
 
     var label: String {
@@ -37,6 +25,30 @@ enum BrewMethod: String, CaseIterable, Hashable {
         case .drip:        "Drip"
         case .pourOver:    "Pour Over"
         }
+    }
+
+    private var iconCandidates: [String] {
+        switch self {
+        case .v60:         ["line.3.crossed.swirl.circle", "arrow.down.circle", "line.3.crossed.swirl.circle.fill"]
+        case .chemex:      ["flask", "cup.and.saucer"]
+        case .aeropress:   ["arrow.down.to.line", "arrow.down.circle", "arrow.down"]
+        case .frenchPress: ["cup.and.saucer", "mug"]
+        case .espresso:    ["cup.and.saucer.fill", "mug.fill"]
+        case .flatWhite:   ["mug.fill", "cup.and.saucer.fill"]
+        case .latte:       ["mug", "cup.and.saucer"]
+        case .cappuccino:  ["cup.and.heat.waves.fill", "cup.and.saucer.fill", "mug.fill"]
+        case .americano:   ["drop.fill", "drop"]
+        case .coldBrew:    ["snowflake", "drop.fill"]
+        case .drip:        ["drop.degreesign", "drop.fill", "drop"]
+        case .pourOver:    ["arrow.down.circle", "arrow.down.to.line", "arrow.down"]
+        }
+    }
+
+    private static func supportedSymbolName(from candidates: [String]) -> String {
+        for name in candidates where UIImage(systemName: name) != nil {
+            return name
+        }
+        return "questionmark.circle"
     }
 }
 
