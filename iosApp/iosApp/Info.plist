@@ -29,6 +29,8 @@
 		<string>PlusJakartaSans[wght].ttf</string>
 		<string>PlusJakartaSans-Italic[wght].ttf</string>
 	</array>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Cupped uses your location to find nearby coffee shops and roasters.</string>
 	<key>UIUserInterfaceStyle</key>
 	<string>Light</string>
 	<!-- TODO: LaunchLogo imageset has no image files. Add LaunchLogo.png / @2x / @3x

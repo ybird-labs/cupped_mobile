@@ -7,6 +7,7 @@ import kotlin.test.assertIs
 import kotlin.test.assertNull
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import kotlin.test.assertFailsWith
 
 class BridgeCodecTest {
 
@@ -235,6 +236,142 @@ class BridgeCodecTest {
     fun decodeEnvelopeSafeReturnsNullForUnknownMessage() {
         val json = """{"id":"x","message":{"type":"unknown_thing"}}"""
         assertNull(BridgeCodec.decodeEnvelopeSafe(json))
+    }
+
+    // ── Type discriminator verification ────────────────────────────────
+
+    // ── Location round-trips ────────────────────────────────────────────
+
+    @Test
+    fun requestLocationDefaultAccuracy() {
+        val msg = BridgeMessage.RequestLocation()
+        val json = BridgeCodec.encode(msg)
+        val decoded = BridgeCodec.decode(json)
+        assertEquals(msg, decoded)
+        assertTrue(json.contains("\"type\":\"request_location\""))
+        assertTrue(json.contains("\"accuracy\":\"BALANCED\""))
+    }
+
+    @Test
+    fun requestLocationHighAccuracy() {
+        val msg = BridgeMessage.RequestLocation(accuracy = LocationAccuracy.HIGH)
+        val json = BridgeCodec.encode(msg)
+        val decoded = BridgeCodec.decode(json)
+        assertEquals(msg, decoded)
+    }
+
+    @Test
+    fun locationResult() {
+        val msg = BridgeMessage.LocationResult(
+            latitude = 40.7128,
+            longitude = -74.0060,
+            accuracy = 10.0,
+            altitude = 15.5,
+            timestamp = 1712150400000L
+        )
+        val json = BridgeCodec.encode(msg)
+        val decoded = BridgeCodec.decode(json)
+        assertEquals(msg, decoded)
+        assertTrue(json.contains("\"type\":\"location_result\""))
+    }
+
+    @Test
+    fun locationResultWithoutAltitude() {
+        val msg = BridgeMessage.LocationResult(
+            latitude = 40.7128,
+            longitude = -74.0060,
+            accuracy = 65.0,
+            altitude = null,
+            timestamp = 1712150400000L
+        )
+        val json = BridgeCodec.encode(msg)
+        val decoded = BridgeCodec.decode(json)
+        assertEquals(msg, decoded)
+    }
+
+    @Test
+    fun locationResultRejectsInvalidLatitude() {
+        assertFailsWith<IllegalArgumentException> {
+            BridgeMessage.LocationResult(
+                latitude = 91.0, longitude = 0.0, accuracy = 10.0, timestamp = 1L
+            )
+        }
+    }
+
+    @Test
+    fun locationResultRejectsInvalidLongitude() {
+        assertFailsWith<IllegalArgumentException> {
+            BridgeMessage.LocationResult(
+                latitude = 0.0, longitude = -181.0, accuracy = 10.0, timestamp = 1L
+            )
+        }
+    }
+
+    @Test
+    fun locationResultRejectsNegativeAccuracy() {
+        assertFailsWith<IllegalArgumentException> {
+            BridgeMessage.LocationResult(
+                latitude = 0.0, longitude = 0.0, accuracy = -1.0, timestamp = 1L
+            )
+        }
+    }
+
+    @Test
+    fun locationResultRejectsNegativeTimestamp() {
+        assertFailsWith<IllegalArgumentException> {
+            BridgeMessage.LocationResult(
+                latitude = 0.0, longitude = 0.0, accuracy = 10.0, timestamp = -1L
+            )
+        }
+    }
+
+    @Test
+    fun locationDenied() {
+        val msg = BridgeMessage.LocationDenied
+        val json = BridgeCodec.encode(msg)
+        val decoded = BridgeCodec.decode(json)
+        assertEquals(msg, decoded)
+        assertTrue(json.contains("\"type\":\"location_denied\""))
+    }
+
+    @Test
+    fun envelopeLocationRequestResponse() {
+        val request = BridgeEnvelope(
+            id = "loc-001",
+            message = BridgeMessage.RequestLocation()
+        )
+        val requestJson = BridgeCodec.encodeEnvelope(request)
+        val decodedRequest = BridgeCodec.decodeEnvelope(requestJson)
+        assertEquals(request, decodedRequest)
+
+        val response = BridgeEnvelope(
+            id = "loc-002",
+            replyTo = "loc-001",
+            message = BridgeMessage.LocationResult(
+                latitude = 40.7128,
+                longitude = -74.0060,
+                accuracy = 10.0,
+                timestamp = 1712150400000L
+            )
+        )
+        val responseJson = BridgeCodec.encodeEnvelope(response)
+        val decodedResponse = BridgeCodec.decodeEnvelope(responseJson)
+        assertEquals(response, decodedResponse)
+        assertEquals("loc-001", decodedResponse.replyTo)
+        assertIs<BridgeMessage.LocationResult>(decodedResponse.message)
+    }
+
+    @Test
+    fun envelopeLocationDeniedReply() {
+        val envelope = BridgeEnvelope(
+            id = "loc-003",
+            replyTo = "loc-001",
+            message = BridgeMessage.LocationDenied
+        )
+        val json = BridgeCodec.encodeEnvelope(envelope)
+        val decoded = BridgeCodec.decodeEnvelope(json)
+        assertEquals("loc-001", decoded.replyTo)
+        assertIs<BridgeMessage.LocationDenied>(decoded.message)
     }
 
     // ── Type discriminator verification ────────────────────────────────

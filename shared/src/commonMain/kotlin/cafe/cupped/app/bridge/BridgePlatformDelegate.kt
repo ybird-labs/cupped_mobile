@@ -31,4 +31,7 @@ interface BridgePlatformDelegate {
 
     /** Mirrors web console output into native logging without affecting app control flow. */
     fun handleConsoleLog(level: String, message: String)
+
+    /** Starts a one-shot location request that must eventually reply using the original request ID. */
+    fun handleRequestLocation(requestId: String, accuracy: LocationAccuracy)
 }
