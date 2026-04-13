@@ -267,11 +267,8 @@ private fun LogActionButton(
 }
 
 private fun MainTabId.indicatorOffset(tabSlotWidth: Dp): Dp {
-    val slotStart = when (this) {
-        MainTabId.Feed -> 0.dp
-        MainTabId.Discover -> tabSlotWidth
-        MainTabId.Community -> (tabSlotWidth * 2) + CenterSlotWidth
-        MainTabId.Profile -> (tabSlotWidth * 3) + CenterSlotWidth
-    }
+    val index = MainTabDisplaySpec.orderedTabs.indexOfFirst { it.id == this }
+    require(index >= 0) { "Missing display spec for tab $this" }
+    val slotStart = (tabSlotWidth * index) + if (index >= 2) CenterSlotWidth else 0.dp
     return slotStart + ((tabSlotWidth - ActivePillWidth) / 2f) - 1.dp
 }
