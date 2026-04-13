@@ -27,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -178,6 +179,7 @@ private fun NavItemButton(
         label = "tabIconOffset",
     )
     val displaySpec = remember(tab) { tab.displaySpec() }
+    val title = stringResource(displaySpec.titleRes)
     val icon = if (isActive) displaySpec.activeIcon else displaySpec.inactiveIcon
 
     Column(
@@ -218,7 +220,7 @@ private fun NavItemButton(
         )
 
         Text(
-            text = displaySpec.title,
+            text = title,
             color = if (isActive) CuppedColor.ActionPrimary else CuppedColor.Muted,
             fontSize = CuppedSpacing.CaptionTextSize,
             fontWeight = FontWeight.Medium,
