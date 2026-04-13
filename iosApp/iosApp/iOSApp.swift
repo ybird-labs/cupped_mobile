@@ -146,10 +146,10 @@ struct iOSApp: App {
     }
 
     private static func resolveBaseUrl() -> String {
-        // Preview-hosted launches do not reliably preserve
-        // xcconfig-backed plist substitution or preview-only
-        // environment markers. Prefer a safe localhost
-        // fallback over trapping in App.init().
+        // SwiftUI Previews can launch the app without the
+        // expected xcconfig-backed Info.plist substitution.
+        // Fall back to localhost so component previews can
+        // render without trapping in App.init().
         let rawValue = (Bundle.main.infoDictionary?["APIBaseURL"] as? String)?
             .trimmingCharacters(in: .whitespacesAndNewlines)
 
@@ -158,7 +158,18 @@ struct iOSApp: App {
             return rawValue
         }
 
-        return previewBaseUrl
+        if isRunningInPreviews {
+            return previewBaseUrl
+        }
+
+        fatalError(
+            "APIBaseURL missing or invalid in Info.plist"
+            + " – check Config.xcconfig"
+        )
+    }
+
+    private static var isRunningInPreviews: Bool {
+        ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
     }
 
     private static func isUsableBaseUrl(_ value: String) -> Bool {
