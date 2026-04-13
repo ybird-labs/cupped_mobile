@@ -55,8 +55,7 @@ struct FeedCardContent: View {
         HStack(spacing: Spacing.sm) {
             if let roaster = coffee.roaster {
                 HStack(spacing: Spacing.xs) {
-                    Image(systemName: "shippingbox")
-                        .font(.system(size: 12))
+                    AppIconView(icon: .store, size: 12, color: Color.cuppedPrimary)
                     Text(roaster)
                         .font(.cuppedSubheadline)
                         .fontWeight(.bold)
@@ -72,9 +71,7 @@ struct FeedCardContent: View {
 
             if let barista = coffee.barista {
                 HStack(spacing: Spacing.xs) {
-                    Image(systemName: "person.fill")
-                        .font(.system(size: 10))
-                        .foregroundStyle(Color.cuppedMuted)
+                    AppIconView(icon: .user, size: 10, color: Color.cuppedMuted)
 
                     if let onBaristaTapped {
                         Button {
@@ -126,10 +123,10 @@ struct FeedCardContent: View {
     private func recipeRow(_ recipe: RecipeInfo) -> some View {
         HStack(spacing: Spacing.md) {
             if let ratio = recipe.ratio {
-                recipeItem(icon: "drop", text: ratio)
+                recipeItem(icon: .ratio, text: ratio)
             }
             if let temp = recipe.waterTemp {
-                recipeItem(icon: "thermometer.medium", text: temp)
+                recipeItem(icon: .temperature, text: temp)
             }
             if let grind = recipe.grindSize {
                 HStack(spacing: Spacing.xs) {
@@ -143,10 +140,9 @@ struct FeedCardContent: View {
         }
     }
 
-    private func recipeItem(icon: String, text: String) -> some View {
+    private func recipeItem(icon: AppIcon, text: String) -> some View {
         HStack(spacing: Spacing.xs) {
-            Image(systemName: icon)
-                .font(.system(size: 12))
+            AppIconView(icon: icon, size: 12, color: Color.cuppedMuted)
             Text(text)
         }
         .font(.cuppedCaption)

@@ -15,9 +15,11 @@ struct FeedCardHeader: View {
                         .resizable()
                         .aspectRatio(contentMode: .fill)
                 case .failure:
-                    Image(systemName: "person.crop.circle.fill")
-                        .resizable()
-                        .foregroundStyle(Color.cuppedMuted)
+                    ZStack {
+                        Circle()
+                            .fill(Color.cuppedCanvasBorder)
+                        AppIconView(icon: .user, size: 20, color: Color.cuppedMuted)
+                    }
                 default:
                     SkeletonView(width: 40, height: 40, cornerRadius: 20)
                 }
@@ -41,9 +43,7 @@ struct FeedCardHeader: View {
             // More button
             if let onMore {
                 Button(action: onMore) {
-                    Image(systemName: "ellipsis")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundStyle(Color.cuppedMuted)
+                    AppIconView(icon: .more, size: 16, color: Color.cuppedMuted)
                         .frame(minWidth: 44, minHeight: 44)
                         .contentShape(Rectangle())
                 }

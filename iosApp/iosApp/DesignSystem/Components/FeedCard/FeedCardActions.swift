@@ -19,8 +19,11 @@ struct FeedCardActions: View {
                     onLike?()
                 } label: {
                     HStack(spacing: 6) {
-                        Image(systemName: isLiked ? "cup.and.saucer.fill" : "cup.and.saucer")
-                            .font(.system(size: 18))
+                        AppIconView(
+                            icon: .coffee,
+                            size: 18,
+                            color: isLiked ? Color.cuppedPrimary : Color.cuppedMuted
+                        )
                         Text("\(likes)")
                             .font(.cuppedSubheadline)
                             .fontWeight(.medium)
@@ -36,8 +39,7 @@ struct FeedCardActions: View {
                     onComment?()
                 } label: {
                     HStack(spacing: 6) {
-                        Image(systemName: "bubble.right")
-                            .font(.system(size: 18))
+                        AppIconView(icon: .comment, size: 18, color: Color.cuppedMuted)
                         Text("\(comments)")
                             .font(.cuppedSubheadline)
                             .fontWeight(.medium)
@@ -54,9 +56,11 @@ struct FeedCardActions: View {
                 Button {
                     onBookmark?()
                 } label: {
-                    Image(systemName: isBookmarked ? "bookmark.fill" : "bookmark")
-                        .font(.system(size: 18))
-                        .foregroundStyle(isBookmarked ? Color.cuppedXP : Color.cuppedMuted)
+                    AppIconView(
+                        icon: isBookmarked ? .bookmarkActive : .bookmark,
+                        size: 18,
+                        color: isBookmarked ? Color.cuppedXP : Color.cuppedMuted
+                    )
                 }
                 .buttonStyle(TapScaleButtonStyle())
                 .disabled(onBookmark == nil)

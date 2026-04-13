@@ -4,7 +4,7 @@ struct FeedCardMedia: View {
     let photoURL: URL?
     let imageGradient: [Color]
     let flavors: [FlavorNote]
-    let brewMethod: BrewMethod?
+    let brewMethod: BrewStyle?
     let venue: VenueInfo?
     let rating: Double?
 
@@ -110,10 +110,9 @@ struct FeedCardMedia: View {
             .padding(badgePadding)
     }
 
-    private func brewMethodBadge(_ method: BrewMethod) -> some View {
+    private func brewMethodBadge(_ method: BrewStyle) -> some View {
         HStack(spacing: Spacing.xs) {
-            Image(systemName: method.icon)
-                .font(.system(size: 12, weight: .semibold))
+            AppIconView(icon: method.feedBadgeIcon, size: 12, color: .white)
             Text(method.label)
                 .font(.cuppedCaption)
                 .fontWeight(.bold)
@@ -128,8 +127,7 @@ struct FeedCardMedia: View {
 
     private func venueBadge(_ venue: VenueInfo) -> some View {
         HStack(spacing: Spacing.xs) {
-            Image(systemName: "mappin")
-                .font(.system(size: 10, weight: .semibold))
+            AppIconView(icon: .location, size: 10, color: venue.status.foregroundColor)
             Text(venue.name)
                 .font(.cuppedCaption)
                 .fontWeight(.medium)
@@ -147,9 +145,7 @@ struct FeedCardMedia: View {
 
     private func ratingBadge(_ rating: Double) -> some View {
         HStack(spacing: Spacing.xs) {
-            Image(systemName: "star.fill")
-                .font(.system(size: 10))
-                .foregroundStyle(Color.cuppedXP)
+            AppIconView(icon: .rating, size: 10, color: Color.cuppedXP)
             Text(String(format: "%.1f/10", rating))
                 .font(.cuppedCaption)
                 .fontWeight(.bold)
@@ -175,7 +171,7 @@ struct FeedCardMedia: View {
         photoURL: nil,
         imageGradient: [.cuppedPrimaryLight, Color.cuppedPrimary.opacity(0.6)],
         flavors: [.floral, .citrus],
-        brewMethod: .pourOver,
+        brewMethod: .drip,
         venue: VenueInfo(name: "Blue Bottle, Hayes Valley", status: .curated),
         rating: 9.2
     )
@@ -188,7 +184,7 @@ struct FeedCardMedia: View {
         photoURL: nil,
         imageGradient: [],
         flavors: [.chocolate, .nutty],
-        brewMethod: .chemex,
+        brewMethod: .immersion,
         venue: VenueInfo(name: "Local Coffee", status: .claimed),
         rating: 8.5
     )

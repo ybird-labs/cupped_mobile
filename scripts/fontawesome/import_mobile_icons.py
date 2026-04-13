@@ -40,12 +40,20 @@ def ensure_ios_catalog_root() -> None:
         handle.write("\n")
 
 
+def svg_roots() -> list[Path]:
+    roots = [KIT_ROOT / "svgs", KIT_ROOT / "svgs-full"]
+    return [root for root in roots if root.exists()]
+
+
 def find_svg(icon: dict, default_style: str) -> Path:
     style = icon.get("faStyle", default_style)
-    svg_path = KIT_ROOT / "svgs" / style / f"{icon['faName']}.svg"
-    if not svg_path.exists():
-        raise FileNotFoundError(f"Missing SVG for {icon['appName']}: {svg_path}")
-    return svg_path
+    candidates = [root / style / f"{icon['faName']}.svg" for root in svg_roots()]
+    for svg_path in candidates:
+        if svg_path.exists():
+            return svg_path
+
+    attempted = ", ".join(str(path) for path in candidates) or f"{KIT_ROOT}/svgs*"
+    raise FileNotFoundError(f"Missing SVG for {icon['appName']}: {attempted}")
 
 
 def write_ios_asset(svg_path: Path, asset_name: str) -> None:
