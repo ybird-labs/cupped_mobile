@@ -170,7 +170,7 @@ private struct NavButton: View {
                     .foregroundStyle(isActive ? Color.cuppedPrimary : Color.cuppedMuted)
                     .opacity(isActive ? 1.0 : 0.5)
             }
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, minHeight: 44)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
