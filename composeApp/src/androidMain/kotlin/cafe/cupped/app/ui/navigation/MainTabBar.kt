@@ -125,7 +125,8 @@ fun MainTabBar(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.Bottom,
                     ) {
-                        MainTabId.entries.take(2).forEach { tab ->
+                        MainTabDisplaySpec.orderedTabs.take(2).forEach { spec ->
+                            val tab = spec.id
                             NavItemButton(
                                 tab = tab,
                                 isActive = selectedTab == tab,
@@ -136,7 +137,8 @@ fun MainTabBar(
 
                         Spacer(modifier = Modifier.width(CenterSlotWidth))
 
-                        MainTabId.entries.drop(2).forEach { tab ->
+                        MainTabDisplaySpec.orderedTabs.drop(2).forEach { spec ->
+                            val tab = spec.id
                             NavItemButton(
                                 tab = tab,
                                 isActive = selectedTab == tab,
