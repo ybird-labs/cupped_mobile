@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -22,17 +23,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.outlined.AccountCircle
-import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -43,7 +33,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
@@ -53,23 +42,26 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import cafe.cupped.app.designsystem.icons.AppIcon as AppIconImage
+import cafe.cupped.app.designsystem.icons.AppIcon as DesignIcon
+import cafe.cupped.app.navigation.shell.MainTabId
 import cafe.cupped.app.ui.theme.CuppedColor
 import cafe.cupped.app.ui.theme.CuppedMotion
 import cafe.cupped.app.ui.theme.CuppedSpacing
 
 private val FloatingButtonSize = 56.dp
-private val FloatingButtonLift = 18.dp
+private val FloatingButtonLift = CuppedSpacing.Lg
 private val FloatingButtonRing = 4.dp
 private val ActivePillWidth = 24.dp
 private val ActivePillHeight = 3.dp
 private val ActivePillCorner = 99.dp
 private val CenterSlotWidth = 72.dp
-private val TabIconSize = 21.dp
+private val TabIconSize = 22.dp
 
 @Composable
 fun MainTabBar(
-    selectedTab: MainTab,
-    onTabSelected: (MainTab) -> Unit,
+    selectedTab: MainTabId,
+    onTabSelected: (MainTabId) -> Unit,
     onLogClick: () -> Unit,
     onHeightChanged: (Dp) -> Unit,
     modifier: Modifier = Modifier,
@@ -101,7 +93,8 @@ fun MainTabBar(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(CuppedColor.SurfaceCard.copy(alpha = 0.95f)),
+                    .background(CuppedColor.SurfaceCard.copy(alpha = 0.95f))
+                    .background(Color.White.copy(alpha = 0.08f)),
             ) {
                 Box(
                     modifier = Modifier
@@ -114,7 +107,7 @@ fun MainTabBar(
                         .fillMaxWidth()
                         .navigationBarsPadding()
                         .padding(horizontal = CuppedSpacing.Base)
-                        .padding(top = 6.dp, bottom = 10.dp),
+                        .padding(top = CuppedSpacing.Sm, bottom = CuppedSpacing.Sm),
                 ) {
                     Box(
                         modifier = Modifier
@@ -132,33 +125,25 @@ fun MainTabBar(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.Bottom,
                     ) {
-                        NavItemButton(
-                            tab = MainTab.Feed,
-                            isActive = selectedTab == MainTab.Feed,
-                            onClick = { onTabSelected(MainTab.Feed) },
-                            modifier = Modifier.weight(1f),
-                        )
-                        NavItemButton(
-                            tab = MainTab.Discover,
-                            isActive = selectedTab == MainTab.Discover,
-                            onClick = { onTabSelected(MainTab.Discover) },
-                            modifier = Modifier.weight(1f),
-                        )
+                        MainTabId.entries.take(2).forEach { tab ->
+                            NavItemButton(
+                                tab = tab,
+                                isActive = selectedTab == tab,
+                                onClick = { onTabSelected(tab) },
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
 
                         Spacer(modifier = Modifier.width(CenterSlotWidth))
 
-                        NavItemButton(
-                            tab = MainTab.Community,
-                            isActive = selectedTab == MainTab.Community,
-                            onClick = { onTabSelected(MainTab.Community) },
-                            modifier = Modifier.weight(1f),
-                        )
-                        NavItemButton(
-                            tab = MainTab.Profile,
-                            isActive = selectedTab == MainTab.Profile,
-                            onClick = { onTabSelected(MainTab.Profile) },
-                            modifier = Modifier.weight(1f),
-                        )
+                        MainTabId.entries.drop(2).forEach { tab ->
+                            NavItemButton(
+                                tab = tab,
+                                isActive = selectedTab == tab,
+                                onClick = { onTabSelected(tab) },
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
                     }
                 }
             }
@@ -175,7 +160,7 @@ fun MainTabBar(
 
 @Composable
 private fun NavItemButton(
-    tab: MainTab,
+    tab: MainTabId,
     isActive: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -190,21 +175,22 @@ private fun NavItemButton(
         animationSpec = CuppedMotion.TabSpring,
         label = "tabIconOffset",
     )
-    val icon = remember(isActive, tab) { tab.icon(isActive) }
+    val displaySpec = remember(tab) { tab.displaySpec() }
+    val icon = if (isActive) displaySpec.activeIcon else displaySpec.inactiveIcon
 
     Column(
-            modifier = modifier
+        modifier = modifier
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 role = Role.Tab,
                 onClick = onClick,
             )
-            .semantics { selected = isActive }
-            .testTag("tab-${tab.name.lowercase()}")
+            .semantics(mergeDescendants = true) { selected = isActive }
+            .testTag("tab-${displaySpec.testTagSuffix}")
             .padding(vertical = 1.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(2.dp),
+        verticalArrangement = Arrangement.Top,
     ) {
         Box(
             modifier = Modifier
@@ -214,25 +200,27 @@ private fun NavItemButton(
                     color = Color.Transparent,
                     shape = RoundedCornerShape(ActivePillCorner),
                 )
-                .testTag("tab-indicator-${tab.name.lowercase()}"),
+                .testTag("tab-indicator-${displaySpec.testTagSuffix}")
+                .padding(bottom = CuppedSpacing.Xs),
         )
 
-        Icon(
-            imageVector = icon,
-            contentDescription = tab.label,
+        AppIconImage(
+            icon = icon,
+            contentDescription = null,
             tint = if (isActive) CuppedColor.ActionPrimary else CuppedColor.Muted,
             modifier = Modifier
                 .size(TabIconSize)
                 .scale(iconScale.value)
-                .offset(y = iconOffset.value.dp),
+                .offset(y = iconOffset.value.dp)
+                .padding(bottom = 2.dp),
         )
 
         Text(
-        text = tab.label,
+            text = displaySpec.title,
             color = if (isActive) CuppedColor.ActionPrimary else CuppedColor.Muted,
             fontSize = CuppedSpacing.CaptionTextSize,
             fontWeight = FontWeight.Medium,
-            modifier = Modifier.alpha(if (isActive) 1f else 0.58f),
+            modifier = Modifier.alpha(if (isActive) 1f else 0.5f),
         )
     }
 }
@@ -243,6 +231,7 @@ private fun LogActionButton(
     modifier: Modifier = Modifier,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
     Box(
         modifier = modifier
             .size(FloatingButtonSize)
@@ -260,11 +249,12 @@ private fun LogActionButton(
                 role = Role.Button,
                 onClick = onClick,
             )
-            .testTag("log-action-button"),
-            contentAlignment = Alignment.Center,
+            .testTag("log-action-button")
+            .scale(if (isPressed) 0.92f else 1f),
+        contentAlignment = Alignment.Center,
     ) {
-        Icon(
-            imageVector = Icons.Filled.Add,
+        AppIconImage(
+            icon = DesignIcon.Coffee,
             contentDescription = "Log a Brew",
             tint = CuppedColor.InkInverse,
             modifier = Modifier.size(28.dp),
@@ -272,21 +262,12 @@ private fun LogActionButton(
     }
 }
 
-private fun MainTab.icon(isActive: Boolean): ImageVector {
-    return when (this) {
-        MainTab.Feed -> if (isActive) Icons.Filled.Home else Icons.Outlined.Home
-        MainTab.Discover -> if (isActive) Icons.Filled.Search else Icons.Outlined.Search
-        MainTab.Community -> if (isActive) Icons.Filled.Person else Icons.Outlined.Person
-        MainTab.Profile -> if (isActive) Icons.Filled.AccountCircle else Icons.Outlined.AccountCircle
-    }
-}
-
-private fun MainTab.indicatorOffset(tabSlotWidth: Dp): Dp {
+private fun MainTabId.indicatorOffset(tabSlotWidth: Dp): Dp {
     val slotStart = when (this) {
-        MainTab.Feed -> 0.dp
-        MainTab.Discover -> tabSlotWidth
-        MainTab.Community -> (tabSlotWidth * 2) + CenterSlotWidth
-        MainTab.Profile -> (tabSlotWidth * 3) + CenterSlotWidth
+        MainTabId.Feed -> 0.dp
+        MainTabId.Discover -> tabSlotWidth
+        MainTabId.Community -> (tabSlotWidth * 2) + CenterSlotWidth
+        MainTabId.Profile -> (tabSlotWidth * 3) + CenterSlotWidth
     }
     return slotStart + ((tabSlotWidth - ActivePillWidth) / 2f) - 1.dp
 }

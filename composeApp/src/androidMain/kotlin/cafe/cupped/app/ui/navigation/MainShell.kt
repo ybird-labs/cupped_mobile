@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import cafe.cupped.app.navigation.shell.MainTabId
 import cafe.cupped.app.ui.screens.CommunityScreen
 import cafe.cupped.app.ui.screens.DiscoverScreen
 import cafe.cupped.app.ui.screens.FeedScreen
@@ -29,7 +30,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainShell() {
-    var selectedTab by rememberSaveable { mutableStateOf(MainTab.Feed) }
+    var selectedTab by rememberSaveable { mutableStateOf(MainTabId.Feed) }
     var isLogSheetVisible by rememberSaveable { mutableStateOf(false) }
     var barHeight by remember { mutableStateOf(0.dp) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -54,10 +55,10 @@ fun MainShell() {
                 .testTag("main-shell-content"),
         ) {
             when (selectedTab) {
-                MainTab.Feed -> FeedScreen()
-                MainTab.Discover -> DiscoverScreen()
-                MainTab.Community -> CommunityScreen()
-                MainTab.Profile -> ProfileScreen()
+                MainTabId.Feed -> FeedScreen()
+                MainTabId.Discover -> DiscoverScreen()
+                MainTabId.Community -> CommunityScreen()
+                MainTabId.Profile -> ProfileScreen()
             }
         }
 

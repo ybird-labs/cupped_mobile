@@ -6,6 +6,7 @@ import androidx.compose.ui.unit.sp
 import cafe.cupped.app.tokens.CuppedSpacing as SharedSpacing
 
 object CuppedSpacing {
+    val Xs = SharedSpacing.xs.dp
     val Sm = SharedSpacing.sm.dp
     val Base = SharedSpacing.base.dp
     val Lg = SharedSpacing.lg.dp
