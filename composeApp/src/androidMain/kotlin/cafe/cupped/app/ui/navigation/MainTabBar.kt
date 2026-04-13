@@ -259,7 +259,7 @@ private fun LogActionButton(
     ) {
         AppIconImage(
             icon = DesignIcon.Coffee,
-            contentDescription = "Log a Brew",
+            contentDescription = stringResource(R.string.log_action_button_label),
             tint = CuppedColor.InkInverse,
             modifier = Modifier.size(28.dp),
         )
