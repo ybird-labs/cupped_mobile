@@ -29,7 +29,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ya tienes una cuenta?"
+            "value" : "¿Ya tienes una cuenta?"
           }
         }
       }
@@ -48,7 +48,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Revisa tu bandeja de entrada!"
+            "value" : "¡Revisa tu bandeja de entrada!"
           }
         }
       }
@@ -63,7 +63,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Haz clic en el enlace magico para activar tu cuenta"
+            "value" : "Haz clic en el enlace mágico para activar tu cuenta"
           }
         }
       }
@@ -74,7 +74,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Haz clic en el enlace magico para iniciar sesion"
+            "value" : "Haz clic en el enlace mágico para iniciar sesión"
           }
         }
       }
@@ -133,7 +133,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No recibiste el correo? Revisa tu carpeta de spam o intenta de nuevo."
+            "value" : "¿No recibiste el correo? Revisa tu carpeta de spam o intenta de nuevo."
           }
         }
       }
@@ -182,7 +182,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "CORREO ELECTRONICO"
+            "value" : "CORREO ELECTRÓNICO"
           }
         }
       }
@@ -208,7 +208,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Unete a Cupped"
+            "value" : "Únete a Cupped"
           }
         }
       }
@@ -246,7 +246,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nuevo en Cupped?"
+            "value" : "¿Nuevo en Cupped?"
           }
         }
       }
@@ -288,7 +288,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enviando enlace magico..."
+            "value" : "Enviando enlace mágico..."
           }
         }
       }
@@ -298,7 +298,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Iniciar sesion"
+            "value" : "Iniciar sesión"
           }
         }
       }
@@ -308,7 +308,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Inicia sesion para continuar tu viaje cafetero"
+            "value" : "Inicia sesión para continuar tu viaje cafetero"
           }
         }
       }
@@ -370,7 +370,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Te enviamos un enlace magico a"
+            "value" : "Te enviamos un enlace mágico a"
           }
         }
       }
@@ -381,7 +381,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Te enviaremos un enlace magico para comenzar. Sin contrasena."
+            "value" : "Te enviaremos un enlace mágico para comenzar. Sin contraseña."
           }
         }
       }
@@ -392,7 +392,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Te enviaremos un enlace magico para iniciar sesion. Sin contrasena."
+            "value" : "Te enviaremos un enlace mágico para iniciar sesión. Sin contraseña."
           }
         }
       }
@@ -412,7 +412,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "LO QUE OBTENDRAS"
+            "value" : "LO QUE OBTENDRÁS"
           }
         }
       }
@@ -423,7 +423,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Y ahora?"
+            "value" : "¿Y ahora?"
           }
         }
       }
