@@ -314,7 +314,14 @@
       }
     },
     "Sign Out" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cerrar sesión"
+          }
+        }
+      }
     },
     "Start tracking your coffee journey today" : {
       "localizations" : {
