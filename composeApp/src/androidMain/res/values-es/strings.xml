@@ -5,7 +5,7 @@
     <string name="tab_community">Comunidad</string>
     <string name="tab_profile">Perfil</string>
     <string name="log_action_button_label">Registrar café</string>
-    <string name="screen_feed_subtitle">Contenedor inicial de Android</string>
+    <string name="screen_feed_subtitle">Bienvenido a tu feed</string>
     <string name="screen_discover_subtitle">Próximamente</string>
     <string name="screen_community_subtitle">Próximamente</string>
     <string name="screen_profile_subtitle">Próximamente</string>

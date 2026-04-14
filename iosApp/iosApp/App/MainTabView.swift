@@ -15,17 +15,18 @@ private enum PresentedSheet: Identifiable {
 }
 
 struct MainTabView: View {
+    @Environment(\.locale) private var locale
     @State private var selectedTab: MainTabId = .feed
     @State private var presentedSheet: PresentedSheet?
     @State private var barHeight: CGFloat = 0
     @Namespace private var tabNamespace
 
     private var leftTabs: [MainTabDisplaySpec] {
-        Array(MainTabDisplaySpec.orderedTabs.prefix(2))
+        Array(MainTabDisplaySpec.orderedTabs(locale: locale).prefix(2))
     }
 
     private var rightTabs: [MainTabDisplaySpec] {
-        Array(MainTabDisplaySpec.orderedTabs.suffix(2))
+        Array(MainTabDisplaySpec.orderedTabs(locale: locale).suffix(2))
     }
 
     var body: some View {

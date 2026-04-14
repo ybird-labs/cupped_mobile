@@ -23,6 +23,7 @@ struct LoginView: View {
     var onAuthenticated: (String) -> Void
 
     @Environment(AuthCoordinator.self) private var authCoordinator
+    @Environment(\.locale) private var locale
 
     // MARK: - State
 
@@ -250,7 +251,7 @@ struct LoginView: View {
 
     private var emailFieldSection: some View {
         CuppedTextField(
-            placeholder: String(localized: "your@email.com"),
+            placeholder: String(localized: "your@email.com", locale: locale),
             text: $email,
             label: "EMAIL ADDRESS",
             icon: .mail,

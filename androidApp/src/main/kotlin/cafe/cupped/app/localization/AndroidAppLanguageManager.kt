@@ -30,7 +30,13 @@ class AndroidAppLanguageManager(context: Context) {
     }
 
     private fun applyPreference(preference: LanguagePreference) {
-        val locales = preference.selected?.let { LocaleListCompat.forLanguageTags(it.bcp47Tag) }
+        val locales = preference.selected?.let { selectedLanguage ->
+            val languageTags = buildList {
+                add(selectedLanguage.bcp47Tag)
+                addAll(selectedLanguage.fallbackTags)
+            }.joinToString(separator = ",")
+            LocaleListCompat.forLanguageTags(languageTags)
+        }
             ?: LocaleListCompat.getEmptyLocaleList()
         AppCompatDelegate.setApplicationLocales(locales)
     }
