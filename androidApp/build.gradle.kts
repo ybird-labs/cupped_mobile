@@ -43,6 +43,8 @@ kotlin {
 
 dependencies {
     implementation(project(":composeApp"))
+    implementation(project(":shared"))
+    implementation(libs.androidx.appcompat)
     implementation(libs.androidx.activity.compose)
     androidTestImplementation(libs.androidx.testExt.junit)
     androidTestImplementation(libs.androidx.espresso.core)

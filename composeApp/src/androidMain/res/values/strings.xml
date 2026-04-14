@@ -5,4 +5,10 @@
     <string name="tab_community">Community</string>
     <string name="tab_profile">Profile</string>
     <string name="log_action_button_label">Log a Brew</string>
+    <string name="screen_feed_subtitle">Android shell placeholder</string>
+    <string name="screen_discover_subtitle">Coming soon</string>
+    <string name="screen_community_subtitle">Coming soon</string>
+    <string name="screen_profile_subtitle">Coming soon</string>
+    <string name="log_sheet_subtitle">Coming soon</string>
+    <string name="log_sheet_dismiss">Not now</string>
 </resources>

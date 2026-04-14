@@ -22,6 +22,7 @@ import Shared
 
 @main
 struct iOSApp: App {
+    @State private var appLanguageStore = AppLanguageStore()
     /// Gates content presentation until cookie restore
     /// and auth check complete. While `false`, a canvas-
     /// colored splash is shown. This guarantees cookies are
@@ -95,6 +96,8 @@ struct iOSApp: App {
                 AuthFlowOverlay()
             }
             .environment(authCoordinator)
+            .environment(appLanguageStore)
+            .environment(\.locale, appLanguageStore.locale)
             .tint(.cuppedActionPrimary)
             .animation(.cuppedSpring, value: authCoordinator.authFlowStatus)
             .task {

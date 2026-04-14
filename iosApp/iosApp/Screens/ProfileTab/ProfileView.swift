@@ -11,6 +11,7 @@ import SwiftUI
 struct ProfileView: View {
 
     @Environment(AuthCoordinator.self) private var authCoordinator
+    @Environment(AppLanguageStore.self) private var appLanguageStore
 
     // MARK: - State
 
@@ -30,6 +31,7 @@ struct ProfileView: View {
         NavigationStack {
             List {
                 headerSection
+                languageSection
                 securitySection
                 appInfoSection
             }
@@ -49,12 +51,17 @@ struct ProfileView: View {
                 }
             } message: {
                 Text(
-                    "Are you sure you want to sign out? "
-                        + "You'll need a new magic link to "
-                        + "sign back in."
+                    "Are you sure you want to sign out? You'll need a new magic link to sign back in."
                 )
             }
         }
+    }
+
+    private var selectedLanguage: Binding<AppLanguageStore.Option> {
+        Binding(
+            get: { appLanguageStore.selectedOption },
+            set: { appLanguageStore.selectedOption = $0 }
+        )
     }
 
     // MARK: - Header Section
@@ -77,6 +84,22 @@ struct ProfileView: View {
             .padding(.vertical, Spacing.md)
             .listRowBackground(Color.cuppedCanvas)
         }
+    }
+
+    private var languageSection: some View {
+        Section {
+            Picker("App Language", selection: selectedLanguage) {
+                Text("System Default").tag(AppLanguageStore.Option.system)
+                Text(verbatim: "English").tag(AppLanguageStore.Option.english)
+                Text(verbatim: "Español").tag(AppLanguageStore.Option.spanish)
+            }
+            .accessibilityIdentifier("app-language-picker")
+        } header: {
+            Text("Language")
+                .font(.cuppedSubheadline)
+                .foregroundStyle(Color.cuppedSecondary)
+        }
+        .listRowBackground(Color.cuppedCard)
     }
 
     // MARK: - Security Section
@@ -131,4 +154,5 @@ struct ProfileView: View {
 #Preview {
     ProfileView()
         .environment(AuthCoordinator())
+        .environment(AppLanguageStore())
 }

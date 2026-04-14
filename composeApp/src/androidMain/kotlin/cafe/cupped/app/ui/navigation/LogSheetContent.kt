@@ -12,9 +12,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import cafe.cupped.app.ui.theme.CuppedColor
 import cafe.cupped.app.ui.theme.CuppedSpacing
+import cafe.cupped.composeapp.R
 
 @Composable
 fun LogSheetContent(
@@ -36,19 +38,19 @@ fun LogSheetContent(
         verticalArrangement = Arrangement.spacedBy(CuppedSpacing.Sm),
     ) {
         Text(
-            text = "Log a Brew",
+            text = stringResource(R.string.log_action_button_label),
             color = CuppedColor.TextPrimary,
             fontSize = CuppedSpacing.SheetTitleTextSize,
             fontWeight = FontWeight.SemiBold,
         )
         Text(
-            text = "Coming soon",
+            text = stringResource(R.string.log_sheet_subtitle),
             color = CuppedColor.TextMuted,
             fontSize = CuppedSpacing.BodyTextSize,
         )
         TextButton(onClick = onDismiss) {
             Text(
-                text = "Not now",
+                text = stringResource(R.string.log_sheet_dismiss),
                 color = CuppedColor.ActionPrimary,
                 fontSize = CuppedSpacing.BodyTextSize,
             )

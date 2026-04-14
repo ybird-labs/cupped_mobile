@@ -23,6 +23,7 @@ struct LoginView: View {
     var onAuthenticated: (String) -> Void
 
     @Environment(AuthCoordinator.self) private var authCoordinator
+    @Environment(\.locale) private var locale
 
     // MARK: - State
 
@@ -250,7 +251,7 @@ struct LoginView: View {
 
     private var emailFieldSection: some View {
         CuppedTextField(
-            placeholder: "your@email.com",
+            placeholder: String(localized: "your@email.com", locale: locale),
             text: $email,
             label: "EMAIL ADDRESS",
             icon: .mail,
@@ -352,9 +353,9 @@ struct LoginView: View {
 
     private var footerText: some View {
         Text(
-            "We'll send you a magic link to "
-                + "\(isRegisterMode ? "get started" : "sign in")"
-                + ". No password needed."
+            isRegisterMode
+                ? "We'll send you a magic link to get started. No password needed."
+                : "We'll send you a magic link to sign in. No password needed."
         )
         .font(.cuppedCaption)
         .foregroundStyle(Color.cuppedMuted)
