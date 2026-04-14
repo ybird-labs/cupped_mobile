@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tab_feed">Feed</string>
+    <string name="tab_discover">Discover</string>
+    <string name="tab_community">Community</string>
+    <string name="tab_profile">Profile</string>
+    <string name="log_action_button_label">Log a Brew</string>
+</resources>

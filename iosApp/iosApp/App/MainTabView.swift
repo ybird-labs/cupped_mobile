@@ -1,4 +1,5 @@
 import SwiftUI
+import Shared
 
 private struct BarHeightKey: PreferenceKey {
     static var defaultValue: CGFloat = 0
@@ -7,223 +8,211 @@ private struct BarHeightKey: PreferenceKey {
     }
 }
 
-enum Tab: String, CaseIterable {
-    case feed, discover, community, profile
+private enum PresentedSheet: Identifiable {
+    case log
 
-    var title: String {
-        rawValue.capitalized
-    }
-
-    var icon: AppIcon {
-        switch self {
-        case .feed: .home
-        case .discover: .discover
-        case .community: .community
-        case .profile: .profile
-        }
-    }
-
-    var filledIcon: AppIcon {
-        switch self {
-        case .feed: .homeActive
-        case .discover: .discoverActive
-        case .community: .communityActive
-        case .profile: .profileActive
-        }
-    }
+    var id: Self { self }
 }
 
 struct MainTabView: View {
-     @State private var selectedTab: Tab = .feed
-     @State private var showLogSheet = false
-     @State private var barHeight: CGFloat = 0
-     @Namespace private var tabNamespace
+    @State private var selectedTab: MainTabId = .feed
+    @State private var presentedSheet: PresentedSheet?
+    @State private var barHeight: CGFloat = 0
+    @Namespace private var tabNamespace
 
-     private var leftTabs: [Tab] { Array(Tab.allCases.prefix(2)) }
-     private var rightTabs: [Tab] { Array(Tab.allCases.suffix(2)) }
+    private var leftTabs: [MainTabDisplaySpec] {
+        Array(MainTabDisplaySpec.orderedTabs.prefix(2))
+    }
 
-     var body: some View {
-         ZStack(alignment: .bottom) {
-             tabContent(for: selectedTab)
-                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                 .padding(.bottom, barHeight)
+    private var rightTabs: [MainTabDisplaySpec] {
+        Array(MainTabDisplaySpec.orderedTabs.suffix(2))
+    }
 
-             barView
-         }
-         .animation(.cuppedSpring, value: selectedTab)
-         .sheet(isPresented: $showLogSheet) {
-             LogView()
-         }
-     }
+    var body: some View {
+        ZStack(alignment: .bottom) {
+            tabContent(for: selectedTab)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding(.bottom, barHeight)
 
-     // MARK: - Tab Content
+            barView
+        }
+        .animation(.cuppedSpring, value: selectedTab)
+        .sheet(item: $presentedSheet) { sheet in
+            switch sheet {
+            case .log:
+                LogView()
+            }
+        }
+    }
 
-     @ViewBuilder
-     private func tabContent(for tab: Tab) -> some View {
-         switch tab {
-         case .feed:      FeedView()
-         case .discover:  DiscoverView()
-         case .community: CommunityView()
-         case .profile:   ProfileView()
-         }
-     }
+    @ViewBuilder
+    private func tabContent(for tab: MainTabId) -> some View {
+        switch tab {
+        case .feed:
+            FeedView()
+        case .discover:
+            DiscoverView()
+        case .community:
+            CommunityView()
+        case .profile:
+            ProfileView()
+        }
+    }
 
-     // MARK: - Bar View
+    private var barView: some View {
+        VStack(spacing: 0) {
+            topBorder
+            barContent
+        }
+        .background(barBackground)
+        .background(
+            GeometryReader { geo in
+                Color.clear.preference(key: BarHeightKey.self, value: geo.size.height)
+            }
+        )
+        .onPreferenceChange(BarHeightKey.self) { newBarHeight in
+            guard barHeight != newBarHeight else { return }
+            barHeight = newBarHeight
+        }
+        .accessibilityIdentifier("main-tab-bar")
+    }
 
-     private var barView: some View {
-         VStack(spacing: 0) {
-             topBorder
-             barContent
-         }
-         .background(barBackground)
-         .background(
-             GeometryReader { geo in
-                 Color.clear.preference(key: BarHeightKey.self, value: geo.size.height)
-             }
-         )
-         .onPreferenceChange(BarHeightKey.self) { barHeight = $0 }
-     }
+    private var topBorder: some View {
+        Rectangle()
+            .fill(Color.cuppedCanvasBorder)
+            .frame(height: 1)
+    }
 
-     private var topBorder: some View {
-         Rectangle()
-             .fill(Color.cuppedCanvasBorder)
-             .frame(height: 1)
-     }
+    private var barContent: some View {
+        HStack(alignment: .bottom, spacing: 0) {
+            ForEach(leftTabs, id: \.id) { tab in
+                NavButton(
+                    tab: tab,
+                    isActive: selectedTab == tab.id,
+                    namespace: tabNamespace,
+                    onTap: { selectTab(tab.id) }
+                )
+            }
 
-     private var barContent: some View {
-         HStack(alignment: .bottom, spacing: 0) {
-             ForEach(leftTabs, id: \.self) { tab in
-                 NavButton(
-                     tab: tab,
-                     isActive: selectedTab == tab,
-                     namespace: tabNamespace,
-                     onTap: { selectedTab = tab }
-                 )
-             }
+            CheckInButton(onTap: openLogSheet)
 
-             CheckInButton(onTap: { showLogSheet = true })
+            ForEach(rightTabs, id: \.id) { tab in
+                NavButton(
+                    tab: tab,
+                    isActive: selectedTab == tab.id,
+                    namespace: tabNamespace,
+                    onTap: { selectTab(tab.id) }
+                )
+            }
+        }
+        .padding(.horizontal, Spacing.base)
+        .padding(.top, Spacing.sm)
+        .padding(.bottom, Spacing.sm)
+    }
 
-             ForEach(rightTabs, id: \.self) { tab in
-                 NavButton(
-                     tab: tab,
-                     isActive: selectedTab == tab,
-                     namespace: tabNamespace,
-                     onTap: { selectedTab = tab }
-                 )
-             }
-         }
-         .padding(.horizontal, Spacing.base)
-         .padding(.top, Spacing.sm)
-         .padding(.bottom, Spacing.sm)
-     }
+    private var barBackground: some View {
+        ZStack {
+            Color.cuppedSurfaceCard.opacity(0.95)
+            Rectangle().fill(.ultraThinMaterial)
+        }
+        .ignoresSafeArea(edges: .bottom)
+    }
 
-     private var barBackground: some View {
-         ZStack {
-             Color.cuppedSurfaceCard.opacity(0.95)
-             Rectangle().fill(.ultraThinMaterial)
-         }
-         .ignoresSafeArea(edges: .bottom)
-     }
- }
+    private func selectTab(_ tab: MainTabId) {
+        guard selectedTab != tab else { return }
+        selectedTab = tab
+    }
+
+    private func openLogSheet() {
+        presentedSheet = .log
+    }
+}
 
 private struct NavButton: View {
-     let tab: Tab
-     let isActive: Bool
-     let namespace: Namespace.ID
-     let onTap: () -> Void
+    let tab: MainTabDisplaySpec
+    let isActive: Bool
+    let namespace: Namespace.ID
+    let onTap: () -> Void
 
-     private let pillWidth: CGFloat = 24
-     private let pillHeight: CGFloat = 3
-     private let pillToIconSpacing = Spacing.xs
-     private let iconToLabelSpacing: CGFloat = 2
+    private let pillWidth: CGFloat = 24
+    private let pillHeight: CGFloat = 3
+    private let pillToIconSpacing = Spacing.xs
+    private let iconToLabelSpacing: CGFloat = 2
 
-     var body: some View {
-         Button(action: onTap) {
-             VStack(spacing: 0) {
-                 // --- Pill indicator ---
-                 // This is the small bar above the active icon.
-                 // Only the active tab renders it. matchedGeometryEffect
-                 // makes it animate its position from one tab to another
-                 // because they all share the same id "activePill".
-                 Group {
-                     if isActive {
-                         Capsule()
-                             .fill(Color.cuppedPrimary)
-                             .frame(width: pillWidth, height: pillHeight)
-                             .matchedGeometryEffect(id: "activePill", in: namespace)
-                     } else {
-                         // Invisible placeholder so the layout doesn't jump
-                         // when a tab becomes active. Same frame, just hidden.
-                         Capsule()
-                             .fill(Color.clear)
-                             .frame(width: pillWidth, height: pillHeight)
-                     }
-                 }
-                 .padding(.bottom, pillToIconSpacing)
+    var body: some View {
+        Button(action: onTap) {
+            VStack(spacing: 0) {
+                Group {
+                    if isActive {
+                        Capsule()
+                            .fill(Color.cuppedPrimary)
+                            .frame(width: pillWidth, height: pillHeight)
+                            .matchedGeometryEffect(id: "activePill", in: namespace)
+                    } else {
+                        Capsule()
+                            .fill(Color.clear)
+                            .frame(width: pillWidth, height: pillHeight)
+                    }
+                }
+                .padding(.bottom, pillToIconSpacing)
 
-                 // --- Icon ---
-                 AppIconView(
-                     icon: isActive ? tab.filledIcon : tab.icon,
-                     size: 22,
-                     color: isActive ? Color.cuppedPrimary : Color.cuppedMuted
-                 )
-                     .scaleEffect(isActive ? 1.0 : 0.85)
-                     .offset(y: isActive ? -2 : 0)
-                     .padding(.bottom, iconToLabelSpacing)
+                AppIconView(
+                    icon: isActive ? tab.activeIcon : tab.inactiveIcon,
+                    size: 22,
+                    color: isActive ? Color.cuppedPrimary : Color.cuppedMuted
+                )
+                .scaleEffect(isActive ? 1.0 : 0.85)
+                .offset(y: isActive ? -2 : 0)
+                .padding(.bottom, iconToLabelSpacing)
 
-                 // --- Label ---
-                 Text(tab.title)
-                     .font(.cuppedCaption)
-                     .foregroundStyle(isActive ? Color.cuppedPrimary : Color.cuppedMuted)
-                     .opacity(isActive ? 1.0 : 0.5)
-             }
-             .frame(maxWidth: .infinity)
-             .contentShape(Rectangle()) // Makes the full area tappable
-         }
-         .buttonStyle(.plain) // Removes the default button highlight
-     }
- }
+                Text(tab.title)
+                    .font(.cuppedCaption)
+                    .foregroundStyle(isActive ? Color.cuppedPrimary : Color.cuppedMuted)
+                    .opacity(isActive ? 1.0 : 0.5)
+            }
+            .frame(maxWidth: .infinity, minHeight: 44)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(tab.title)
+        .accessibilityAddTraits(isActive ? .isSelected : [])
+        .accessibilityIdentifier("tab-\(tab.identifierSuffix)")
+    }
+}
 
 private struct CheckInButton: View {
-      let onTap: () -> Void
-      @State private var isPressed = false
+    let onTap: () -> Void
 
-      var body: some View {
-          Button(action: onTap) {
-              ZStack {
-                  // The circle
-                  Circle()
-                      .fill(Color.cuppedPrimary)
-                      .frame(width: 56, height: 56)
+    var body: some View {
+        Button(action: onTap) {
+            ZStack {
+                Circle()
+                    .fill(Color.cuppedPrimary)
+                    .frame(width: 56, height: 56)
 
-                  // Border that makes it look "cut out" from the bar.
-                  // cuppedCanvas matches the app background, so the
-                  // border visually separates the button from the bar.
-                  Circle()
-                      .strokeBorder(Color.cuppedCanvas, lineWidth: 4)
-                      .frame(width: 56, height: 56)
+                Circle()
+                    .strokeBorder(Color.cuppedCanvas, lineWidth: 4)
+                    .frame(width: 56, height: 56)
 
-                  // Plus icon
-                  AppIconView(icon: .coffee, size: 28, color: Color.cuppedInkInverse)
-              }
-          }
-          .buttonStyle(CheckInButtonStyle())
-          .accessibilityLabel(Text("Check In"))
-          .modifier(Shadow.glowCoral)  // The coral glow from your shadow tokens
-          // Shift it up so it "floats" above the bar edge
-          .offset(y: -Spacing.lg)
-          // The offset means the button takes up visual space above the bar
-          // but the HStack still reserves its natural width. That's what we want.
-      }
-  }
+                AppIconView(icon: .coffee, size: 28, color: Color.cuppedInkInverse)
+            }
+        }
+        .buttonStyle(CheckInButtonStyle())
+        .accessibilityLabel(Text("Log a Brew"))
+        .accessibilityIdentifier("log-action-button")
+        .modifier(Shadow.glowCoral)
+        .offset(y: -Spacing.lg)
+    }
+}
 
 private struct CheckInButtonStyle: ButtonStyle {
-      func makeBody(configuration: Configuration) -> some View {
-          configuration.label
-              .scaleEffect(configuration.isPressed ? 0.92 : 1.0)
-              .animation(.cuppedSpring, value: configuration.isPressed)
-      }
-  }
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.92 : 1.0)
+            .animation(.cuppedSpring, value: configuration.isPressed)
+    }
+}
 
 #Preview {
     MainTabView()
