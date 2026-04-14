@@ -22,6 +22,11 @@
 			</array>
 		</dict>
 	</array>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+		<string>es</string>
+	</array>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Lora[wght].ttf</string>

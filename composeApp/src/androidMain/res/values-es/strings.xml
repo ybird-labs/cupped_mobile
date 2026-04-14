@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tab_feed">Inicio</string>
+    <string name="tab_discover">Descubrir</string>
+    <string name="tab_community">Comunidad</string>
+    <string name="tab_profile">Perfil</string>
+    <string name="log_action_button_label">Registrar café</string>
+    <string name="screen_feed_subtitle">Contenedor inicial de Android</string>
+    <string name="screen_discover_subtitle">Próximamente</string>
+    <string name="screen_community_subtitle">Próximamente</string>
+    <string name="screen_profile_subtitle">Próximamente</string>
+    <string name="log_sheet_subtitle">Próximamente</string>
+    <string name="log_sheet_dismiss">Ahora no</string>
+</resources>

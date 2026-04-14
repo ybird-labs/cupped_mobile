@@ -144,21 +144,14 @@ struct MagicLinkSentView: View {
     /// React: Single card — "Open the email and click the link to
     /// activate your account / sign in. It expires in **15 minutes**."
     private var instructionCard: some View {
-        let actionText = isRegisterMode
-            ? "activate your account"
-            : "sign in"
-
         return HStack(spacing: 0) {
-            (
-                Text("Open the email and click the link to \(actionText). It expires in ")
-                    .foregroundStyle(Color.cuppedSecondary)
-                + Text("15 minutes")
-                    .fontWeight(.semibold)
-                    .foregroundStyle(Color.cuppedInk)
-                + Text(".")
-                    .foregroundStyle(Color.cuppedSecondary)
+            Text(
+                isRegisterMode
+                    ? "Open the email and click the link to activate your account. It expires in 15 minutes."
+                    : "Open the email and click the link to sign in. It expires in 15 minutes."
             )
             .font(.cuppedSubheadline)
+            .foregroundStyle(Color.cuppedSecondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, Spacing.xl)  // React: px-6 = 24px

@@ -1,9 +1,9 @@
 package cafe.cupped.app.ui.navigation
 
 import androidx.annotation.StringRes
-import cafe.cupped.app.R
 import cafe.cupped.app.designsystem.icons.AppIcon as DesignIcon
 import cafe.cupped.app.navigation.shell.MainTabId
+import cafe.cupped.composeapp.R
 
 internal data class MainTabDisplaySpec(
     val id: MainTabId,
