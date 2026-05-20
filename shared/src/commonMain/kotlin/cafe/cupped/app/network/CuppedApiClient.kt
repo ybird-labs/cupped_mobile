@@ -117,7 +117,7 @@ internal class CuppedApiClient(
                         contentType = response.headers[HttpHeaders.ContentType],
                         reason = "decode failed: ${e.message}"
                     )
-                    Result.failure(Exception("Unexpected verify response from server"))
+                    Result.failure(Exception("Unexpected verify response from server", e))
                 }
             } else {
                 val bodyText = response.bodyAsText()
