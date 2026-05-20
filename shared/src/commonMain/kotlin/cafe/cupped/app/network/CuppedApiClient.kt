@@ -1,5 +1,10 @@
 package cafe.cupped.app.network
 
+import cafe.cupped.app.api.generated.models.ErrorResponse as GeneratedErrorResponse
+import cafe.cupped.app.api.generated.models.MagicLinkRequest as GeneratedMagicLinkRequest
+import cafe.cupped.app.api.generated.models.MagicLinkResponse as GeneratedMagicLinkResponse
+import cafe.cupped.app.api.generated.models.VerifyRequest as GeneratedVerifyRequest
+import cafe.cupped.app.api.generated.models.VerifyResponse as GeneratedVerifyResponse
 import cafe.cupped.app.isDebug
 import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
@@ -59,10 +64,10 @@ internal class CuppedApiClient(
         return try {
             val response = httpClient.post("$authBaseUrl/magic-link") {
                 contentType(ContentType.Application.Json)
-                setBody(MagicLinkRequest(email = email))
+                setBody(GeneratedMagicLinkRequest(email = email))
             }
             if (response.status.value in 200..299) {
-                Result.success(response.body<MagicLinkResponse>())
+                Result.success(response.body<GeneratedMagicLinkResponse>().toAuthModel())
             } else {
                 val bodyText = response.bodyAsText()
                 Result.failure(
@@ -97,20 +102,19 @@ internal class CuppedApiClient(
         return try {
             val response = httpClient.post("$authBaseUrl/verify") {
                 contentType(ContentType.Application.Json)
-                setBody(VerifyTokenRequest(token = token))
+                setBody(GeneratedVerifyRequest(token = token))
             }
             if (response.status.value in 200..299) {
                 val bodyText = response.bodyAsText()
                 try {
                     Result.success(
-                        json.decodeFromString<VerifyTokenResponse>(bodyText)
+                        json.decodeFromString<GeneratedVerifyResponse>(bodyText).toAuthModel()
                     )
                 } catch (e: Exception) {
                     debugVerifyResponse(
                         token = token,
                         statusCode = response.status.value,
                         contentType = response.headers[HttpHeaders.ContentType],
-                        bodyText = bodyText,
                         reason = "decode failed: ${e.message}"
                     )
                     Result.failure(Exception("Unexpected verify response from server"))
@@ -121,7 +125,6 @@ internal class CuppedApiClient(
                     token = token,
                     statusCode = response.status.value,
                     contentType = response.headers[HttpHeaders.ContentType],
-                    bodyText = bodyText,
                     reason = "non-success response"
                 )
                 Result.failure(
@@ -151,8 +154,8 @@ internal class CuppedApiClient(
         if (bodyText.isBlank()) return fallbackMessage
 
         return try {
-            val error = json.decodeFromString<AuthErrorResponse>(bodyText)
-            error.errors?.detail?.ifBlank { null } ?: fallbackMessage
+            val error = json.decodeFromString<GeneratedErrorResponse>(bodyText)
+            error.detailOrNull() ?: fallbackMessage
         } catch (_: Exception) {
             fallbackMessage
         }
@@ -162,7 +165,6 @@ internal class CuppedApiClient(
         token: String,
         statusCode: Int,
         contentType: String?,
-        bodyText: String,
         reason: String
     ) {
         if (!isDebug) return
@@ -178,8 +180,6 @@ internal class CuppedApiClient(
                 append(contentType ?: "unknown")
                 append(" tokenLength=")
                 append(token.length)
-                append(" bodySnippet=")
-                append(bodyText.take(256))
             }
         )
     }

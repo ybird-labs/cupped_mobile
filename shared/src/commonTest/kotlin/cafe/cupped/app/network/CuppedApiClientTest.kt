@@ -19,6 +19,19 @@ import kotlin.test.assertTrue
 class CuppedApiClientTest {
 
     @Test
+    fun requestMagicLinkReturnsFailureWhenSuccessPayloadIsMissingMessage() = runTest {
+        val client = makeApiClient(
+            expectedPath = "/api/v1/auth/magic-link",
+            status = HttpStatusCode.OK,
+            body = "{}"
+        )
+
+        val result = client.requestMagicLink("coffee@cupped.cafe")
+
+        assertTrue(result.isFailure)
+    }
+
+    @Test
     fun verifyMagicLinkTokenDecodesBackendTokenField() = runTest {
         val client = makeApiClient(
             status = HttpStatusCode.Created,
@@ -90,12 +103,61 @@ class CuppedApiClientTest {
         )
     }
 
+    @Test
+    fun verifyMagicLinkTokenReturnsExplicitMessageWhenSuccessPayloadIsMissingToken() = runTest {
+        val client = makeApiClient(
+            status = HttpStatusCode.Created,
+            body = """
+                {
+                  "user": {
+                    "id": "user-1",
+                    "email": "coffee@cupped.cafe",
+                    "role": "user"
+                  }
+                }
+            """.trimIndent()
+        )
+
+        val result = client.verifyMagicLinkToken("SFMyNTY.missing-token")
+
+        assertTrue(result.isFailure)
+        assertEquals(
+            "Unexpected verify response from server",
+            result.exceptionOrNull()?.message
+        )
+    }
+
+    @Test
+    fun verifyMagicLinkTokenReturnsExplicitMessageWhenUserIsMissingRequiredFields() = runTest {
+        val client = makeApiClient(
+            status = HttpStatusCode.Created,
+            body = """
+                {
+                  "token": "live_api_token_123",
+                  "user": {
+                    "email": "coffee@cupped.cafe",
+                    "role": "user"
+                  }
+                }
+            """.trimIndent()
+        )
+
+        val result = client.verifyMagicLinkToken("SFMyNTY.missing-user-fields")
+
+        assertTrue(result.isFailure)
+        assertEquals(
+            "Unexpected verify response from server",
+            result.exceptionOrNull()?.message
+        )
+    }
+
     private fun makeApiClient(
         status: HttpStatusCode,
-        body: String
+        body: String,
+        expectedPath: String = "/api/v1/auth/verify"
     ): CuppedApiClient {
         val engine = MockEngine { request ->
-            assertEquals("/api/v1/auth/verify", request.url.encodedPath)
+            assertEquals(expectedPath, request.url.encodedPath)
             assertEquals("POST", request.method.value)
 
             respond(

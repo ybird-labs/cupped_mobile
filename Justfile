@@ -19,3 +19,15 @@ api-spec-check-latest:
 # Show a short summary of the pinned Brewer OpenAPI spec.
 api-spec-summary:
     @python3 -c "import json; from pathlib import Path; p=Path('specs/brewer/openapi.json'); assert p.exists(), 'No spec found. Run: just api-spec-update'; data=json.loads(p.read_text()); v=Path('specs/brewer/VERSION').read_text().strip() if Path('specs/brewer/VERSION').exists() else 'unknown'; print(f'Pinned: {v}'); print(f'OpenAPI: {data.get(\"openapi\")}'); print(f'Title: {data.get(\"info\", {}).get(\"title\", \"unknown\")}'); print(f'API version: {data.get(\"info\", {}).get(\"version\", \"unknown\")}'); print(f'Paths: {len(data.get(\"paths\", {}))}'); [print(f'  {path}') for path in sorted(data.get('paths', {}))]"
+
+# Generate Kotlin models for the pinned Brewer OpenAPI spec.
+api-contract-generate:
+    ./gradlew :api-contract:openApiGenerate
+
+# Validate the pinned spec and compile generated API contract models for iOS and Android.
+api-contract-check:
+    ./gradlew :api-contract:openApiValidate :api-contract:compileKotlinIosSimulatorArm64 :api-contract:compileDebugKotlinAndroid
+
+# Run API contract checks plus generated DTO tests and shared-module regression tests.
+api-contract-test:
+    ./gradlew :api-contract:openApiValidate :api-contract:compileKotlinIosSimulatorArm64 :api-contract:compileDebugKotlinAndroid :api-contract:allTests :shared:allTests

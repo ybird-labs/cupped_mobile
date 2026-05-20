@@ -32,5 +32,6 @@ dependencyResolutionManagement {
 }
 
 include(":androidApp")
+include(":api-contract")
 include(":composeApp")
 include(":shared")
