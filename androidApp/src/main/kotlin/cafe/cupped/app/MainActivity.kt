@@ -11,8 +11,8 @@ import cafe.cupped.app.localization.AndroidAppLanguageManager
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         AndroidAppLanguageManager(this).applyStoredPreference()
-        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
 
         setContent {
             App()
