@@ -105,6 +105,8 @@ internal class CuppedApiClient(
                 setBody(GeneratedVerifyRequest(token = token))
             }
             if (response.status.value in 200..299) {
+                // Decode manually so malformed success payloads return the stable
+                // verify-specific error message while preserving the decode cause.
                 val bodyText = response.bodyAsText()
                 try {
                     Result.success(

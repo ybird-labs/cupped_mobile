@@ -30,6 +30,7 @@ kotlin {
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.serialization.json)
         }
     }
 }
@@ -55,7 +56,7 @@ openApiValidate {
 openApiGenerate {
     generatorName.set("kotlin")
     inputSpec.set(brewerOpenApiSpec)
-    outputDir.set(generatedOpenApiDir.get().asFile.absolutePath)
+    outputDir.set(generatedOpenApiDir)
     packageName.set("cafe.cupped.app.api.generated")
 
     globalProperties.set(
