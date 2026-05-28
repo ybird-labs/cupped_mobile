@@ -29,6 +29,7 @@ import platform.Foundation.dataUsingEncoding
 import platform.Security.SecItemAdd
 import platform.Security.SecItemCopyMatching
 import platform.Security.SecItemDelete
+import platform.Security.SecItemUpdate
 import platform.Security.errSecItemNotFound
 import platform.Security.errSecSuccess
 import platform.Security.kSecAttrAccessible
@@ -109,31 +110,66 @@ class IosKeychain(private val service: String) {
         }
     }
 
+    /**
+     * Atomic find-or-update write. Tries `SecItemUpdate` against the identity
+     * query first and falls back to `SecItemAdd` only when the item does not yet
+     * exist (`errSecItemNotFound`). This avoids the delete-then-add race window
+     * (where a concurrent reader could observe a missing item between the two
+     * calls) and never deletes existing data on a transient failure.
+     */
     fun write(account: String, value: String) {
-        delete(account)
-        val refs = mutableListOf<CFStringRef?>()
-        // Build NSData from the Kotlin string's UTF-8 bytes via NSString bridge.
-        val nsValue = NSString.create(string = value)
-        val data: NSData? = nsValue.dataUsingEncoding(NSUTF8StringEncoding)
-        val dataRef = data?.let { CFBridgingRetain(it) }
-
-        val keys = mutableListOf<CFStringRef?>()
-        val values = mutableListOf<CFStringRef?>()
-        baseAttributes(account, refs).forEach { (k, v) -> keys += k; values += v }
-        keys += kSecValueData; values += dataRef?.reinterpret()
-        keys += kSecAttrAccessible; values += kSecAttrAccessibleAfterFirstUnlock
-
-        val attributes = createCFDictionary(keys, values)
-        // The dictionary retained data + every CFString; release our local refs.
-        dataRef?.let { CFRelease(it) }
-        releaseRetained(refs)
+        val data: NSData = NSString.create(string = value)
+            .dataUsingEncoding(NSUTF8StringEncoding)
+            ?: run {
+                Napier.e("Keychain write for '$account': failed to UTF-8 encode value")
+                return
+            }
+        val dataRef = CFBridgingRetain(data)
         try {
-            val status = SecItemAdd(attributes, null)
-            if (status != errSecSuccess) {
-                Napier.e("Keychain write failed for '$account': OSStatus=$status")
+            // Identity query: class + service + account (no value).
+            val queryRefs = mutableListOf<CFStringRef?>()
+            val qKeys = mutableListOf<CFStringRef?>()
+            val qValues = mutableListOf<CFStringRef?>()
+            baseAttributes(account, queryRefs).forEach { (k, v) -> qKeys += k; qValues += v }
+            val query = createCFDictionary(qKeys, qValues)
+
+            // Update payload: only the new value bytes.
+            val updateDict = createCFDictionary(
+                listOf(kSecValueData),
+                listOf(dataRef?.reinterpret()),
+            )
+            releaseRetained(queryRefs)
+
+            try {
+                when (val updateStatus = SecItemUpdate(query, updateDict)) {
+                    errSecSuccess -> Unit // updated in place
+                    errSecItemNotFound -> {
+                        // No existing item — add a fresh one with full attributes.
+                        val addRefs = mutableListOf<CFStringRef?>()
+                        val aKeys = mutableListOf<CFStringRef?>()
+                        val aValues = mutableListOf<CFStringRef?>()
+                        baseAttributes(account, addRefs).forEach { (k, v) -> aKeys += k; aValues += v }
+                        aKeys += kSecValueData; aValues += dataRef?.reinterpret()
+                        aKeys += kSecAttrAccessible; aValues += kSecAttrAccessibleAfterFirstUnlock
+                        val addAttrs = createCFDictionary(aKeys, aValues)
+                        releaseRetained(addRefs)
+                        try {
+                            val addStatus = SecItemAdd(addAttrs, null)
+                            if (addStatus != errSecSuccess) {
+                                Napier.e("Keychain add failed for '$account': OSStatus=$addStatus")
+                            }
+                        } finally {
+                            addAttrs?.let { CFRelease(it) }
+                        }
+                    }
+                    else -> Napier.e("Keychain update failed for '$account': OSStatus=$updateStatus")
+                }
+            } finally {
+                query?.let { CFRelease(it) }
+                updateDict?.let { CFRelease(it) }
             }
         } finally {
-            attributes?.let { CFRelease(it) }
+            dataRef?.let { CFRelease(it) }
         }
     }
 

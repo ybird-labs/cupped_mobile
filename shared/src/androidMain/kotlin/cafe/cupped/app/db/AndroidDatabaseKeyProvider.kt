@@ -27,15 +27,29 @@ class AndroidDatabaseKeyProvider(context: Context) : DatabaseKeyProvider {
         )
     }
 
+    private val keyLock = Any()
+
     override fun getOrCreateKey(): String {
         prefs.getString(KEY_DB_PASSPHRASE, null)?.let { return it }
-        val generated = generateKey()
-        prefs.edit().putString(KEY_DB_PASSPHRASE, generated).apply()
-        return generated
+        // The key is used immediately to open SQLCipher, so persistence must be
+        // synchronous: an async apply() not yet flushed before a crash (or a
+        // concurrent generation race) would leave the DB unopenable next launch.
+        // Lock + re-check + commit() (which reports success) closes both windows.
+        return synchronized(keyLock) {
+            prefs.getString(KEY_DB_PASSPHRASE, null) ?: generateKey().also { generated ->
+                check(prefs.edit().putString(KEY_DB_PASSPHRASE, generated).commit()) {
+                    "Failed to persist SQLCipher passphrase to EncryptedSharedPreferences"
+                }
+            }
+        }
     }
 
     override fun rotateKey() {
-        prefs.edit().remove(KEY_DB_PASSPHRASE).apply()
+        synchronized(keyLock) {
+            check(prefs.edit().remove(KEY_DB_PASSPHRASE).commit()) {
+                "Failed to remove SQLCipher passphrase during rotateKey"
+            }
+        }
     }
 
     private fun generateKey(): String {

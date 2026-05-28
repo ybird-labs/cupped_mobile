@@ -1,6 +1,5 @@
 package cafe.cupped.app.di
 
-import cafe.cupped.app.db.CuppedDatabase
 import cafe.cupped.app.db.CuppedDatabaseFactory
 import cafe.cupped.app.db.TransactionDispatcher
 import cafe.cupped.app.db.ioDispatcher
@@ -15,19 +14,16 @@ import org.koin.dsl.module
  * Registered on BOTH platforms: iOS via [KoinHelper.initKoin], Android via the
  * `CuppedApplication` `startKoin { ... databaseModule() }` (architecture §S5/#5).
  *
- * Off-main-thread open contract (architecture §S4): the [CuppedDatabase] single
- * is resolved lazily, and [CuppedDatabaseFactory.createAsync] opens on the
- * injected [TransactionDispatcher] (IO in prod). Consumers (repository / sync
- * engine) MUST obtain the database via [CuppedDatabaseFactory.createAsync] from
- * a coroutine, NOT by touching the eager `CuppedDatabase` single on the main
- * thread. The eager single is kept only for tests / non-UI callers that already
- * control their thread.
+ * Off-main-thread open contract (architecture §S4): the production module
+ * exposes ONLY [CuppedDatabaseFactory]; it does NOT register an eager
+ * `single<CuppedDatabase>`, so the database can never be opened synchronously on
+ * the main thread via a stray Koin `get()`. Consumers (repository / sync engine)
+ * obtain the database via [CuppedDatabaseFactory.createAsync] from a coroutine,
+ * which opens on the injected [TransactionDispatcher] (IO in prod). Tests that
+ * need a ready database construct their own driver (see SchemaMigrationTest) or
+ * register a test-only single.
  */
 fun databaseModule(): Module = module {
     single { TransactionDispatcher(ioDispatcher()) }
     single { CuppedDatabaseFactory(driverFactory = get(), transactionDispatcher = get()) }
-    // Lazy: Koin only constructs this on first get(). Prefer createAsync() off
-    // the main thread; this single exists for callers that already control
-    // their thread (e.g. JVM tests).
-    single<CuppedDatabase> { get<CuppedDatabaseFactory>().create() }
 }

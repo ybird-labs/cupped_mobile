@@ -1,6 +1,8 @@
 package cafe.cupped.app.db
 
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -22,11 +24,21 @@ import kotlin.test.assertTrue
  */
 class SchemaMigrationTest {
 
+    private lateinit var driver: JdbcSqliteDriver
+
+    @BeforeTest
+    fun setUp() {
+        driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
+        CuppedDatabase.Schema.create(driver)
+    }
+
+    @AfterTest
+    fun tearDown() {
+        driver.close()
+    }
+
     @Test
     fun schemaCreatesCleanlyOnRealSqlite() {
-        val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
-        CuppedDatabase.Schema.create(driver)
-
         // Sanity: the partial unique index and core tables exist.
         val tables = mutableListOf<String>()
         driver.executeQuery(
@@ -53,8 +65,6 @@ class SchemaMigrationTest {
         ).forEach { expected ->
             assertTrue(expected in tables, "expected table '$expected' missing; have $tables")
         }
-
-        driver.close()
     }
 
     @Test

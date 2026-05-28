@@ -66,10 +66,17 @@ class SyncOutboxConstraintTest {
     @Test
     fun twoActiveRowsForSameEntityViolateUniqueIndex() {
         insertOutbox("m1", "pending")
-        // A second ACTIVE row for the same (user, entity_type, entity_id) must fail.
-        assertFailsWith<Exception> {
+        // A second ACTIVE row for the same (user, entity_type, entity_id) must
+        // fail specifically on the UNIQUE partial index — assert the failure is
+        // a constraint violation, not some unrelated error.
+        val ex = assertFailsWith<Exception> {
             insertOutbox("m2", "in_flight")
         }
+        assertTrue(
+            ex.message?.contains("UNIQUE", ignoreCase = true) == true ||
+                ex.message?.contains("constraint", ignoreCase = true) == true,
+            "expected a UNIQUE constraint violation, got: ${ex.message}",
+        )
         assertEquals(1L, countRows(), "only the first active row should persist")
     }
 

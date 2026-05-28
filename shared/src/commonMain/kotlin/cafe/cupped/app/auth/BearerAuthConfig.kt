@@ -14,6 +14,7 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.encodedPath
 import io.ktor.http.isSuccess
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -109,6 +110,10 @@ fun HttpClientConfig<*>.installBearerAuth(
                         val newTokens = StoredTokens.single(newToken)
                         tokenStore.saveTokens(newTokens)
                         newTokens.toBearerTokens()
+                    } catch (e: CancellationException) {
+                        // Never swallow cancellation — let it propagate so the
+                        // calling coroutine's structured concurrency is honored.
+                        throw e
                     } catch (e: Exception) {
                         Napier.e("Bearer refresh threw", e)
                         null
