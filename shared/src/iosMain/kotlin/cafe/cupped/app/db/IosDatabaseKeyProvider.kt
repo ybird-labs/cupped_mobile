@@ -34,7 +34,7 @@ class IosDatabaseKeyProvider(
         bytes.usePinned { pinned ->
             SecRandomCopyBytes(kSecRandomDefault, bytes.size.toULong(), pinned.addressOf(0))
         }
-        return bytes.joinToString("") { (it.toInt() and 0xFF).toString(16).padStart(2, '0') }
+        return bytes.toHexKey()
     }
 
     private companion object {

@@ -1,11 +1,11 @@
 package cafe.cupped.app.platform
 
+import io.github.aakira.napier.Napier
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.COpaquePointerVar
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.alloc
 import kotlinx.cinterop.allocArray
-import kotlinx.cinterop.get
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.reinterpret
@@ -29,6 +29,7 @@ import platform.Foundation.dataUsingEncoding
 import platform.Security.SecItemAdd
 import platform.Security.SecItemCopyMatching
 import platform.Security.SecItemDelete
+import platform.Security.errSecItemNotFound
 import platform.Security.errSecSuccess
 import platform.Security.kSecAttrAccessible
 import platform.Security.kSecAttrAccessibleAfterFirstUnlock
@@ -47,76 +48,134 @@ import platform.darwin.OSStatus
  * store and the database key provider. Items use
  * `kSecAttrAccessibleAfterFirstUnlock`.
  *
- * NOTE (unverified linking): this compiles to Kotlin/Native but the Security
+ * String <-> Foundation bridging: a Kotlin `String` is NOT an `NSString` on
+ * Kotlin/Native (the old `value as NSString` cast threw `ClassCastException`
+ * at runtime). We bridge explicitly via `NSString.create(string = ...)` and
+ * `dataUsingEncoding(NSUTF8StringEncoding)` for values, and
+ * `CFBridgingRetain(NSString)` for CFString attribute keys/values.
+ *
+ * CoreFoundation lifetime: `CFDictionaryCreate` is called with the standard
+ * key/value callbacks (`kCFTypeDictionaryKeyCallBacks` /
+ * `kCFTypeDictionaryValueCallBacks`), which RETAIN every key and value the
+ * dictionary stores. The dictionary therefore owns its own +1 reference to each
+ * CFString/CFData we hand it, so the local `CFBridgingRetain` references we
+ * created are released right after the dictionary is built (see
+ * [createCFDictionary]) and the dictionary keeps the values alive for the
+ * duration of the Sec* call.
+ *
+ * NOTE (device-only): this compiles for Kotlin/Native but the Security
  * framework calls have not been exercised on a device/simulator in this
- * environment. The CoreFoundation interop (CFDictionaryCreate with toll-free
- * bridged keys/values) is the standard KMP Keychain approach.
+ * environment.
  */
 @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
 class IosKeychain(private val service: String) {
 
+    /**
+     * Returns the stored UTF-8 string for [account], or null when no item
+     * exists (`errSecItemNotFound`). Any other non-success OSStatus is logged
+     * (so a real keychain error is not silently mistaken for "signed out").
+     */
     fun read(account: String): String? {
+        val refs = mutableListOf<CFStringRef?>()
         val keys = mutableListOf<CFStringRef?>()
         val values = mutableListOf<CFStringRef?>()
-        baseAttributes(account).forEach { (k, v) -> keys += k; values += v }
+        baseAttributes(account, refs).forEach { (k, v) -> keys += k; values += v }
         keys += kSecReturnData; values += kCFBooleanTrue?.reinterpret()
         keys += kSecMatchLimit; values += kSecMatchLimitOne
 
+        val query = createCFDictionary(keys, values)
+        releaseRetained(refs)
         return memScoped {
-            val query = createCFDictionary(keys, values)
             try {
                 val resultRef = alloc<CFTypeRefVar>()
                 val status: OSStatus = SecItemCopyMatching(query, resultRef.ptr)
-                if (status != errSecSuccess) return@memScoped null
-                val data = CFBridgingRelease(resultRef.value) as? NSData ?: return@memScoped null
-                NSString.create(data, NSUTF8StringEncoding)?.toString()
+                when (status) {
+                    errSecSuccess -> {
+                        // CFBridgingRelease transfers ownership of the copied
+                        // result to ARC/Kotlin, balancing the +1 from the copy.
+                        val data = CFBridgingRelease(resultRef.value) as? NSData
+                            ?: return@memScoped null
+                        NSString.create(data, NSUTF8StringEncoding)?.toString()
+                    }
+                    errSecItemNotFound -> null
+                    else -> {
+                        Napier.e("Keychain read failed for '$account': OSStatus=$status")
+                        null
+                    }
+                }
             } finally {
                 query?.let { CFRelease(it) }
             }
         }
     }
 
-    @Suppress("CAST_NEVER_SUCCEEDS")
     fun write(account: String, value: String) {
         delete(account)
-        val data = (value as NSString).dataUsingEncoding(NSUTF8StringEncoding)
+        val refs = mutableListOf<CFStringRef?>()
+        // Build NSData from the Kotlin string's UTF-8 bytes via NSString bridge.
+        val nsValue = NSString.create(string = value)
+        val data: NSData? = nsValue.dataUsingEncoding(NSUTF8StringEncoding)
+        val dataRef = data?.let { CFBridgingRetain(it) }
+
         val keys = mutableListOf<CFStringRef?>()
         val values = mutableListOf<CFStringRef?>()
-        baseAttributes(account).forEach { (k, v) -> keys += k; values += v }
-        keys += kSecValueData; values += CFBridgingRetain(data)?.reinterpret()
+        baseAttributes(account, refs).forEach { (k, v) -> keys += k; values += v }
+        keys += kSecValueData; values += dataRef?.reinterpret()
         keys += kSecAttrAccessible; values += kSecAttrAccessibleAfterFirstUnlock
 
         val attributes = createCFDictionary(keys, values)
+        // The dictionary retained data + every CFString; release our local refs.
+        dataRef?.let { CFRelease(it) }
+        releaseRetained(refs)
         try {
-            SecItemAdd(attributes, null)
+            val status = SecItemAdd(attributes, null)
+            if (status != errSecSuccess) {
+                Napier.e("Keychain write failed for '$account': OSStatus=$status")
+            }
         } finally {
             attributes?.let { CFRelease(it) }
         }
     }
 
     fun delete(account: String) {
+        val refs = mutableListOf<CFStringRef?>()
         val keys = mutableListOf<CFStringRef?>()
         val values = mutableListOf<CFStringRef?>()
-        baseAttributes(account).forEach { (k, v) -> keys += k; values += v }
+        baseAttributes(account, refs).forEach { (k, v) -> keys += k; values += v }
         val query = createCFDictionary(keys, values)
+        releaseRetained(refs)
         try {
-            @Suppress("UNUSED_VARIABLE")
             val status: OSStatus = SecItemDelete(query)
+            if (status != errSecSuccess && status != errSecItemNotFound) {
+                Napier.e("Keychain delete failed for '$account': OSStatus=$status")
+            }
         } finally {
             query?.let { CFRelease(it) }
         }
     }
 
-    // `String as NSString` is valid Kotlin/Native toll-free bridging; the
-    // compiler over-warns with CAST_NEVER_SUCCEEDS.
-    @Suppress("CAST_NEVER_SUCCEEDS")
-    private fun cfString(value: String): CFStringRef? =
-        CFBridgingRetain(value as NSString)?.reinterpret()
+    /**
+     * Bridges a Kotlin String to a retained CFString. The returned ref has a +1
+     * retain count owned by the caller; it is appended to [retained] so the
+     * caller can release it after [createCFDictionary] has retained it itself.
+     */
+    private fun cfString(value: String, retained: MutableList<CFStringRef?>): CFStringRef? {
+        val ref: CFStringRef? = CFBridgingRetain(NSString.create(string = value))?.reinterpret()
+        retained += ref
+        return ref
+    }
 
-    private fun baseAttributes(account: String): List<Pair<CFStringRef?, CFStringRef?>> = listOf(
+    private fun releaseRetained(retained: List<CFStringRef?>) {
+        retained.forEach { it?.let { ref -> CFRelease(ref) } }
+    }
+
+    private fun baseAttributes(
+        account: String,
+        retained: MutableList<CFStringRef?>,
+    ): List<Pair<CFStringRef?, CFStringRef?>> = listOf(
         kSecClass to kSecClassGenericPassword,
-        kSecAttrService to cfString(service),
-        kSecAttrAccount to cfString(account),
+        kSecAttrService to cfString(service, retained),
+        kSecAttrAccount to cfString(account, retained),
     )
 
     private fun createCFDictionary(
@@ -130,6 +189,8 @@ class IosKeychain(private val service: String) {
             keyArray[i] = keys[i]
             valueArray[i] = values[i]
         }
+        // CFType key/value callbacks => the dictionary retains each key/value,
+        // so our local CFBridgingRetain references can be released afterwards.
         CFDictionaryCreate(
             allocator = null,
             keys = keyArray,

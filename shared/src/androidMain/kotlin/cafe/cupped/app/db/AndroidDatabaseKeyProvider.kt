@@ -41,7 +41,7 @@ class AndroidDatabaseKeyProvider(context: Context) : DatabaseKeyProvider {
     private fun generateKey(): String {
         val bytes = ByteArray(32)
         SecureRandom().nextBytes(bytes)
-        return bytes.joinToString("") { (it.toInt() and 0xFF).toString(16).padStart(2, '0') }
+        return bytes.toHexKey()
     }
 
     private companion object {

@@ -18,7 +18,12 @@ class AndroidDatabaseDriverFactory(
     override fun createDriver(): SqlDriver {
         // Load the SQLCipher native libraries before opening the database.
         System.loadLibrary("sqlcipher")
-        val passphrase = keyProvider.getOrCreateKey().encodeToByteArray()
+        // RAW KEY format: pass the 256-bit CSPRNG key as SQLCipher raw-key
+        // syntax `x'<hex>'` (NOT a passphrase). SQLCipher detects the `x'...'`
+        // literal and uses the bytes directly with NO PBKDF2 derivation. iOS
+        // must derive identically (it passes the same `x'<hex>'` via PRAGMA key)
+        // so the two platforms' DBs are mutually readable (decision 2026-05-28).
+        val passphrase = rawKeyFormat(keyProvider.getOrCreateKey()).encodeToByteArray()
         val factory = SupportOpenHelperFactory(passphrase)
         return AndroidSqliteDriver(
             schema = CuppedDatabase.Schema,
