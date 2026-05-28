@@ -3,6 +3,10 @@ package cafe.cupped.app.di
 import cafe.cupped.app.auth.IosTokenStore
 import cafe.cupped.app.auth.TokenStore
 import cafe.cupped.app.auth.installBearerAuth
+import cafe.cupped.app.db.DatabaseDriverFactory
+import cafe.cupped.app.db.DatabaseKeyProvider
+import cafe.cupped.app.db.IosDatabaseDriverFactory
+import cafe.cupped.app.db.IosDatabaseKeyProvider
 import cafe.cupped.app.network.configureHttpLogging
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.darwin.Darwin
@@ -14,6 +18,8 @@ import org.koin.dsl.module
 
 actual fun platformModule() = module {
     single<TokenStore> { IosTokenStore() }
+    single<DatabaseKeyProvider> { IosDatabaseKeyProvider() }
+    single<DatabaseDriverFactory> { IosDatabaseDriverFactory(keyProvider = get()) }
     single<HttpClient> {
         HttpClient(Darwin) {
             install(ContentNegotiation) {

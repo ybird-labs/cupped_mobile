@@ -1,0 +1,23 @@
+-- Durable mutation intent (architecture §5.3).
+CREATE TABLE sync_outbox (
+    id TEXT NOT NULL PRIMARY KEY,          -- mutation_id (idempotency key component)
+    user_id TEXT NOT NULL,
+    client_id TEXT NOT NULL,               -- per-device id
+    entity_type TEXT NOT NULL,             -- 'brew_log' (v1)
+    entity_id TEXT NOT NULL,
+    operation TEXT NOT NULL,               -- 'create' | 'update' | 'delete'
+    base_server_version INTEGER,           -- diagnostic in v1; conflict gate in v2
+    state TEXT NOT NULL DEFAULT 'pending',
+    created_at INTEGER NOT NULL,
+    retry_count INTEGER NOT NULL DEFAULT 0,
+    next_attempt_at INTEGER,               -- backoff schedule (clock-jump tolerant, M6)
+    last_error TEXT
+);
+
+CREATE INDEX sync_outbox_ready_idx ON sync_outbox(user_id, state, next_attempt_at, created_at);
+
+-- At most one ACTIVE outbox row per (user, entity). dead_letter is excluded so a
+-- dead-lettered item doesn't block a fresh edit (architecture §5.3).
+CREATE UNIQUE INDEX sync_outbox_entity_active_unique_idx
+    ON sync_outbox(user_id, entity_type, entity_id)
+    WHERE state IN ('pending', 'in_flight', 'blocked_error', 'auth_blocked');

@@ -1,0 +1,36 @@
+-- Read-only reference caches (architecture §5.5). Never in the outbox.
+
+CREATE TABLE brew_method_cache (
+    id TEXT NOT NULL PRIMARY KEY,
+    name TEXT NOT NULL,
+    slug TEXT NOT NULL
+);
+
+CREATE TABLE flavor_note_cache (
+    id TEXT NOT NULL PRIMARY KEY,
+    name TEXT NOT NULL,
+    slug TEXT NOT NULL,
+    category TEXT
+);
+
+CREATE TABLE bean_cache (
+    id TEXT NOT NULL PRIMARY KEY,
+    user_id TEXT,
+    name TEXT NOT NULL,                     -- NOT NULL per domain Bean (N4)
+    slug TEXT,                              -- slug per domain Bean (N4)
+    country TEXT,
+    region TEXT,
+    process TEXT,
+    roast_level INTEGER,
+    payload_json TEXT
+);
+
+CREATE TABLE recipe_cache (
+    id TEXT NOT NULL PRIMARY KEY,
+    user_id TEXT,
+    name TEXT NOT NULL,                     -- NOT NULL: domain Recipe.name is non-null (N5)
+    grind_size INTEGER,
+    water_temp_f INTEGER,
+    ratio REAL,
+    payload_json TEXT
+);

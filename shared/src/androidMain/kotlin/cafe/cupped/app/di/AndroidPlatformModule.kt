@@ -3,6 +3,10 @@ package cafe.cupped.app.di
 import cafe.cupped.app.auth.AndroidTokenStore
 import cafe.cupped.app.auth.TokenStore
 import cafe.cupped.app.auth.installBearerAuth
+import cafe.cupped.app.db.AndroidDatabaseDriverFactory
+import cafe.cupped.app.db.AndroidDatabaseKeyProvider
+import cafe.cupped.app.db.DatabaseDriverFactory
+import cafe.cupped.app.db.DatabaseKeyProvider
 import cafe.cupped.app.network.configureHttpLogging
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
@@ -15,6 +19,10 @@ import org.koin.dsl.module
 
 actual fun platformModule() = module {
     single<TokenStore> { AndroidTokenStore(androidContext()) }
+    single<DatabaseKeyProvider> { AndroidDatabaseKeyProvider(androidContext()) }
+    single<DatabaseDriverFactory> {
+        AndroidDatabaseDriverFactory(context = androidContext(), keyProvider = get())
+    }
     single<HttpClient> {
         HttpClient(OkHttp) {
             install(ContentNegotiation) {

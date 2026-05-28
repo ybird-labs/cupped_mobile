@@ -6,6 +6,23 @@ plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.skie)
     alias(libs.plugins.kotlinx.serialization)
+    alias(libs.plugins.sqldelight)
+}
+
+sqldelight {
+    databases {
+        create("CuppedDatabase") {
+            packageName.set("cafe.cupped.app.db")
+            // SQLite dialect >= 3.24 is required for UPSERT (architecture §5/§17).
+            dialect("app.cash.sqldelight:sqlite-3-24-dialect:${libs.versions.sqldelight.get()}")
+            // Validate .sqm migrations against the schema snapshot under `check`.
+            // NOTE: not airtight (research: false-negative history #1541/#4138/#3378) —
+            // backed by an explicit migration test in commonTest.
+            verifyMigrations.set(true)
+            // Generate a numbered .db schema snapshot so migrations can be verified.
+            schemaOutputDirectory.set(file("src/commonMain/sqldelight/databases"))
+        }
+    }
 }
 
 skie {
@@ -45,6 +62,8 @@ kotlin {
             implementation(libs.ktor.client.okhttp)
             implementation(libs.koin.android)
             implementation(libs.androidx.security.crypto)
+            implementation(libs.sqldelight.android.driver)
+            implementation(libs.sqlcipher.android)
         }
         commonMain.dependencies {
             implementation(projects.apiContract)
@@ -57,6 +76,8 @@ kotlin {
             implementation(libs.ktor.client.logging)
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(libs.koin.core)
+            implementation(libs.sqldelight.runtime)
+            implementation(libs.sqldelight.coroutines)
             api(libs.kmp.observableviewmodel)
         }
         commonTest.dependencies {
@@ -64,8 +85,16 @@ kotlin {
             implementation(libs.kotlinx.coroutines.test)
             implementation(libs.ktor.client.mock)
         }
+        // JVM-only SQLite (JDBC) driver for schema/migration tests; runs under
+        // :shared:testDebugUnitTest. Not in commonTest because it is JVM-only.
+        val androidUnitTest by getting {
+            dependencies {
+                implementation(libs.sqldelight.sqlite.driver)
+            }
+        }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
+            implementation(libs.sqldelight.native.driver)
         }
     }
 }
