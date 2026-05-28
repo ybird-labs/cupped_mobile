@@ -95,6 +95,14 @@ internal class CuppedApiClient(
      * The returned bearer token is used by the iOS side to exchange
      * for a session cookie via MobileSessionClient.
      *
+     * NOTE (Phase 4): this verify flow does NOT yet persist the returned token
+     * into [cafe.cupped.app.auth.TokenStore.saveTokens]. Wiring the magic-link/
+     * verify flow to the TokenStore is intentionally deferred to Phase 4
+     * (decision 2026-05-28). Until then the Ktor Bearer auth provider
+     * (installBearerAuth) is INERT for these calls: loadTokens returns null, no
+     * Authorization header is attached, and refreshTokens never fires. Bearer
+     * auth only becomes live once Phase 4 calls saveTokens here.
+     *
      * @return Result.success with the bearer token response, or
      *   Result.failure with the exception.
      */

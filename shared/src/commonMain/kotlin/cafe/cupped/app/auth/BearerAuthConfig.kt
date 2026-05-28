@@ -11,6 +11,8 @@ import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.encodedPath
 import io.ktor.http.isSuccess
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -38,7 +40,8 @@ fun HttpClientConfig<*>.installBearerAuth(
     tokenStore: TokenStore,
     baseUrl: String,
 ) {
-    val refreshUrl = "${baseUrl.trimEnd('/')}/api/v1/auth/refresh"
+    val trimmedBase = baseUrl.trimEnd('/')
+    val refreshUrl = "$trimmedBase/api/v1/auth/refresh"
     // Serializes all refresh attempts. One client == one config == one Mutex.
     val refreshMutex = Mutex()
 
@@ -75,13 +78,32 @@ fun HttpClientConfig<*>.installBearerAuth(
                                 append(HttpHeaders.Authorization, "Bearer $token")
                             }
                         }
+                        // HARD refresh failure: the session is expired/revoked
+                        // (refresh endpoint itself returns 401/Unauthorized).
+                        // Clear the store and return null so the app drops to
+                        // signed-out instead of re-attaching a dead token forever.
+                        if (response.status == HttpStatusCode.Unauthorized) {
+                            Napier.w("Bearer refresh rejected (401); clearing tokens -> signed out")
+                            tokenStore.clear()
+                            return@withLock null
+                        }
                         if (!response.status.isSuccess()) {
+                            // Transient (5xx/network-ish) — keep tokens, retry later.
                             Napier.w("Bearer refresh failed: HTTP ${response.status.value}")
                             return@withLock null
                         }
                         val newToken = response.body<GeneratedVerifyResponse>().token
                         if (newToken.isNullOrBlank()) {
                             Napier.w("Bearer refresh succeeded but response carried no token")
+                            return@withLock null
+                        }
+                        // No-rotation guard: a 200 that returns the SAME token as
+                        // the one that just 401'd is not a real refresh. Treat as
+                        // an auth failure: clear + signed-out rather than looping
+                        // forever re-attaching an identical, already-rejected token.
+                        if (newToken == token) {
+                            Napier.w("Bearer refresh returned an unrotated token; clearing -> signed out")
+                            tokenStore.clear()
                             return@withLock null
                         }
                         val newTokens = StoredTokens.single(newToken)
@@ -94,12 +116,33 @@ fun HttpClientConfig<*>.installBearerAuth(
                 }
             }
 
-            // Always attach the bearer to requests once we have a token, without
-            // waiting for a 401 first. Refresh still handles expiry.
-            sendWithoutRequest { true }
+            // Realm scoping: attach the bearer to all requests EXCEPT the
+            // unauthenticated magic-link/refresh auth endpoints. Without this a
+            // stale token rides along on /auth/verify, requestMagicLink, and
+            // /auth/refresh (the refresh request attaches its token explicitly
+            // above). Scoped by path so those endpoints stay token-free even
+            // once a token is populated (Phase 4).
+            sendWithoutRequest { request ->
+                val path = request.url.encodedPath
+                !isUnauthenticatedAuthPath(path)
+            }
         }
     }
 }
+
+/**
+ * True for the magic-link / token-exchange endpoints that must NOT carry a
+ * bearer token (they establish or rotate the session themselves).
+ */
+private fun isUnauthenticatedAuthPath(encodedPath: String): Boolean =
+    // Endpoints from the Brewer OpenAPI spec that establish/rotate the session
+    // and must not carry a (possibly stale) bearer:
+    //   POST /api/v1/auth/magic-link  (requestMagicLink)
+    //   POST /api/v1/auth/verify      (magic-link -> token exchange)
+    //   POST /api/v1/auth/refresh     (token rotation; attaches its own token)
+    encodedPath.endsWith("/auth/magic-link") ||
+        encodedPath.endsWith("/auth/verify") ||
+        encodedPath.endsWith("/auth/refresh")
 
 private fun StoredTokens.toBearerTokens(): BearerTokens =
     BearerTokens(accessToken = accessToken, refreshToken = refreshToken)
