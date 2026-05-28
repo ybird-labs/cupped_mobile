@@ -4,7 +4,7 @@ package cafe.cupped.app.db
  * Supplies the SQLCipher passphrase for the local database (architecture §12).
  *
  * The passphrase is a random 256-bit secret generated once and stored in the
- * platform keystore (Android Keystore-backed EncryptedSharedPreferences /
+ * platform keystore (Android Keystore-backed AES-256-GCM envelope encryption /
  * iOS Keychain). It is NOT the user's credential; it is a device-local DB key.
  *
  * On logout / account switch the database is wiped and re-keyed (architecture

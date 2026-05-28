@@ -61,7 +61,6 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.ktor.client.okhttp)
             implementation(libs.koin.android)
-            implementation(libs.androidx.security.crypto)
             implementation(libs.sqldelight.android.driver)
             implementation(libs.sqlcipher.android)
         }

@@ -1,50 +1,40 @@
 package cafe.cupped.app.auth
 
 import android.content.Context
-import android.content.SharedPreferences
-import androidx.security.crypto.EncryptedSharedPreferences
-import androidx.security.crypto.MasterKey
+import cafe.cupped.app.platform.KeystoreSecretStore
 
 /**
- * Android [TokenStore] backed by [EncryptedSharedPreferences], whose master
- * key lives in the Android Keystore (AES256-GCM). Satisfies architecture §11:
- * a persistent, platform-keystore-backed token store.
+ * Android [TokenStore] backed by [KeystoreSecretStore], which performs
+ * AES-256-GCM envelope encryption with a key held in the Android Keystore.
+ * Satisfies architecture §11: a persistent, platform-keystore-backed token
+ * store.
+ *
+ * The stored representation is unchanged from the previous implementation:
+ * the access token under [KEY_ACCESS] and the refresh token under
+ * [KEY_REFRESH], with
+ * [getTokens] falling back to the access token when no refresh token is
+ * present.
  */
 class AndroidTokenStore(context: Context) : TokenStore {
 
-    private val prefs: SharedPreferences = run {
-        val appContext = context.applicationContext
-        val masterKey = MasterKey.Builder(appContext)
-            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-            .build()
-        EncryptedSharedPreferences.create(
-            appContext,
-            PREFS_FILE_NAME,
-            masterKey,
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
-        )
-    }
+    private val secrets = KeystoreSecretStore(context)
 
     override fun getTokens(): StoredTokens? {
-        val access = prefs.getString(KEY_ACCESS, null) ?: return null
-        val refresh = prefs.getString(KEY_REFRESH, null) ?: access
+        val access = secrets.get(KEY_ACCESS) ?: return null
+        val refresh = secrets.get(KEY_REFRESH) ?: access
         return StoredTokens(accessToken = access, refreshToken = refresh)
     }
 
     override fun saveTokens(tokens: StoredTokens) {
-        prefs.edit()
-            .putString(KEY_ACCESS, tokens.accessToken)
-            .putString(KEY_REFRESH, tokens.refreshToken)
-            .apply()
+        secrets.put(KEY_ACCESS, tokens.accessToken)
+        secrets.put(KEY_REFRESH, tokens.refreshToken)
     }
 
     override fun clear() {
-        prefs.edit().clear().apply()
+        secrets.clear()
     }
 
     private companion object {
-        const val PREFS_FILE_NAME = "cupped_auth_tokens"
         const val KEY_ACCESS = "access_token"
         const val KEY_REFRESH = "refresh_token"
     }

@@ -31,7 +31,7 @@ data class StoredTokens(
  * Implementations MUST persist across process restarts and SHOULD be backed
  * by the platform secure storage:
  *  - iOS: Keychain.
- *  - Android: EncryptedSharedPreferences (Android Keystore-backed master key).
+ *  - Android: Android Keystore-backed AES-256-GCM envelope encryption.
  *
  * All methods are synchronous and expected to be cheap; Ktor's `loadTokens`
  * / `refreshTokens` callbacks are suspend, but the store itself is keystore

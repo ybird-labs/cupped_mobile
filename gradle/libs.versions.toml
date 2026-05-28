@@ -9,10 +9,6 @@ androidx-core = "1.17.0"
 androidx-espresso = "3.7.0"
 androidx-lifecycle = "2.9.6"
 androidx-testExt = "1.3.0"
-# TODO(tech-debt): androidx.security:security-crypto is deprecated as of 1.1.0 (no future
-# releases). Migrate AndroidTokenStore + AndroidDatabaseKeyProvider off EncryptedSharedPreferences
-# to direct Android Keystore usage. Tracked as a follow-up; 1.1.0 is the latest stable.
-androidx-security-crypto = "1.1.0"
 composeMultiplatform = "1.10.0"
 junit = "4.13.2"
 kotlin = "2.3.10"
@@ -42,7 +38,6 @@ ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "k
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
 koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
-androidx-security-crypto = { module = "androidx.security:security-crypto", version.ref = "androidx-security-crypto" }
 sqldelight-runtime = { module = "app.cash.sqldelight:runtime", version.ref = "sqldelight" }
 sqldelight-coroutines = { module = "app.cash.sqldelight:coroutines-extensions", version.ref = "sqldelight" }
 sqldelight-android-driver = { module = "app.cash.sqldelight:android-driver", version.ref = "sqldelight" }
