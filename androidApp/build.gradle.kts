@@ -18,6 +18,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     packaging {
         resources {
@@ -25,8 +26,14 @@ android {
         }
     }
     buildTypes {
+        getByName("debug") {
+            // Android emulator reaches the host loopback via 10.0.2.2.
+            buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:4000\"")
+        }
         getByName("release") {
             isMinifyEnabled = false
+            // TODO: point at the production Brewer API host before shipping.
+            buildConfigField("String", "BASE_URL", "\"https://api.cupped.cafe\"")
         }
     }
     compileOptions {
@@ -44,6 +51,8 @@ kotlin {
 dependencies {
     implementation(project(":composeApp"))
     implementation(project(":shared"))
+    implementation(libs.koin.core)
+    implementation(libs.koin.android)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.activity.compose)
     implementation(libs.compose.uiToolingPreview)
