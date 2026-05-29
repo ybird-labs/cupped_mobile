@@ -36,7 +36,16 @@ class AndroidDatabaseDriverFactory(
             // instead of failing against a mismatched one. rotateKey() clears the
             // stale (undecryptable) entry so getOrCreateKey() then mints a fresh key.
             Napier.e("DB passphrase unrecoverable; wiping local DB and re-keying before reopen.", e)
-            context.applicationContext.deleteDatabase(CUPPED_DB_NAME)
+            val appContext = context.applicationContext
+            // Only rotate the key once the stale DB file is actually gone. If the
+            // delete fails, rotating would reopen the old file under a mismatched
+            // passphrase — fail loudly instead (deleteDatabase returns false on
+            // failure; true also when the file was already absent).
+            val dbFile = appContext.getDatabasePath(CUPPED_DB_NAME)
+            check(!dbFile.exists() || appContext.deleteDatabase(CUPPED_DB_NAME)) {
+                "Failed to delete unrecoverable SQLCipher DB ($CUPPED_DB_NAME); " +
+                    "refusing to rotate the key over a stale file."
+            }
             keyProvider.rotateKey()
             keyProvider.getOrCreateKey()
         }
