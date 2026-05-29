@@ -143,6 +143,7 @@
           "flavor_note_ids": [
             "e10f891b-7139-4328-88b8-ef7d5e921cf4"
           ],
+          "id": "0f5f0d6a-0c66-4a5d-8a4d-f4f3416d55a7",
           "post": {
             "create": true
           },
@@ -171,6 +172,11 @@
               "type": "string"
             },
             "type": "array"
+          },
+          "id": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
           },
           "latitude": {
             "nullable": true,
