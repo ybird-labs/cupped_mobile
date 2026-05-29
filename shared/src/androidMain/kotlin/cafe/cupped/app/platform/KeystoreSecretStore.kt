@@ -6,6 +6,7 @@ import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyPermanentlyInvalidatedException
 import android.security.keystore.KeyProperties
 import android.util.Base64
+import io.github.aakira.napier.Napier
 import java.security.KeyStore
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
@@ -77,14 +78,14 @@ class KeystoreSecretStore(context: Context) {
     fun get(key: String): String? {
         synchronized(lock) {
             val encoded = prefs.getString(key, null) ?: return null
-            val blob = Base64.decode(encoded, Base64.NO_WRAP)
-            if (blob.size <= GCM_IV_LENGTH) {
-                throw SecretUndecryptableException(
-                    key,
-                    IllegalStateException("stored blob too short to contain IV + ciphertext"),
-                )
-            }
             return try {
+                // Decode INSIDE the try so a corrupt blob's IllegalArgumentException
+                // (and the too-short check) are wrapped as SecretUndecryptableException
+                // — callers only recover from that, so a raw throw here would crash.
+                val blob = Base64.decode(encoded, Base64.NO_WRAP)
+                check(blob.size > GCM_IV_LENGTH) {
+                    "stored blob too short to contain IV + ciphertext"
+                }
                 val iv = blob.copyOfRange(0, GCM_IV_LENGTH)
                 val ciphertext = blob.copyOfRange(GCM_IV_LENGTH, blob.size)
                 val secretKey = getOrCreateSecretKey()
@@ -92,6 +93,11 @@ class KeystoreSecretStore(context: Context) {
                 cipher.init(Cipher.DECRYPT_MODE, secretKey, GCMParameterSpec(GCM_TAG_BITS, iv))
                 String(cipher.doFinal(ciphertext), Charsets.UTF_8)
             } catch (e: KeyPermanentlyInvalidatedException) {
+                // The Keystore key is permanently dead; getOrCreateSecretKey would
+                // keep returning it and every future get/put would fail. Delete the
+                // alias so the next put() regenerates a fresh key. Everything stored
+                // under the old key is now unrecoverable.
+                deleteSecretKey()
                 throw SecretUndecryptableException(key, e)
             } catch (e: Exception) {
                 throw SecretUndecryptableException(key, e)
@@ -143,6 +149,19 @@ class KeystoreSecretStore(context: Context) {
             .build()
         keyGenerator.init(spec)
         return keyGenerator.generateKey()
+    }
+
+    /**
+     * Deletes the Keystore key alias so the next [getOrCreateSecretKey] generates
+     * a fresh key. Called when the existing key is permanently invalidated; best
+     * effort (a failure here is logged, not fatal).
+     */
+    private fun deleteSecretKey() {
+        try {
+            KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }.deleteEntry(KEY_ALIAS)
+        } catch (e: Exception) {
+            Napier.e("Failed to delete invalidated Keystore key '$KEY_ALIAS'", e)
+        }
     }
 
     private companion object {
