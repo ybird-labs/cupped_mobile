@@ -14,7 +14,16 @@ CREATE TABLE brew_logs (
     flavor_note_ids TEXT,                  -- JSON array of catalog ids (denormalized)
     rating INTEGER,                        -- 1..100 (validation in domain; no DB CHECK)
     notes TEXT,
+    -- Location (architecture §5.1, decision 2026-05-29): coordinates != place.
+    -- latitude/longitude are captured on EVERY log (raw device coords, exist even
+    -- at home). They are nullable ONLY to preserve the local-first invariant that a
+    -- write never fails when there's no GPS fix / location permission.
+    latitude REAL,
+    longitude REAL,
+    -- The coffee shop ("place") is OPTIONAL / user-skippable: a free-text name and a
+    -- soft ref (no FK) to a registered Place. Both null when drinking at home.
     location_name TEXT,
+    place_id TEXT,
     logged_at_iso TEXT,                    -- display only
 
     sync_status TEXT NOT NULL DEFAULT 'synced',
