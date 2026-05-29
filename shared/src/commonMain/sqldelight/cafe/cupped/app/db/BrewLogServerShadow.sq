@@ -1,0 +1,9 @@
+-- Last known server state per brew log (architecture §5.2).
+CREATE TABLE brew_log_server_shadow (
+    id TEXT NOT NULL PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    server_version INTEGER NOT NULL,       -- used by the pull staleness guard (M4)
+    server_updated_at INTEGER NOT NULL,
+    server_deleted_at INTEGER,
+    payload_json TEXT                      -- full server row (payload-in-feed)
+);

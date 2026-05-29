@@ -30,7 +30,7 @@ object KoinHelper {
                 NapierInit.init()
             }
             startKoin {
-                modules(sharedModule(baseUrl), platformModule())
+                modules(sharedModule(baseUrl), platformModule(), databaseModule())
             }
         } finally {
             lock.unlock()
