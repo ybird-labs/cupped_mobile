@@ -8,6 +8,7 @@ import cafe.cupped.app.db.AndroidDatabaseKeyProvider
 import cafe.cupped.app.db.DatabaseDriverFactory
 import cafe.cupped.app.db.DatabaseKeyProvider
 import cafe.cupped.app.network.configureHttpLogging
+import cafe.cupped.app.platform.KeystoreSecretStore
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -18,8 +19,12 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 actual fun platformModule() = module {
-    single<TokenStore> { AndroidTokenStore(androidContext()) }
-    single<DatabaseKeyProvider> { AndroidDatabaseKeyProvider(androidContext()) }
+    // Single shared Keystore-backed secret store (one Keystore key, one prefs
+    // file) used by BOTH the token store and the DB key provider — avoids the
+    // cold-start key-creation race of two instances sharing one alias.
+    single { KeystoreSecretStore(androidContext()) }
+    single<TokenStore> { AndroidTokenStore(get()) }
+    single<DatabaseKeyProvider> { AndroidDatabaseKeyProvider(get()) }
     single<DatabaseDriverFactory> {
         AndroidDatabaseDriverFactory(context = androidContext(), keyProvider = get())
     }

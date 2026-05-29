@@ -6,7 +6,6 @@ import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyPermanentlyInvalidatedException
 import android.security.keystore.KeyProperties
 import android.util.Base64
-import io.github.aakira.napier.Napier
 import java.security.KeyStore
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
@@ -68,17 +67,24 @@ class KeystoreSecretStore(context: Context) {
 
     /**
      * Returns the decrypted UTF-8 string stored under [key], or null when the
-     * entry is absent or cannot be decrypted (logged, never thrown).
+     * entry is genuinely ABSENT. Throws [SecretUndecryptableException] when an
+     * entry EXISTS but cannot be decrypted (Keystore key invalidated/rotated, or
+     * the stored blob is corrupt). Callers MUST distinguish this from absent,
+     * because a present-but-undecryptable secret means the prior plaintext is
+     * unrecoverable — silently treating it as "no value" would, for the DB
+     * passphrase, re-key over an existing un-openable database.
      */
     fun get(key: String): String? {
         synchronized(lock) {
             val encoded = prefs.getString(key, null) ?: return null
+            val blob = Base64.decode(encoded, Base64.NO_WRAP)
+            if (blob.size <= GCM_IV_LENGTH) {
+                throw SecretUndecryptableException(
+                    key,
+                    IllegalStateException("stored blob too short to contain IV + ciphertext"),
+                )
+            }
             return try {
-                val blob = Base64.decode(encoded, Base64.NO_WRAP)
-                if (blob.size <= GCM_IV_LENGTH) {
-                    Napier.e("Secret '$key' is too short to contain IV + ciphertext")
-                    return null
-                }
                 val iv = blob.copyOfRange(0, GCM_IV_LENGTH)
                 val ciphertext = blob.copyOfRange(GCM_IV_LENGTH, blob.size)
                 val secretKey = getOrCreateSecretKey()
@@ -86,11 +92,9 @@ class KeystoreSecretStore(context: Context) {
                 cipher.init(Cipher.DECRYPT_MODE, secretKey, GCMParameterSpec(GCM_TAG_BITS, iv))
                 String(cipher.doFinal(ciphertext), Charsets.UTF_8)
             } catch (e: KeyPermanentlyInvalidatedException) {
-                Napier.e("Keystore key invalidated; cannot decrypt '$key'", e)
-                null
+                throw SecretUndecryptableException(key, e)
             } catch (e: Exception) {
-                Napier.e("Failed to decrypt secret '$key'", e)
-                null
+                throw SecretUndecryptableException(key, e)
             }
         }
     }
@@ -151,3 +155,14 @@ class KeystoreSecretStore(context: Context) {
         const val GCM_TAG_BITS = 128
     }
 }
+
+/**
+ * Thrown by [KeystoreSecretStore.get] when an entry EXISTS but cannot be
+ * decrypted — Keystore key invalidated/rotated, or the stored blob is corrupt.
+ * Distinct from a genuinely-absent entry (which returns null): a
+ * present-but-undecryptable secret means the prior plaintext is unrecoverable,
+ * so callers must choose recovery (sign out / wipe + re-sync) rather than
+ * silently re-keying.
+ */
+class SecretUndecryptableException(key: String, cause: Throwable?) :
+    Exception("Secret '$key' exists but could not be decrypted", cause)
