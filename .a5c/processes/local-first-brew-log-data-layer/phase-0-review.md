@@ -33,10 +33,11 @@ Key findings:
 2. Brewer reads `x-profile-id` when present and otherwise uses the authenticated user's default profile.
 3. Brewer source currently accepts optional client-generated brew-log `id` on REST create.
 4. The mobile OpenAPI contract has been updated from `api-spec-v0.1.2` to `api-spec-v0.1.4`; this resolves the earlier drift where `BrewLogCreateRequest.id` was missing from the checked-in spec.
-5. Current Brewer REST create still requires canonical `bean_id`.
-6. Current Brewer REST is not a sync API: no event cursor, mutation replay, tombstones, `sync_version`, or `/api/v1/sync/...` endpoints exist yet.
-7. Current REST response does not round-trip raw `latitude`/`longitude`, even though create accepts them.
-8. Mobile `BeanDraft` / `RecipeDraft` shapes do not fully match current Brewer server resource shapes.
+5. The updated OpenAPI contract also includes `/api/v1/beans` `GET`/`POST`, and `BeanCreateRequest.id` is optional/nullable. This enables optimistic local bean creation with a stable client-generated bean id.
+6. Current Brewer brew-log REST create still requires canonical `bean_id`; optimistic local bean creation can satisfy that future push dependency if the same client-generated bean id is used.
+7. Current Brewer REST is not a sync API: no event cursor, mutation replay, tombstones, `sync_version`, or `/api/v1/sync/...` endpoints exist yet.
+8. Current REST response does not round-trip raw `latitude`/`longitude`, even though create accepts them.
+9. Mobile `BeanDraft` / `RecipeDraft` shapes do not fully match current Brewer server resource shapes.
 
 ## Decision recorded
 
@@ -55,11 +56,11 @@ If auth account identity is needed later, it should be named separately, e.g. `a
 
 - What local read model should represent pending brew logs?
 - Should the app introduce `LocalBrewLog` / projection models separate from server-confirmed `BrewLog`?
-- How should existing vs draft bean/recipe refs be represented?
+- How should existing vs optimistic-new bean refs be represented, and should pending beans be first-class local resources or embedded draft payloads with a promotion path?
 - Where does `currentProfileId` come from in mobile today?
 - Where does stable per-install `clientId` come from?
 - Should SQLDelight `user_id` columns be renamed now?
-- How should local draft JSON handle fields not currently supported by Brewer REST?
+- How should optimistic bean/draft JSON handle fields not currently supported by Brewer REST?
 - Which tests belong in `commonTest` vs `androidUnitTest` for SQLDelight-backed behavior?
 
 ## Explicit non-goals for this phase
@@ -68,7 +69,7 @@ If auth account identity is needed later, it should be named separately, e.g. `a
 - No SyncEngine push/pull implementation.
 - No server/API changes.
 - No iOS SQLCipher wiring.
-- No standalone offline bean/recipe CRUD.
+- No standalone offline bean/recipe CRUD UI or general bean-management flows; optimistic bean creation is only in scope as a brew-log dependency.
 
 ## Related files
 
