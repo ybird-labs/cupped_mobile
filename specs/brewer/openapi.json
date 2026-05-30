@@ -46,6 +46,165 @@
         "title": "Bean",
         "type": "object"
       },
+      "BeanCreateRequest": {
+        "additionalProperties": false,
+        "description": "Request body for creating a user-created bean.",
+        "example": {
+          "bean_mix": "single_origin",
+          "country": "Ethiopia",
+          "id": "4cc2b1c2-8b4d-4fb2-a5f7-4a7e6b3a2e4f",
+          "name": "Ethiopia Yirgacheffe",
+          "process": "washed",
+          "region": "Yirgacheffe",
+          "roast_level": 35
+        },
+        "properties": {
+          "bean_mix": {
+            "enum": [
+              "single_origin",
+              "blend",
+              "micro_lot",
+              "nano_lot",
+              "estate",
+              "other"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
+          "country": {
+            "nullable": true,
+            "type": "string"
+          },
+          "description": {
+            "nullable": true,
+            "type": "string"
+          },
+          "elevation_max": {
+            "maximum": 4000,
+            "minimum": 0,
+            "nullable": true,
+            "type": "integer"
+          },
+          "elevation_min": {
+            "maximum": 4000,
+            "minimum": 0,
+            "nullable": true,
+            "type": "integer"
+          },
+          "flavor_note_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 100,
+            "type": "array"
+          },
+          "harvest_year": {
+            "maximum": 2100,
+            "minimum": 2000,
+            "nullable": true,
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "image_id": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "process": {
+            "enum": [
+              "washed",
+              "natural",
+              "honey",
+              "white_honey",
+              "yellow_honey",
+              "red_honey",
+              "black_honey",
+              "anaerobic",
+              "carbonic_maceration",
+              "lactic",
+              "thermal_shock",
+              "double_fermented",
+              "extended_fermentation",
+              "wet_hulled",
+              "semi_washed",
+              "pulped_natural",
+              "other"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
+          "process_notes": {
+            "nullable": true,
+            "type": "string"
+          },
+          "region": {
+            "nullable": true,
+            "type": "string"
+          },
+          "roast_level": {
+            "maximum": 100,
+            "minimum": 0,
+            "nullable": true,
+            "type": "integer"
+          },
+          "slug": {
+            "nullable": true,
+            "type": "string"
+          },
+          "variety_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 100,
+            "type": "array"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "BeanCreateRequest",
+        "type": "object"
+      },
+      "BeanResponse": {
+        "additionalProperties": false,
+        "description": "Single bean response.",
+        "properties": {
+          "bean": {
+            "$ref": "#/components/schemas/Bean"
+          }
+        },
+        "required": [
+          "bean"
+        ],
+        "title": "BeanResponse",
+        "type": "object"
+      },
+      "BeansResponse": {
+        "additionalProperties": false,
+        "description": "Bean list response.",
+        "properties": {
+          "beans": {
+            "items": {
+              "$ref": "#/components/schemas/Bean"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "beans"
+        ],
+        "title": "BeansResponse",
+        "type": "object"
+      },
       "BrewLog": {
         "additionalProperties": false,
         "description": "A brew log returned by the API.",
@@ -143,6 +302,7 @@
           "flavor_note_ids": [
             "e10f891b-7139-4328-88b8-ef7d5e921cf4"
           ],
+          "id": "0f5f0d6a-0c66-4a5d-8a4d-f4f3416d55a7",
           "post": {
             "create": true
           },
@@ -171,6 +331,11 @@
               "type": "string"
             },
             "type": "array"
+          },
+          "id": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
           },
           "latitude": {
             "nullable": true,
@@ -959,6 +1124,148 @@
         "summary": "Exchange magic link token for bearer token",
         "tags": [
           "Authentication"
+        ]
+      }
+    },
+    "/api/v1/beans": {
+      "get": {
+        "callbacks": {},
+        "description": "Returns beans scoped to the authenticated profile, newest first.",
+        "operationId": "BrewerWeb.API.V1.BeanController.index",
+        "parameters": [
+          {
+            "description": "Page number, starting at 1.",
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "maximum": 500,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Items per page, capped at 100.",
+            "in": "query",
+            "name": "per_page",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BeansResponse"
+                }
+              }
+            },
+            "description": "Beans"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing or invalid token"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Profile required"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List beans",
+        "tags": [
+          "Beans"
+        ]
+      },
+      "post": {
+        "callbacks": {},
+        "description": "Creates a user-created bean scoped to the authenticated profile.",
+        "operationId": "BrewerWeb.API.V1.BeanController.create",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BeanCreateRequest"
+              }
+            }
+          },
+          "description": "Bean create request",
+          "required": false
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BeanResponse"
+                }
+              }
+            },
+            "description": "Created bean"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing or invalid token"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Profile required"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid bean request"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a bean",
+        "tags": [
+          "Beans"
         ]
       }
     },
