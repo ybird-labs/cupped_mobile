@@ -1,8 +1,8 @@
 {
   "repo": "ybird-labs/brewer",
-  "tag": "api-spec-v0.1.2",
+  "tag": "api-spec-v0.1.4",
   "asset": "openapi.json",
-  "source_url": "https://github.com/ybird-labs/brewer/releases/download/api-spec-v0.1.2/openapi.json",
-  "sha256": "4013867dae220d9d16ad183cf6c98af95fa0e9e0d5470f13a97bc08284cfe175",
-  "updated_at": "2026-05-20T17:20:27.517726+00:00"
+  "source_url": "https://github.com/ybird-labs/brewer/releases/download/api-spec-v0.1.4/openapi.json",
+  "sha256": "317b1bf43db355b3361aed15319bfa21d60eea5e0c32638e8d2826ee8a93bfa1",
+  "updated_at": "2026-05-30T22:18:15.391074+00:00"
 }

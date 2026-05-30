@@ -1,0 +1,24 @@
+{
+  "feature": "Shared KMP data-layer-only local-first brew-log foundation",
+  "targetQuality": 90,
+  "maxRefinementIterations": 2,
+  "requirements": [
+    "Research and decide local read-model shape before implementation.",
+    "Support offline brew-log creation when no cached beans exist by creating a ride-along bean draft.",
+    "Support reuse of pending draft beans already used in brew logs via stable bean_client_id.",
+    "Support cached/existing bean references.",
+    "Persist local brew_log row and sync_outbox intent atomically.",
+    "Implement outbox coalescing for pending_create update/delete and blocked_error edit re-arm where in scope.",
+    "Use authenticated profile id, not generic user id, for brew-log ownership semantics.",
+    "Expose local SQLDelight reads/projections from the data layer.",
+    "Keep generated API DTOs at the network boundary."
+  ],
+  "constraints": [
+    "Data layer only; no UI integration.",
+    "No SyncEngine network push/pull.",
+    "No server endpoints or API contract changes.",
+    "No iOS SQLCipher wiring in this run; document as follow-up production gate.",
+    "No standalone offline bean/recipe CRUD in v1.",
+    "High-risk changes require architecture and final approval breakpoints."
+  ]
+}
