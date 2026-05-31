@@ -21,7 +21,7 @@ flowchart TD
     L -- No, no refinement left --> N[Stop with unresolved blockers]
     L -- Yes --> O[Phase 6: Final verification]
     O --> P[Parallel: shared tests + API boundary check + scope oracle]
-    P --> Q[Draft follow-up issues: iOS SQLCipher, API ID, SyncEngine]
+    P --> Q[Draft follow-up issues: iOS SQLCipher, SyncEngine, remaining API gaps]
     Q --> R{Final approval gate}
     R -- No --> N
     R -- Yes --> S[Done]
@@ -40,7 +40,7 @@ flowchart LR
 
     B[Blocked in this run] --> B1[UI integration]
     B --> B2[SyncEngine network push/pull]
-    B --> B3[Server/API contract changes]
+    B --> B3[Server changes or additional API contract changes]
     B --> B4[iOS SQLCipher wiring]
-    B --> B5[Standalone offline bean CRUD]
+    B --> B5[Standalone offline bean CRUD UI]
 ```

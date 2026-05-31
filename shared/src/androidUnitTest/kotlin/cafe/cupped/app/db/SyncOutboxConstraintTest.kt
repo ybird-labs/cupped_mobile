@@ -11,7 +11,7 @@ import kotlin.test.assertTrue
 
 /**
  * Enforces the `sync_outbox_entity_active_unique_idx` partial unique index
- * (architecture §5.3): at most one ACTIVE outbox row per (user, entity_type,
+ * (architecture §5.3): at most one ACTIVE outbox row per (profile, entity_type,
  * entity_id), where ACTIVE = state IN (pending|in_flight|blocked_error|
  * auth_blocked). A `dead_letter` row is EXCLUDED so a dead-lettered item does
  * not block a fresh edit.
@@ -39,8 +39,8 @@ class SyncOutboxConstraintTest {
             identifier = null,
             sql = """
                 INSERT INTO sync_outbox
-                  (id, user_id, client_id, entity_type, entity_id, operation, state, created_at, retry_count)
-                VALUES (?, 'user_1', 'device_1', 'brew_log', 'brew_1', 'update', ?, 0, 0)
+                  (id, profile_id, client_id, entity_type, entity_id, operation, state, created_at, retry_count)
+                VALUES (?, 'profile_1', 'device_1', 'brew_log', 'brew_1', 'update', ?, 0, 0)
             """.trimIndent(),
             parameters = 2,
         ) {
@@ -66,9 +66,9 @@ class SyncOutboxConstraintTest {
     @Test
     fun twoActiveRowsForSameEntityViolateUniqueIndex() {
         insertOutbox("m1", "pending")
-        // A second ACTIVE row for the same (user, entity_type, entity_id) must
-        // fail specifically on the UNIQUE partial index — assert the failure is
-        // a constraint violation, not some unrelated error.
+        // A second ACTIVE row for the same (profile, entity_type, entity_id)
+        // must fail specifically on the UNIQUE partial index — assert the
+        // failure is a constraint violation, not some unrelated error.
         val ex = assertFailsWith<Exception> {
             insertOutbox("m2", "in_flight")
         }
