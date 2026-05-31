@@ -1,4 +1,6 @@
--- Read-only reference caches (architecture §5.5). Never in the outbox.
+-- Reference caches (architecture §5.5).
+-- brew_method_cache and flavor_note_cache are read-only catalogs and never appear in the outbox.
+-- bean_cache can also store optimistic profile-owned beans that sync through sync_outbox entity_type='bean'.
 
 CREATE TABLE brew_method_cache (
     id TEXT NOT NULL PRIMARY KEY,

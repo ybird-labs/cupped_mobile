@@ -4,10 +4,10 @@ import kotlin.test.Test
 import kotlin.test.assertNotNull
 
 /**
- * RED contract tests for the provider seams required by the approved ADR.
+ * Contract tests for the provider seams required by the approved ADR.
  *
- * These providers do not exist yet. They are required so local writes can be
- * profile-scoped and outbox rows can carry a stable per-install client id.
+ * These providers are required so local writes can be profile-scoped and
+ * outbox rows can carry a stable per-install client id.
  */
 class LocalFirstProviderContractsRedTest {
 
