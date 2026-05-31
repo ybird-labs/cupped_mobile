@@ -2,7 +2,7 @@
 -- Architecture §5.1. Column types/nullability mirror the spec exactly.
 CREATE TABLE brew_logs (
     id TEXT NOT NULL PRIMARY KEY,          -- client-generated UUID for offline creates
-    user_id TEXT NOT NULL,
+    profile_id TEXT NOT NULL,
 
     bean_id TEXT,                          -- canonical id once known
     bean_client_id TEXT,                   -- stable local id for a not-yet-synced new bean
@@ -34,6 +34,6 @@ CREATE TABLE brew_logs (
     last_sync_error TEXT
 );
 
-CREATE INDEX brew_logs_user_idx        ON brew_logs(user_id);
+CREATE INDEX brew_logs_profile_idx     ON brew_logs(profile_id);
 CREATE INDEX brew_logs_sync_status_idx ON brew_logs(sync_status);
 CREATE INDEX brew_logs_deleted_at_idx  ON brew_logs(deleted_at);

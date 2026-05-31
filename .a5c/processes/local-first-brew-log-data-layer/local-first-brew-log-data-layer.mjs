@@ -40,7 +40,7 @@ export async function process(inputs, ctx) {
   const research = await ctx.task(localReadModelResearchTask, {
     feature,
     repoScan,
-    decisionToValidate: 'Use a separate local read model/projection for pending brew logs and reusable ride-along bean/recipe drafts; do not mutate server-confirmed BrewLog into a sync-state carrier unless evidence supports it.',
+    decisionToValidate: 'Use a separate local read model/projection for pending brew logs and reusable optimistic bean refs; do not mutate server-confirmed BrewLog into a sync-state carrier unless evidence supports it.',
     constraints: scopeConstraints()
   });
 
@@ -206,7 +206,7 @@ function scopeConstraints() {
     'Shared KMP data layer only: shared/src/commonMain, shared/src/commonTest, shared/src/androidUnitTest as needed.',
     'No UI integration in composeApp, androidApp, or iosApp.',
     'No SyncEngine network push/pull implementation in this run.',
-    'No server endpoint implementation and no API contract mutation in this run.',
+    'No server endpoint implementation and no additional API contract mutation beyond the pinned api-spec-v0.1.4 update in this run.',
     'No iOS SQLCipher CocoaPods/linker work in this run; document as a production enablement gate.',
     'Generated OpenAPI DTOs must remain at the network/API boundary and must not leak into domain/UI APIs.',
     'Preserve coroutine cancellation; do not swallow CancellationException.',
@@ -217,8 +217,8 @@ function scopeConstraints() {
 
 function acceptanceScenarios() {
   return [
-    'Given no network and no cached beans, when the user logs a brew with a new bean draft, then the data layer persists the brew log locally and enqueues a durable create intent.',
-    'Given a pending new bean draft already used in one brew log, when another brew log is created offline, then the draft can be reused via the same bean_client_id without standalone offline bean CRUD.',
+    'Given no network and no cached beans, when the user logs a brew with a new bean, then the data layer persists an optimistic local bean with a client-generated id, persists the brew log against that id, and enqueues durable create intent(s).',
+    'Given a pending optimistic bean already used in one brew log, when another brew log is created offline, then the bean can be reused via the same bean_client_id/client-generated id without standalone offline bean CRUD UI.',
     'Given cached existing beans, when offline, then the data layer can persist a log referencing an existing cached/canonical bean.',
     'Given an online/remote bean is selected by a future search UI, when persisted by the data layer, then it is treated as an existing canonical bean reference.',
     'Given a pending create is edited, then the outbox remains a single active create intent and local_revision increments.',
@@ -258,19 +258,20 @@ export const localReadModelResearchTask = defineTask('research-local-read-model'
     name: 'planner',
     prompt: {
       role: 'Domain/data architecture researcher',
-      task: 'Research and decide the best local read-model shape for Cupped pending brew logs and ride-along draft refs.',
+      task: 'Research and decide the best local read-model shape for Cupped pending brew logs and optimistic bean refs.',
       context: args,
       instructions: [
         'Compare mutating BrewLog vs introducing LocalBrewLog/read projections vs sealed refs.',
-        'Account for offline no-cache create-new flow, cached existing beans, reusable draft beans from pending logs, and future online remote search.',
+        'Account for offline no-cache create-new flow, cached existing beans, reusable optimistic new beans from pending logs, and future online remote search.',
         'Use Cupped/Brewer terminology: brew logs are scoped to the authenticated profile id, not a generic user id.',
         'Use the generated OpenAPI contract as the mobile API boundary, and use direct Brewer implementation evidence from https://github.com/ybird-labs/brewer to explain/resolve contract drift or missing future-sync details.',
         'Explicitly decide whether existing SQLDelight columns named user_id should be renamed to profile_id now, or kept as a legacy storage name with an explicit profile-id mapping.',
-        'Account for Brewer current REST constraints: create accepts optional client id in source but still requires canonical bean_id; no sync API/event cursor/idempotent mutation replay exists yet.',
+        'Account for Brewer current REST constraints: OpenAPI api-spec-v0.1.4 supports optional client-generated ids for brew-log create and bean create; brew-log create still requires bean_id; no sync API/event cursor/idempotent mutation replay exists yet.',
+        'Decide whether pending new beans should be first-class optimistic local resources (bean_cache + outbox dependency) or embedded draft JSON with a later promotion path.',
         'Identify the source of authenticated profile id and stable per-install client_id needed by local rows/outbox.',
-        'Recommend SQLDelight repository test source-set strategy and draft JSON serialization strategy, including how to handle mobile BeanDraft/RecipeDraft fields that do not currently match Brewer resource shapes.',
+        'Recommend SQLDelight repository test source-set strategy and optimistic bean/draft JSON serialization strategy, including how to handle mobile BeanDraft/RecipeDraft fields that do not currently match Brewer resource shapes.',
         'Keep generated DTOs out of domain/UI APIs.',
-        'Prefer the smallest model that can represent sync_status, last_sync_error, deleted tombstone, existing refs, and draft refs honestly.',
+        'Prefer the smallest model that can represent sync_status, last_sync_error, deleted tombstone, existing refs, and optimistic/draft refs honestly.',
         'Write artifacts/research/local-read-model-decision.md as an ADR with rejected alternatives.'
       ],
       outputFormat: 'JSON with decision, rationale, rejectedAlternatives, risks, artifacts'
@@ -293,7 +294,7 @@ export const acceptanceSpecTask = defineTask('write-atdd-acceptance-spec', (args
       instructions: [
         'Use Given/When/Then language.',
         'Mark must-have vs follow-up scenarios.',
-        'Explicitly list exclusions: UI, SyncEngine, server/API changes, iOS SQLCipher wiring.',
+        'Explicitly list exclusions: UI, SyncEngine, server changes, additional API contract changes beyond the pinned api-spec-v0.1.4 update, iOS SQLCipher wiring.',
         'Write artifacts/specs/local-first-brew-log-acceptance.md.'
       ],
       outputFormat: 'JSON with scenarios, exclusions, risks, artifacts'
@@ -315,7 +316,7 @@ export const testFirstPlanTask = defineTask('plan-tdd-tests', (args, taskCtx) =>
       instructions: [
         'Plan tests before implementation.',
         'Prioritize repository/use-case and SQLDelight invariant tests.',
-        'Include local create, NewDraft ride-along, draft reuse, outbox uniqueness/coalescing, and Flow read projection tests.'
+        'Include local create, optimistic new-bean dependency creation, pending bean reuse, outbox uniqueness/coalescing, and Flow read projection tests.'
       ]
     }
   },
@@ -358,7 +359,7 @@ export const implementDataLayerTask = defineTask('implement-local-first-data-lay
       instructions: [
         'Implement SQLDelight labeled queries and typed enum adapters where useful for consumed columns.',
         'Rewrite repository/use-case semantics to local-first shared data layer without UI or SyncEngine network work.',
-        'Support existing bean refs, NewDraft ride-along refs, and reuse of pending draft refs via client ids.',
+        'Support existing bean refs, optimistic new-bean refs, and reuse of pending optimistic refs via client-generated ids.',
         'Ensure DB row + outbox intent are written atomically in one transaction.',
         'Implement outbox active uniqueness/coalescing behavior required by accepted scope.',
         'Preserve coroutine cancellation and avoid hard-coded dispatchers where async behavior is introduced.',
@@ -383,7 +384,7 @@ export const refineImplementationTask = defineTask('refine-local-first-data-laye
       context: args,
       instructions: [
         'Make the smallest safe changes that resolve blocking review findings.',
-        'Do not add UI, SyncEngine network work, server/API contract changes, or iOS SQLCipher wiring.',
+        'Do not add UI, SyncEngine network work, server changes, additional API contract changes beyond the pinned spec update, or iOS SQLCipher wiring.',
         'Keep tests passing and update tests only when behavior expectations were wrong.'
       ],
       outputFormat: 'JSON with filesModified, reviewItemsAddressed, testsRun, remainingRisks'
@@ -406,7 +407,7 @@ export const architectureSecurityReviewTask = defineTask('architecture-security-
       instructions: [
         'Check that server/API DTOs do not leak into domain/UI APIs.',
         'Check that local writes preserve user intent and outbox invariants.',
-        'Check that no UI, SyncEngine network, server/API, or iOS SQLCipher wiring slipped into scope.',
+        'Check that no UI, SyncEngine network, server changes, additional API contract changes beyond the pinned spec update, or iOS SQLCipher wiring slipped into scope.',
         'Check auth/storage/logging safety: no secrets logged, no fail-open storage behavior introduced.',
         'Score quality 0-100 and write artifacts/review/architecture-security-review.md.'
       ],

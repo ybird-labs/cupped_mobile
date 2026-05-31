@@ -13,9 +13,9 @@ class SubmitBrewLogUseCase(
     private val repository: BrewLogRepository
 ) {
     suspend operator fun invoke(draft: BrewLogDraft): Result<BrewLog> {
-        if (draft.bean !is SelectedBean.Existing) {
+        if (draft.bean == null) {
             return Result.failure(
-                IllegalArgumentException("Select an existing bean before submitting")
+                IllegalArgumentException("Select a bean before submitting")
             )
         }
 

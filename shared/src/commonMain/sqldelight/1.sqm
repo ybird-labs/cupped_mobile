@@ -1,0 +1,139 @@
+-- Migration 1 -> 2: rename local ownership scope from user_id to profile_id
+-- and add explicit outbox dependency metadata for optimistic local resources.
+
+DROP INDEX IF EXISTS brew_logs_user_idx;
+DROP INDEX IF EXISTS brew_logs_sync_status_idx;
+DROP INDEX IF EXISTS brew_logs_deleted_at_idx;
+DROP INDEX IF EXISTS sync_outbox_ready_idx;
+DROP INDEX IF EXISTS sync_outbox_entity_active_unique_idx;
+
+ALTER TABLE brew_logs RENAME TO brew_logs_old;
+CREATE TABLE brew_logs (
+    id TEXT NOT NULL PRIMARY KEY,
+    profile_id TEXT NOT NULL,
+    bean_id TEXT,
+    bean_client_id TEXT,
+    bean_draft_json TEXT,
+    recipe_id TEXT,
+    recipe_client_id TEXT,
+    recipe_draft_json TEXT,
+    brew_method_id TEXT,
+    flavor_note_ids TEXT,
+    rating INTEGER,
+    notes TEXT,
+    latitude REAL,
+    longitude REAL,
+    location_name TEXT,
+    place_id TEXT,
+    logged_at_iso TEXT,
+    sync_status TEXT NOT NULL DEFAULT 'synced',
+    local_revision INTEGER NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL,
+    local_updated_at INTEGER NOT NULL,
+    deleted_at INTEGER,
+    last_sync_error TEXT
+);
+INSERT INTO brew_logs (
+    id, profile_id, bean_id, bean_client_id, bean_draft_json, recipe_id,
+    recipe_client_id, recipe_draft_json, brew_method_id, flavor_note_ids,
+    rating, notes, latitude, longitude, location_name, place_id, logged_at_iso,
+    sync_status, local_revision, created_at, local_updated_at, deleted_at,
+    last_sync_error
+)
+SELECT
+    id, user_id, bean_id, bean_client_id, bean_draft_json, recipe_id,
+    recipe_client_id, recipe_draft_json, brew_method_id, flavor_note_ids,
+    rating, notes, latitude, longitude, location_name, place_id, logged_at_iso,
+    sync_status, local_revision, created_at, local_updated_at, deleted_at,
+    last_sync_error
+FROM brew_logs_old;
+DROP TABLE brew_logs_old;
+
+ALTER TABLE brew_log_server_shadow RENAME TO brew_log_server_shadow_old;
+CREATE TABLE brew_log_server_shadow (
+    id TEXT NOT NULL PRIMARY KEY,
+    profile_id TEXT NOT NULL,
+    server_version INTEGER NOT NULL,
+    server_updated_at INTEGER NOT NULL,
+    server_deleted_at INTEGER,
+    payload_json TEXT
+);
+INSERT INTO brew_log_server_shadow (
+    id, profile_id, server_version, server_updated_at, server_deleted_at, payload_json
+)
+SELECT id, user_id, server_version, server_updated_at, server_deleted_at, payload_json
+FROM brew_log_server_shadow_old;
+DROP TABLE brew_log_server_shadow_old;
+
+ALTER TABLE bean_cache RENAME TO bean_cache_old;
+CREATE TABLE bean_cache (
+    id TEXT NOT NULL PRIMARY KEY,
+    profile_id TEXT,
+    name TEXT NOT NULL,
+    slug TEXT,
+    country TEXT,
+    region TEXT,
+    process TEXT,
+    roast_level INTEGER,
+    payload_json TEXT
+);
+INSERT INTO bean_cache (
+    id, profile_id, name, slug, country, region, process, roast_level, payload_json
+)
+SELECT id, user_id, name, slug, country, region, process, roast_level, payload_json
+FROM bean_cache_old;
+DROP TABLE bean_cache_old;
+
+ALTER TABLE recipe_cache RENAME TO recipe_cache_old;
+CREATE TABLE recipe_cache (
+    id TEXT NOT NULL PRIMARY KEY,
+    profile_id TEXT,
+    name TEXT NOT NULL,
+    grind_size INTEGER,
+    water_temp_f INTEGER,
+    ratio REAL,
+    payload_json TEXT
+);
+INSERT INTO recipe_cache (
+    id, profile_id, name, grind_size, water_temp_f, ratio, payload_json
+)
+SELECT id, user_id, name, grind_size, water_temp_f, ratio, payload_json
+FROM recipe_cache_old;
+DROP TABLE recipe_cache_old;
+
+ALTER TABLE sync_outbox RENAME TO sync_outbox_old;
+CREATE TABLE sync_outbox (
+    id TEXT NOT NULL PRIMARY KEY,
+    profile_id TEXT NOT NULL,
+    client_id TEXT NOT NULL,
+    entity_type TEXT NOT NULL,
+    entity_id TEXT NOT NULL,
+    operation TEXT NOT NULL,
+    base_server_version INTEGER,
+    state TEXT NOT NULL DEFAULT 'pending',
+    created_at INTEGER NOT NULL,
+    retry_count INTEGER NOT NULL DEFAULT 0,
+    next_attempt_at INTEGER,
+    last_error TEXT,
+    depends_on_entity_type TEXT,
+    depends_on_entity_id TEXT
+);
+INSERT INTO sync_outbox (
+    id, profile_id, client_id, entity_type, entity_id, operation,
+    base_server_version, state, created_at, retry_count, next_attempt_at,
+    last_error, depends_on_entity_type, depends_on_entity_id
+)
+SELECT
+    id, user_id, client_id, entity_type, entity_id, operation,
+    base_server_version, state, created_at, retry_count, next_attempt_at,
+    last_error, NULL, NULL
+FROM sync_outbox_old;
+DROP TABLE sync_outbox_old;
+
+CREATE INDEX brew_logs_profile_idx ON brew_logs(profile_id);
+CREATE INDEX brew_logs_sync_status_idx ON brew_logs(sync_status);
+CREATE INDEX brew_logs_deleted_at_idx ON brew_logs(deleted_at);
+CREATE INDEX sync_outbox_ready_idx ON sync_outbox(profile_id, state, next_attempt_at, created_at);
+CREATE UNIQUE INDEX sync_outbox_entity_active_unique_idx
+    ON sync_outbox(profile_id, entity_type, entity_id)
+    WHERE state IN ('pending', 'in_flight', 'blocked_error', 'auth_blocked');

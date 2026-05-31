@@ -15,7 +15,7 @@ CREATE TABLE flavor_note_cache (
 
 CREATE TABLE bean_cache (
     id TEXT NOT NULL PRIMARY KEY,
-    user_id TEXT,
+    profile_id TEXT,
     name TEXT NOT NULL,                     -- NOT NULL per domain Bean (N4)
     slug TEXT,                              -- slug per domain Bean (N4)
     country TEXT,
@@ -27,7 +27,7 @@ CREATE TABLE bean_cache (
 
 CREATE TABLE recipe_cache (
     id TEXT NOT NULL PRIMARY KEY,
-    user_id TEXT,
+    profile_id TEXT,
     name TEXT NOT NULL,                     -- NOT NULL: domain Recipe.name is non-null (N5)
     grind_size INTEGER,
     water_temp_f INTEGER,

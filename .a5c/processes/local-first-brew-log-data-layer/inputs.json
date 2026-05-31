@@ -4,8 +4,8 @@
   "maxRefinementIterations": 2,
   "requirements": [
     "Research and decide local read-model shape before implementation.",
-    "Support offline brew-log creation when no cached beans exist by creating a ride-along bean draft.",
-    "Support reuse of pending draft beans already used in brew logs via stable bean_client_id.",
+    "Support offline brew-log creation when no cached beans exist by creating an optimistic local bean ref with a stable client-generated bean id.",
+    "Support reuse of pending optimistic beans already used in brew logs via stable bean_client_id / client-generated bean id.",
     "Support cached/existing bean references.",
     "Persist local brew_log row and sync_outbox intent atomically.",
     "Implement outbox coalescing for pending_create update/delete and blocked_error edit re-arm where in scope.",
@@ -16,9 +16,9 @@
   "constraints": [
     "Data layer only; no UI integration.",
     "No SyncEngine network push/pull.",
-    "No server endpoints or API contract changes.",
+    "No server endpoints or additional API contract changes beyond consuming the pinned api-spec-v0.1.4 contract update.",
     "No iOS SQLCipher wiring in this run; document as follow-up production gate.",
-    "No standalone offline bean/recipe CRUD in v1.",
+    "No standalone offline bean/recipe CRUD UI or general bean-management flows in v1; optimistic bean creation is only in scope as a brew-log dependency.",
     "High-risk changes require architecture and final approval breakpoints."
   ]
 }
