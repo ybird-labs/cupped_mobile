@@ -37,3 +37,68 @@ CREATE TABLE brew_logs (
 CREATE INDEX brew_logs_profile_idx     ON brew_logs(profile_id);
 CREATE INDEX brew_logs_sync_status_idx ON brew_logs(sync_status);
 CREATE INDEX brew_logs_deleted_at_idx  ON brew_logs(deleted_at);
+
+insertPendingCreate:
+INSERT INTO brew_logs(
+    id,
+    profile_id,
+    bean_id,
+    bean_client_id,
+    bean_draft_json,
+    recipe_id,
+    recipe_client_id,
+    recipe_draft_json,
+    brew_method_id,
+    flavor_note_ids,
+    rating,
+    notes,
+    latitude,
+    longitude,
+    location_name,
+    place_id,
+    logged_at_iso,
+    sync_status,
+    local_revision,
+    created_at,
+    local_updated_at,
+    deleted_at,
+    last_sync_error
+) VALUES (
+    :id,
+    :profile_id,
+    :bean_id,
+    :bean_client_id,
+    :bean_draft_json,
+    :recipe_id,
+    :recipe_client_id,
+    :recipe_draft_json,
+    :brew_method_id,
+    :flavor_note_ids,
+    :rating,
+    :notes,
+    :latitude,
+    :longitude,
+    :location_name,
+    :place_id,
+    :logged_at_iso,
+    'pending_create',
+    1,
+    :created_at,
+    :local_updated_at,
+    NULL,
+    NULL
+);
+
+selectLocalBrewLogById:
+SELECT * FROM brew_logs
+WHERE profile_id = :profile_id AND id = :id;
+
+selectLocalJournalByProfile:
+SELECT * FROM brew_logs
+WHERE profile_id = :profile_id
+  AND deleted_at IS NULL
+  AND sync_status != 'no_op'
+ORDER BY created_at DESC, id DESC;
+
+countRowsByProfile:
+SELECT count(*) FROM brew_logs WHERE profile_id = :profile_id;

@@ -36,3 +36,59 @@ CREATE TABLE recipe_cache (
     ratio REAL,
     payload_json TEXT
 );
+
+upsertExistingBeanCache:
+INSERT OR IGNORE INTO bean_cache(
+    id,
+    profile_id,
+    name,
+    slug,
+    country,
+    region,
+    process,
+    roast_level,
+    payload_json
+) VALUES (
+    :id,
+    NULL,
+    :name,
+    :slug,
+    :country,
+    :region,
+    :process,
+    :roast_level,
+    NULL
+);
+
+insertOptimisticBean:
+INSERT INTO bean_cache(
+    id,
+    profile_id,
+    name,
+    slug,
+    country,
+    region,
+    process,
+    roast_level,
+    payload_json
+) VALUES (
+    :id,
+    :profile_id,
+    :name,
+    NULL,
+    :country,
+    :region,
+    :process,
+    :roast_level,
+    :payload_json
+);
+
+selectBeanForProfile:
+SELECT * FROM bean_cache
+WHERE id = :id AND (profile_id = :profile_id OR profile_id IS NULL)
+ORDER BY CASE WHEN profile_id = :profile_id THEN 0 ELSE 1 END
+LIMIT 1;
+
+selectOptimisticBeanForProfile:
+SELECT * FROM bean_cache
+WHERE id = :id AND profile_id = :profile_id;
