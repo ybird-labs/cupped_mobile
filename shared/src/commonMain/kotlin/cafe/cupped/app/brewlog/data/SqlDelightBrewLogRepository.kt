@@ -178,18 +178,20 @@ class SqlDelightBrewLogRepository(
         draft: BrewLogDraft,
         beanId: String,
     ): Result<LocalBrewLog> {
-        val bean = database.referenceCacheQueries.selectOptimisticBeanForProfile(beanId, profileId).executeAsOneOrNull()
-            ?: return Result.failure(LocalBrewLogException.OptimisticBeanMissing)
-        database.syncOutboxQueries.selectActiveBeanCreateOutbox(profileId, beanId).executeAsOneOrNull()
-            ?: return Result.failure(LocalBrewLogException.OptimisticBeanMissing)
-        if (bean.payload_json == null) return Result.failure(LocalBrewLogException.OptimisticBeanMissing)
-
         val brewLogId = brewLogIdProvider.nextBrewLogId()
         val brewLogOutboxId = outboxIdProvider.nextOutboxId(ENTITY_BREW_LOG, brewLogId, OP_CREATE)
         val now = epochMillisProvider.nowMillis()
 
+        var optimisticBeanMissing = false
         var localBrewLog: LocalBrewLog? = null
         database.transaction {
+            val bean = database.referenceCacheQueries.selectOptimisticBeanForProfile(beanId, profileId).executeAsOneOrNull()
+            val activeBeanCreate = database.syncOutboxQueries.selectActiveBeanCreateOutbox(profileId, beanId).executeAsOneOrNull()
+            if (bean?.payload_json == null || activeBeanCreate == null) {
+                optimisticBeanMissing = true
+                return@transaction
+            }
+
             insertBrewLog(
                 id = brewLogId,
                 profileId = profileId,
@@ -204,6 +206,7 @@ class SqlDelightBrewLogRepository(
                 .executeAsOne()
                 .toLocalBrewLogOrNull(profileId)
         }
+        if (optimisticBeanMissing) return Result.failure(LocalBrewLogException.OptimisticBeanMissing)
         return localBrewLog?.let { Result.success(it) } ?: Result.failure(LocalBrewLogException.PersistenceFailed)
     }
 

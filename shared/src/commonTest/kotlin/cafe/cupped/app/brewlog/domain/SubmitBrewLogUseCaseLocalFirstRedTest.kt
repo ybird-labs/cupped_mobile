@@ -9,11 +9,11 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 /**
- * RED tests for the local-first use-case seam.
+ * Regression coverage for the local-first use-case seam.
  *
- * The current server-first use case rejects [SelectedBean.NewDraft]. Local-first
- * behavior should accept it and delegate to the data layer so the repository can
- * create an optimistic bean and pending brew log atomically.
+ * [SelectedBean.NewDraft] is now accepted and delegated to the data layer so the
+ * repository can create an optimistic bean and pending brew log atomically. Only
+ * a missing bean and [SelectedRecipe.NewDraft] remain rejected at this boundary.
  */
 class SubmitBrewLogUseCaseLocalFirstRedTest {
 

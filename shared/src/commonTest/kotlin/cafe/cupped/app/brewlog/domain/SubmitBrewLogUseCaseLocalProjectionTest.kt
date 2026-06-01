@@ -5,8 +5,6 @@ import cafe.cupped.app.bean.domain.BeanDraft
 import cafe.cupped.app.recipe.domain.RecipeDraft
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlinx.coroutines.test.runTest
 
@@ -46,7 +44,7 @@ class SubmitBrewLogUseCaseLocalProjectionTest {
 
         assertTrue(missingBean.isFailure)
         assertTrue(recipeDraft.isFailure)
-        assertNull(repository.createdDrafts.singleOrNull(), "invalid drafts should not reach repository")
+        assertTrue(repository.createdDrafts.isEmpty(), "invalid drafts should not reach repository")
     }
 
     private class RecordingRepository : BrewLogRepository {

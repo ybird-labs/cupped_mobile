@@ -38,7 +38,7 @@ CREATE TABLE recipe_cache (
 );
 
 upsertExistingBeanCache:
-INSERT OR IGNORE INTO bean_cache(
+INSERT INTO bean_cache(
     id,
     profile_id,
     name,
@@ -58,7 +58,16 @@ INSERT OR IGNORE INTO bean_cache(
     :process,
     :roast_level,
     NULL
-);
+)
+ON CONFLICT(id) DO UPDATE SET
+    profile_id = COALESCE(bean_cache.profile_id, excluded.profile_id),
+    name = excluded.name,
+    slug = excluded.slug,
+    country = excluded.country,
+    region = excluded.region,
+    process = excluded.process,
+    roast_level = excluded.roast_level,
+    payload_json = COALESCE(bean_cache.payload_json, excluded.payload_json);
 
 insertOptimisticBean:
 INSERT INTO bean_cache(
