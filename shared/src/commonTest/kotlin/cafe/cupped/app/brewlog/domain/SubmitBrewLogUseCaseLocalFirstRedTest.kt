@@ -57,25 +57,26 @@ class SubmitBrewLogUseCaseLocalFirstRedTest {
 
         override suspend fun getOptions(): Result<BrewLogOptions> = Result.success(BrewLogOptions())
 
-        override suspend fun createBrewLog(draft: BrewLogDraft): Result<BrewLog> {
+        override suspend fun createBrewLog(draft: BrewLogDraft): Result<LocalBrewLog> {
             createdDraft = draft
             return Result.success(
-                BrewLog(
+                LocalBrewLog(
                     id = "brew-log-1",
-                    bean = Bean(
+                    profileId = "profile-1",
+                    bean = LocalBeanRef.Optimistic(
                         id = "bean-optimistic-1",
-                        name = "Yirgacheffe",
-                        slug = null,
-                        country = "Ethiopia",
-                        region = "Yirgacheffe",
-                        process = "washed",
-                        roastLevel = 35,
+                        draft = (draft.bean as SelectedBean.NewDraft).draft,
+                        syncState = LocalDependencySyncState.Pending,
                     ),
                     notes = draft.notes,
+                    syncStatus = LocalSyncStatus.PendingCreate,
+                    localRevision = 1,
+                    createdAtMillis = 1,
+                    localUpdatedAtMillis = 1,
                 )
             )
         }
 
-        override suspend fun getBrewLogs(): Result<List<BrewLog>> = Result.success(emptyList())
+        override suspend fun getBrewLogs(): Result<List<LocalBrewLog>> = Result.success(emptyList())
     }
 }
