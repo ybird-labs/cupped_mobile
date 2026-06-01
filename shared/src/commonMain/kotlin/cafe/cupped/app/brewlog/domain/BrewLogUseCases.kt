@@ -12,7 +12,7 @@ class GetBrewLogOptionsUseCase(
 class SubmitBrewLogUseCase(
     private val repository: BrewLogRepository
 ) {
-    suspend operator fun invoke(draft: BrewLogDraft): Result<BrewLog> {
+    suspend operator fun invoke(draft: BrewLogDraft): Result<LocalBrewLog> {
         if (draft.bean == null) {
             return Result.failure(
                 IllegalArgumentException("Select a bean before submitting")

@@ -25,6 +25,7 @@ data class BrewLogDraft(
 sealed interface SelectedBean {
     data class Existing(val bean: Bean) : SelectedBean
     data class NewDraft(val draft: BeanDraft) : SelectedBean
+    data class Optimistic(val id: String) : SelectedBean
 }
 
 // The recipe choice in the log-brew form.

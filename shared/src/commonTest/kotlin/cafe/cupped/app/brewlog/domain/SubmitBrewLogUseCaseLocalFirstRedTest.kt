@@ -9,11 +9,11 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 /**
- * RED tests for the local-first use-case seam.
+ * Regression coverage for the local-first use-case seam.
  *
- * The current server-first use case rejects [SelectedBean.NewDraft]. Local-first
- * behavior should accept it and delegate to the data layer so the repository can
- * create an optimistic bean and pending brew log atomically.
+ * [SelectedBean.NewDraft] is now accepted and delegated to the data layer so the
+ * repository can create an optimistic bean and pending brew log atomically. Only
+ * a missing bean and [SelectedRecipe.NewDraft] remain rejected at this boundary.
  */
 class SubmitBrewLogUseCaseLocalFirstRedTest {
 
@@ -57,25 +57,26 @@ class SubmitBrewLogUseCaseLocalFirstRedTest {
 
         override suspend fun getOptions(): Result<BrewLogOptions> = Result.success(BrewLogOptions())
 
-        override suspend fun createBrewLog(draft: BrewLogDraft): Result<BrewLog> {
+        override suspend fun createBrewLog(draft: BrewLogDraft): Result<LocalBrewLog> {
             createdDraft = draft
             return Result.success(
-                BrewLog(
+                LocalBrewLog(
                     id = "brew-log-1",
-                    bean = Bean(
+                    profileId = "profile-1",
+                    bean = LocalBeanRef.Optimistic(
                         id = "bean-optimistic-1",
-                        name = "Yirgacheffe",
-                        slug = null,
-                        country = "Ethiopia",
-                        region = "Yirgacheffe",
-                        process = "washed",
-                        roastLevel = 35,
+                        draft = (draft.bean as SelectedBean.NewDraft).draft,
+                        syncState = LocalDependencySyncState.Pending,
                     ),
                     notes = draft.notes,
+                    syncStatus = LocalSyncStatus.PendingCreate,
+                    localRevision = 1,
+                    createdAtMillis = 1,
+                    localUpdatedAtMillis = 1,
                 )
             )
         }
 
-        override suspend fun getBrewLogs(): Result<List<BrewLog>> = Result.success(emptyList())
+        override suspend fun getBrewLogs(): Result<List<LocalBrewLog>> = Result.success(emptyList())
     }
 }

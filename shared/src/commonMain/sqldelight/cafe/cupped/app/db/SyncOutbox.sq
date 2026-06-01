@@ -23,3 +23,89 @@ CREATE INDEX sync_outbox_ready_idx ON sync_outbox(profile_id, state, next_attemp
 CREATE UNIQUE INDEX sync_outbox_entity_active_unique_idx
     ON sync_outbox(profile_id, entity_type, entity_id)
     WHERE state IN ('pending', 'in_flight', 'blocked_error', 'auth_blocked');
+
+insertOutbox:
+INSERT INTO sync_outbox(
+    id,
+    profile_id,
+    client_id,
+    entity_type,
+    entity_id,
+    operation,
+    base_server_version,
+    state,
+    created_at,
+    retry_count,
+    next_attempt_at,
+    last_error,
+    depends_on_entity_type,
+    depends_on_entity_id
+) VALUES (
+    :id,
+    :profile_id,
+    :client_id,
+    :entity_type,
+    :entity_id,
+    :operation,
+    NULL,
+    'pending',
+    :created_at,
+    0,
+    NULL,
+    NULL,
+    :depends_on_entity_type,
+    :depends_on_entity_id
+);
+
+insertOutboxOrIgnore:
+INSERT OR IGNORE INTO sync_outbox(
+    id,
+    profile_id,
+    client_id,
+    entity_type,
+    entity_id,
+    operation,
+    base_server_version,
+    state,
+    created_at,
+    retry_count,
+    next_attempt_at,
+    last_error,
+    depends_on_entity_type,
+    depends_on_entity_id
+) VALUES (
+    :id,
+    :profile_id,
+    :client_id,
+    :entity_type,
+    :entity_id,
+    :operation,
+    NULL,
+    'pending',
+    :created_at,
+    0,
+    NULL,
+    NULL,
+    :depends_on_entity_type,
+    :depends_on_entity_id
+);
+
+selectActiveOutboxForEntity:
+SELECT * FROM sync_outbox
+WHERE profile_id = :profile_id
+  AND entity_type = :entity_type
+  AND entity_id = :entity_id
+  AND state IN ('pending', 'in_flight', 'blocked_error', 'auth_blocked')
+LIMIT 1;
+
+selectActiveBeanCreateOutbox:
+SELECT * FROM sync_outbox
+WHERE profile_id = :profile_id
+  AND entity_type = 'bean'
+  AND entity_id = :entity_id
+  AND operation = 'create'
+  AND state IN ('pending', 'in_flight', 'blocked_error', 'auth_blocked')
+LIMIT 1;
+
+countOutboxByProfile:
+SELECT count(*) FROM sync_outbox WHERE profile_id = :profile_id;

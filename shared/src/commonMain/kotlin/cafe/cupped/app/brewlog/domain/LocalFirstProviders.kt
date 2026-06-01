@@ -15,5 +15,25 @@ fun interface CurrentProfileProvider {
 
 /** Supplies the stable per-install client id written to sync outbox rows. */
 fun interface SyncClientIdProvider {
-    fun clientId(): String
+    fun clientId(): String?
+}
+
+/** Generates client-side ids for local brew-log rows. */
+fun interface BrewLogIdProvider {
+    fun nextBrewLogId(): String
+}
+
+/** Generates client-side ids for optimistic bean rows. */
+fun interface BeanIdProvider {
+    fun nextBeanId(): String
+}
+
+/** Generates durable outbox mutation ids. */
+fun interface OutboxIdProvider {
+    fun nextOutboxId(entityType: String, entityId: String, operation: String): String
+}
+
+/** Supplies epoch-millis timestamps for deterministic local persistence. */
+fun interface EpochMillisProvider {
+    fun nowMillis(): Long
 }
